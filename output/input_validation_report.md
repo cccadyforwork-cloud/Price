@@ -1,6 +1,6 @@
 # 输入数据校验报告
 
-- 当前尺寸重量表：花束卡片夹尺寸.xlsx
+- 当前尺寸重量表：园艺手套尺寸重量.xlsx
 
 ## 配置
 
@@ -12,25 +12,23 @@
 
 ## 尺寸重量状态
 
-- SKU 总数：5
-- 可进入定价：5
+- SKU 总数：3
+- 可进入定价：3
 - 待补尺寸重量：0
 
 | SKU | 规格 | 状态 | 缺失项 |
 | --- | --- | --- | --- |
-| 5 | 圆形卡插/10支;件 | 可定价 | - |
-| 6 | 五角星卡插/10支;件 | 可定价 | - |
-| 7 | 心形卡插/10支;件 | 可定价 | - |
-| 8 | 圆形粉色10支/包;件 | 可定价 | - |
-| 9 | 镀金小熊10支/包;件 | 可定价 | - |
+| 22 | 紫色罗兰发泡手套 | 可定价 | - |
+| 23 | 绿色木槿发泡手套 | 可定价 | - |
+| 24 | 灰弹力黑胶压纹 | 可定价 | - |
 
 ## 竞品价格
 
 | 文件 | ASIN | 页面主售价 | 包数 | 折算每10支 | 标题 |
 | --- | --- | ---: | ---: | ---: | --- |
-| floral_pick_card_holder_40pcs.html | B0D12X15QQ | $4.99 | 40 | $1.25 | 40Pcs Floral Pick Card Holder, Card Holder for Flower Arrangement, Gift Card Tree Holder, Photo Memo Holder Pick Stick, 12 Inch Suitable for Wedding Birthday Party Flower Gifts (Round&Heart) |
-| jicyoup_floral_card_holder_30pack.html | B0F83HVGFM | $6.99 | 30 | $2.33 | 30 Pack Strong Grip Gold Floral Card Holder Picks, 13.4 Inch Premium Metal Flower Picks for Table Centerpieces, Picture Holders for Tables, Photo Card Holder Sticks for Flower Arrangements |
-| metal_floral_card_holder_50pcs.html | B0GSWVSZB1 | $5.99 | 50 | $1.20 | 50Pcs Metal Floral Card Holder Picks - Flower Card Holder Sticks for Gift Cards & Flower Bouquet. Floral Picks & Picture Photo Holders for Centerpieces, Wedding Birthday Party Decoration Accessories |
+| Amazon.com _ COOLJOB 6 Pairs Gardening Gloves for Women Ladies, Breathable Rubber Coated for Yard Garden, Outdoor Indoor Protective Work, Medium Size, Lavender Purple & Apple Green _ Patio, Lawn & Garden.html | B08GPCQ8HT | $14.99 | 1 | $149.90 | COOLJOB 6 Pairs Gardening Gloves for Women Ladies, Breathable Rubber Coated for Yard Garden, Outdoor Indoor Protective Work, Medium Size, Lavender Purple & Apple Green |
+| Amazon.com _ Pleneal Gardening Gloves for Women Men - 6 Pairs Breathable Garden Gloves with Grip, Printed Latex Coating Outdoor Working Gloves for Lawn Yard, Medium Size Fits Most _ Patio, Lawn & Garden.html | B0DPQJL1JX | $7.49 | 1 | $74.90 | Gardening Gloves for Women Men - 6/3 Pairs Garden Gloves with Grip, Latex Coated Working Glove, Medium Size |
+| Amazon.com_ DOFOWORK Gardening Gloves - 6 Pair Gardening Gloves for Women_Men, Breathable Natural Latex Garden Glove with Grip, Outdoor Protective Working Glove for Weeding, Raking and Pruning - Black & Green _ Patio, Lawn & Garden.html | B0BNXHSL8Y | $7.89 | 1 | $78.90 | Gardening Gloves - 6 Pair Gardening Gloves for Women/Men, Breathable Natural Latex Garden Gloves with Grip |
 
 ## 下一步
 

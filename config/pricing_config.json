@@ -1,0 +1,11 @@
+{
+  "marketplace": "US",
+  "currency_rate_rmb_to_usd": 7.2,
+  "referral_fee_rate": 0.18,
+  "return_rate": 0.1,
+  "first_leg_shipping_usd": 0.3,
+  "target_margin_min": 0.25,
+  "target_price_gap_usd": 0.39,
+  "dimensional_weight_divisor": 139,
+  "disposal_fee_usd": 0.25
+}

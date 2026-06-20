@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>定价系统</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="sketch-page">
+      <header class="sketch-header">
+        <h1>定价系统</h1>
+        <div class="header-actions">
+          <button id="saveBtn" type="button">
+            <span class="icon" data-icon="save"></span>
+            保存
+          </button>
+          <button id="draftBtn" type="button">
+            <span class="icon" data-icon="file"></span>
+            生成数据表
+          </button>
+          <button id="pricingBtn" class="primary" type="button">
+            <span class="icon" data-icon="calculator"></span>
+            确认后出分析表
+          </button>
+        </div>
+      </header>
+
+      <section class="status-band" id="statusBand" aria-live="polite"></section>
+
+      <section class="sketch-box input-box">
+        <div class="box-label">资料输入：</div>
+        <div class="input-line">
+          <label class="system-field wide">
+            款式/标题
+            <input id="variant" autocomplete="off">
+          </label>
+          <label class="system-field">
+            SKU 自动生成/手动输入
+            <input id="sku" autocomplete="off">
+          </label>
+          <label class="system-field">
+            销售包数
+            <input id="packCountDisplay" readonly>
+          </label>
+        </div>
+
+        <div class="manual-size-row">
+          <span class="row-title">尺寸重量手动输入</span>
+          <label>
+            长
+            <input id="lengthCm" type="number" step="0.1" min="0">
+          </label>
+          <label>
+            宽
+            <input id="widthCm" type="number" step="0.1" min="0">
+          </label>
+          <label>
+            高
+            <input id="heightCm" type="number" step="0.1" min="0">
+          </label>
+          <label>
+            重
+            <input id="weightG" type="number" step="1" min="0">
+          </label>
+        </div>
+
+        <div class="source-panels">
+          <form class="source-panel file-button" data-upload-type="purchase_order">
+            <strong>采购单</strong>
+            <span>上传 PDF / Excel</span>
+            <input id="purchaseFile" type="file" name="files" multiple accept=".pdf,.xlsx,.xls">
+            <button type="submit">上传采购单</button>
+          </form>
+          <form class="source-panel file-button" data-upload-type="product_links">
+            <strong>产品链接</strong>
+            <span>上传 txt / Excel / HTML 链接文件</span>
+            <input id="productLinkFile" type="file" name="files" multiple accept=".txt,.csv,.tsv,.xlsx,.xls,.html,.htm">
+            <button type="submit">上传产品链接</button>
+          </form>
+        </div>
+
+        <form class="file-button compact-file-button" data-upload-type="competitors">
+          <input id="competitorFile" type="file" name="files" multiple accept=".html,.htm">
+          <button type="submit">上传竞品HTML</button>
+        </form>
+
+        <div class="small-lists">
+          <div>
+            <strong>采购单文件</strong>
+            <ul id="purchaseOrderFiles" class="file-list"></ul>
+          </div>
+          <div>
+            <strong>产品链接文件</strong>
+            <ul id="productLinkFiles" class="file-list"></ul>
+          </div>
+          <div>
+            <strong>竞品文件</strong>
+            <ul id="competitorFiles" class="file-list"></ul>
+          </div>
+          <div>
+            <strong>内置规则</strong>
+            <div id="builtinRules" class="rule-line">读取中</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sketch-box output-box">
+        <div class="box-label">数据输出：</div>
+        <div class="table-block">
+          <table class="draft-table">
+            <thead>
+              <tr>
+                <th>款式标题</th>
+                <th>SKU区域（自动生成/手动输入）</th>
+                <th>长</th>
+                <th>宽</th>
+                <th>高</th>
+                <th>重</th>
+              </tr>
+            </thead>
+            <tbody id="manualDimensionRows"></tbody>
+          </table>
+        </div>
+        <div class="table-note">确认后出分析表</div>
+      </section>
+
+      <section class="sketch-box analysis-box">
+        <div class="box-label">定价分析表：</div>
+        <div class="analysis-stack">
+          <div class="analysis-card" id="deliverySummary">产品配送费价格：读取官方/FBA档位摘要</div>
+          <div class="analysis-card" id="competitorSummary">竞品价格分析：生成总结</div>
+          <div class="analysis-card" id="pricingNarrative">产品条件、利润、定价分析：生成计算过程</div>
+        </div>
+
+        <div class="table-block">
+          <table class="analysis-table">
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>长</th>
+                <th>宽</th>
+                <th>高</th>
+                <th>重</th>
+                <th>定价</th>
+                <th>FBA费</th>
+                <th>期望利润</th>
+                <th>利润率</th>
+              </tr>
+            </thead>
+            <tbody id="scenarioRows"></tbody>
+          </table>
+        </div>
+
+        <div class="export-row">
+          <span>Excel表输出</span>
+          <div id="fileLinks" class="file-links"></div>
+        </div>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

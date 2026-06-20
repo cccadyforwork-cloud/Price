@@ -1,0 +1,69 @@
+{
+  "product_batch": "防磨贴",
+  "sku": "BlisterPad-3Style-30pcs",
+  "chinese_name": "水胶体脚部防磨贴组合套装",
+  "english_name": "Hydrocolloid Blister Pads Variety Pack",
+  "variant": "3款各10片，共30片/套",
+  "purchase_order": "input/purchase_orders/防磨贴采购单.pdf",
+  "competitor_dir": "input/competitors_archive/blister_pads",
+  "manual_competitors": [
+    {
+      "file": "对话记录_15pcs快照",
+      "asin": "B0FLX5GFWQ",
+      "price_usd": 5.99,
+      "pack_count": 15,
+      "title": "Hydrocolloid Blister Pads 15PCS"
+    },
+    {
+      "file": "对话记录_30pcs快照",
+      "asin": "B0G34TLGWK",
+      "price_usd": 5.69,
+      "pack_count": 30,
+      "title": "30pcs Hydrocolloid Gel Blister Bandages"
+    },
+    {
+      "file": "对话记录_32pcs快照",
+      "asin": "B0FMXLXDRL",
+      "price_usd": 9.99,
+      "pack_count": 32,
+      "title": "32PCS Hydrocolloid Blister Bandages Variety Pack"
+    }
+  ],
+  "components": [
+    {
+      "name": "44x69mm",
+      "purchase_unit_cost_rmb": 0.55,
+      "purchase_quantity_pcs": 80,
+      "pcs_per_bundle": 10,
+      "line_discount_rmb": -0.5
+    },
+    {
+      "name": "20x60mm",
+      "purchase_unit_cost_rmb": 0.27,
+      "purchase_quantity_pcs": 80,
+      "pcs_per_bundle": 10,
+      "line_discount_rmb": -0.25
+    },
+    {
+      "name": "17x60mm",
+      "purchase_unit_cost_rmb": 0.28,
+      "purchase_quantity_pcs": 80,
+      "pcs_per_bundle": 10,
+      "line_discount_rmb": -0.25
+    }
+  ],
+  "package": {
+    "length_cm": 12,
+    "width_cm": 8,
+    "height_cm": 1.5,
+    "weight_g": 55
+  },
+  "order_shipping_rmb": 0,
+  "order_discount_rmb": -1,
+  "first_leg_shipping_usd_per_bundle": 0.3,
+  "target_margin_min": 0.25,
+  "target_price_gap_usd_per_comparison_unit": 0.39,
+  "comparison_unit_quantity": 30,
+  "manual_price_usd": "",
+  "notes": "采购单三款各80片；销售单位按3款各10片组合成30片/套。采购成本按三款各10片合计，采购数量按可组成套数计算。"
+}

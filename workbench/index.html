@@ -3,161 +3,382 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>定价系统</title>
-    <link rel="stylesheet" href="/styles.css">
+    <title>通用产品定价台</title>
+    <link rel="stylesheet" href="/styles.css?v=20260624-2">
   </head>
   <body>
-    <main class="sketch-page">
-      <header class="sketch-header">
-        <h1>定价系统</h1>
-        <div class="header-actions">
-          <button id="saveBtn" type="button">
-            <span class="icon" data-icon="save"></span>
-            保存
-          </button>
-          <button id="draftBtn" type="button">
-            <span class="icon" data-icon="file"></span>
-            生成数据表
-          </button>
-          <button id="pricingBtn" class="primary" type="button">
-            <span class="icon" data-icon="calculator"></span>
-            确认后出分析表
-          </button>
+    <main class="workspace-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">通用产品定价台</p>
+          <h1>从采购单到定价分析报告</h1>
+        </div>
+        <div class="topbar-actions">
+          <button id="saveDraftBtn" type="button" class="ghost-button">保存草稿</button>
+          <button id="confirmBaseBtn" type="button" class="primary-button">确认基础表格</button>
         </div>
       </header>
 
-      <section class="status-band" id="statusBand" aria-live="polite"></section>
-
-      <section class="sketch-box input-box">
-        <div class="box-label">资料输入：</div>
-        <div class="input-line">
-          <label class="system-field wide">
-            款式/标题
-            <input id="variant" autocomplete="off">
-          </label>
-          <label class="system-field">
-            SKU 自动生成/手动输入
-            <input id="sku" autocomplete="off">
-          </label>
-          <label class="system-field">
-            销售包数
-            <input id="packCountDisplay" readonly>
-          </label>
+      <section class="flow-strip" aria-label="流程">
+        <div class="flow-step active">
+          <span>1</span>
+          <strong>输入资料</strong>
         </div>
-
-        <div class="manual-size-row">
-          <span class="row-title">尺寸重量手动输入</span>
-          <label>
-            长
-            <input id="lengthCm" type="number" step="0.1" min="0">
-          </label>
-          <label>
-            宽
-            <input id="widthCm" type="number" step="0.1" min="0">
-          </label>
-          <label>
-            高
-            <input id="heightCm" type="number" step="0.1" min="0">
-          </label>
-          <label>
-            重
-            <input id="weightG" type="number" step="1" min="0">
-          </label>
+        <div class="flow-step active">
+          <span>2</span>
+          <strong>识别采购单</strong>
         </div>
-
-        <div class="source-panels">
-          <form class="source-panel file-button" data-upload-type="purchase_order">
-            <strong>采购单</strong>
-            <span>上传 PDF / Excel</span>
-            <input id="purchaseFile" type="file" name="files" multiple accept=".pdf,.xlsx,.xls">
-            <button type="submit">上传采购单</button>
-          </form>
-          <form class="source-panel file-button" data-upload-type="product_links">
-            <strong>产品链接</strong>
-            <span>上传 txt / Excel / HTML 链接文件</span>
-            <input id="productLinkFile" type="file" name="files" multiple accept=".txt,.csv,.tsv,.xlsx,.xls,.html,.htm">
-            <button type="submit">上传产品链接</button>
-          </form>
+        <div class="flow-step active">
+          <span>3</span>
+          <strong>确认成本尺寸</strong>
         </div>
+        <div class="flow-step active">
+          <span>4</span>
+          <strong>竞品与报告</strong>
+        </div>
+        <div class="flow-step active">
+          <span>5</span>
+          <strong>价格确认</strong>
+        </div>
+      </section>
 
-        <form class="file-button compact-file-button" data-upload-type="competitors">
-          <input id="competitorFile" type="file" name="files" multiple accept=".html,.htm">
-          <button type="submit">上传竞品HTML</button>
-        </form>
+      <section id="siteStatus" class="site-status" aria-live="polite">网站已加载，可以开始确认资料。</section>
 
-        <div class="small-lists">
-          <div>
-            <strong>采购单文件</strong>
-            <ul id="purchaseOrderFiles" class="file-list"></ul>
+      <section class="main-grid">
+        <aside class="input-panel" aria-label="输入区">
+          <div class="panel-heading">
+            <h2>输入</h2>
+            <span>采购单 + 手动尺寸重量</span>
           </div>
-          <div>
-            <strong>产品链接文件</strong>
-            <ul id="productLinkFiles" class="file-list"></ul>
+
+          <label class="field">
+            产品名称
+            <input id="productName" type="text" value="防磨贴">
+          </label>
+
+          <div class="upload-box">
+            <div>
+              <strong>采购单</strong>
+              <span>支持 PDF / 图片</span>
+            </div>
+            <input id="purchaseOrderFile" type="file" aria-label="上传采购单" accept=".pdf,.png,.jpg,.jpeg,.webp">
+            <p id="purchaseOrderFileName">已放入：防磨贴采购单.pdf</p>
           </div>
-          <div>
-            <strong>竞品文件</strong>
-            <ul id="competitorFiles" class="file-list"></ul>
+
+          <div class="manual-card">
+            <div class="manual-card-title">
+              <strong>尺寸重量</strong>
+              <span>每款一致</span>
+            </div>
+            <div class="dimension-grid">
+              <label>
+                长 cm
+                <input id="lengthCm" type="number" value="8" step="0.1">
+              </label>
+              <label>
+                宽 cm
+                <input id="widthCm" type="number" value="12" step="0.1">
+              </label>
+              <label>
+                高 cm
+                <input id="heightCm" type="number" value="1.5" step="0.1">
+              </label>
+              <label>
+                重 g
+                <input id="weightG" type="number" value="55" step="1">
+              </label>
+            </div>
           </div>
-          <div>
+
+          <div class="rule-card">
             <strong>内置规则</strong>
-            <div id="builtinRules" class="rule-line">读取中</div>
+            <p>SKU 生成规则、币种、配送费档位、利润测算规则从项目内读取。</p>
           </div>
-        </div>
+        </aside>
+
+        <section class="result-panel" aria-label="识别结果">
+          <div class="panel-heading result-heading">
+            <div>
+              <h2>识别结果</h2>
+              <span>从采购单识别出 3 款产品，尺寸重量已按手动输入补齐。</span>
+            </div>
+            <span id="baseStatus" class="status-pill">待确认</span>
+          </div>
+
+          <div class="summary-grid">
+            <div>
+              <span>采购款数</span>
+              <strong>3 款</strong>
+            </div>
+            <div>
+              <span>采购总数</span>
+              <strong>240 片</strong>
+            </div>
+            <div>
+              <span>实付金额</span>
+              <strong>87.00 RMB</strong>
+            </div>
+            <div>
+              <span>运费</span>
+              <strong>0.00 RMB</strong>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>款式标题</th>
+                  <th>规格</th>
+                  <th class="numeric">采购数量</th>
+                  <th class="numeric">成本价</th>
+                  <th class="numeric">长(cm)</th>
+                  <th class="numeric">宽(cm)</th>
+                  <th class="numeric">高(cm)</th>
+                  <th class="numeric">重(g)</th>
+                </tr>
+              </thead>
+              <tbody id="recognizedRows">
+                <tr>
+                  <td><input data-final-sku-source="0" value="BP-44X69-001"></td>
+                  <td>水泡贴-大椭圆</td>
+                  <td>44mm*69mm</td>
+                  <td class="numeric">80</td>
+                  <td class="numeric strong">0.5438</td>
+                  <td class="numeric">8</td>
+                  <td class="numeric">12</td>
+                  <td class="numeric">1.5</td>
+                  <td class="numeric">55</td>
+                </tr>
+                <tr>
+                  <td><input data-final-sku-source="1" value="BP-20X60-002"></td>
+                  <td>水泡贴-小长条</td>
+                  <td>20mm*60mm</td>
+                  <td class="numeric">80</td>
+                  <td class="numeric strong">0.2669</td>
+                  <td class="numeric">8</td>
+                  <td class="numeric">12</td>
+                  <td class="numeric">1.5</td>
+                  <td class="numeric">55</td>
+                </tr>
+                <tr>
+                  <td><input data-final-sku-source="2" value="BP-17X60-003"></td>
+                  <td>水泡贴-中手表</td>
+                  <td>17mm*60mm</td>
+                  <td class="numeric">80</td>
+                  <td class="numeric strong">0.2769</td>
+                  <td class="numeric">8</td>
+                  <td class="numeric">12</td>
+                  <td class="numeric">1.5</td>
+                  <td class="numeric">55</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="check-panel">
+            <h3>这一步输出</h3>
+            <p>系统生成 SKU，采集采购成本，并把手动输入的尺寸重量合并到每个采购款式。确认后，这张表会作为下一步配送费和利润定价的基础数据。</p>
+          </div>
+        </section>
       </section>
 
-      <section class="sketch-box output-box">
-        <div class="box-label">数据输出：</div>
-        <div class="table-block">
-          <table class="draft-table">
-            <thead>
-              <tr>
-                <th>款式标题</th>
-                <th>SKU区域（自动生成/手动输入）</th>
-                <th>长</th>
-                <th>宽</th>
-                <th>高</th>
-                <th>重</th>
-              </tr>
-            </thead>
-            <tbody id="manualDimensionRows"></tbody>
-          </table>
-        </div>
-        <div class="table-note">确认后出分析表</div>
+      <section class="next-step-grid">
+        <section class="competitor-panel" aria-label="竞品输入">
+          <div class="panel-heading">
+            <div>
+              <h2>补充竞品文件</h2>
+              <span>基础表格确认后，再补充竞品资料用于价格对比。</span>
+            </div>
+            <span class="status-pill ready">下一步</span>
+          </div>
+
+          <div class="competitor-input-grid">
+            <div class="upload-box">
+              <div>
+                <strong>竞品 HTML / 截图 / 表格</strong>
+                <span>支持多个文件一起上传</span>
+              </div>
+              <input id="competitorFiles" type="file" aria-label="上传竞品文件" multiple accept=".html,.htm,.pdf,.png,.jpg,.jpeg,.webp,.xlsx,.xls,.csv">
+              <p id="competitorFileSummary">示例已读取：4 个竞品文件，最低对比价 $5.69。</p>
+            </div>
+
+            <div class="manual-card">
+              <div class="manual-card-title">
+                <strong>竞品口径</strong>
+                <span>用于统一比较</span>
+              </div>
+              <div class="dimension-grid">
+                <label>
+                  对比单位数量
+                  <input id="comparisonUnitQty" type="number" value="30" step="1">
+                </label>
+                <label>
+                  目标利润率
+                  <input id="targetMargin" type="text" value="25%">
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="competitor-summary">
+            <div>
+              <span>竞品数量</span>
+              <strong>4 个</strong>
+            </div>
+            <div>
+              <span>最低对比价</span>
+              <strong>$5.69</strong>
+            </div>
+            <div>
+              <span>对比单位</span>
+              <strong>30 片</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="report-panel" aria-label="定价分析报告">
+          <div class="panel-heading result-heading">
+            <div>
+              <h2>定价分析报告</h2>
+              <span>系统合并采购成本、尺寸重量、配送费规则和竞品价格后输出。</span>
+            </div>
+            <button id="generateReportBtn" type="button" class="primary-button">生成报告</button>
+          </div>
+
+          <div class="analysis-narrative" id="reportContent">
+            <article class="process-block">
+              <h3>配送费分析过程</h3>
+              <p class="lead-text">按你表里的参数算，防磨贴配送费预计为 <mark>$0.88</mark>，保本定价约为 <mark>$3.94</mark>，建议上架不要低于 <mark>$3.99</mark>。</p>
+              <p>我用的表内假设是：</p>
+              <ul>
+                <li>尺寸：8 × 12 × 1.5 cm，重量 55g = 约 1.94oz，落在 4oz 及以下。</li>
+                <li>预计售价会高于 <mark>$3</mark>，所以按表里非服饰类、售价 &gt; $3 的配送费 <mark>$0.88</mark> 测算。</li>
+                <li>这一步只判断配送费档位，不混入竞品价格；竞品会放到下面的利润分析里看。</li>
+              </ul>
+            </article>
+
+            <article class="process-block">
+              <h3>竞品与利润分析过程</h3>
+              <p class="lead-text">竞品锚点从上传文件里看到：</p>
+              <div class="comparison-table-wrap">
+                <table class="comparison-table">
+                  <thead>
+                    <tr>
+                      <th>竞品</th>
+                      <th>售价</th>
+                      <th>单片价</th>
+                      <th>评分/评论</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>15PCS</td>
+                      <td><mark>$5.99</mark></td>
+                      <td><mark>$0.40/片</mark></td>
+                      <td>3.6分 / 6评</td>
+                    </tr>
+                    <tr>
+                      <td>30pcs</td>
+                      <td><mark>$5.69</mark></td>
+                      <td><mark>$0.19/片</mark></td>
+                      <td>4.2分 / 41评</td>
+                    </tr>
+                    <tr>
+                      <td>32PCS</td>
+                      <td><mark>$9.99</mark></td>
+                      <td><mark>$0.31/片</mark></td>
+                      <td>4.1分 / 135评</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <p>如果你的 30 片组合按 <mark>$5.61</mark> 上架：</p>
+              <ul>
+                <li>单片价约 <mark>$0.19/片</mark>，基本贴近 30pcs 竞品。</li>
+                <li>按当前采购成本和配送费模型，期望利润率约 <mark>25.0%</mark>。</li>
+                <li>但和最低竞品 <mark>$5.69</mark> 的差距很小，价格优势不明显。</li>
+              </ul>
+              <p class="strategy-text">我的策略：先把定价底线定在 <mark>$3.99</mark> 以上，再用 <mark>$5.61</mark> 作为当前利润目标价测试。后续如果要追 30pcs 的 <mark>$0.19/片</mark> 锚点，需要继续优化组合数量、包装成本或采购成本。</p>
+            </article>
+          </div>
+
+          <div class="report-actions">
+            <button id="reportExcelBtn" type="button" class="ghost-button">导出 Excel</button>
+            <button id="reportTextBtn" type="button" class="ghost-button">导出报告</button>
+            <a id="downloadReportExcelLink" class="download-link is-hidden" href="#" download="防磨贴_定价分析报告.xls">下载分析 Excel</a>
+            <a id="downloadReportTextLink" class="download-link is-hidden" href="#" download="防磨贴_定价分析报告.txt">下载报告文本</a>
+          </div>
+        </section>
       </section>
 
-      <section class="sketch-box analysis-box">
-        <div class="box-label">定价分析表：</div>
-        <div class="analysis-stack">
-          <div class="analysis-card" id="deliverySummary">产品配送费价格：读取官方/FBA档位摘要</div>
-          <div class="analysis-card" id="competitorSummary">竞品价格分析：生成总结</div>
-          <div class="analysis-card" id="pricingNarrative">产品条件、利润、定价分析：生成计算过程</div>
-        </div>
+      <section class="final-stage" aria-label="价格确认">
+        <section class="final-panel">
+          <div class="panel-heading result-heading">
+            <div>
+              <h2>价格确认</h2>
+              <span>默认带入建议定价，确认前可以手动调整，确认后生成 Excel 表格。</span>
+            </div>
+            <span class="status-pill ready">最终输出</span>
+          </div>
 
-        <div class="table-block">
-          <table class="analysis-table">
-            <thead>
-              <tr>
-                <th>SKU</th>
-                <th>长</th>
-                <th>宽</th>
-                <th>高</th>
-                <th>重</th>
-                <th>定价</th>
-                <th>FBA费</th>
-                <th>期望利润</th>
-                <th>利润率</th>
-              </tr>
-            </thead>
-            <tbody id="scenarioRows"></tbody>
-          </table>
-        </div>
+          <div class="final-table-wrap">
+            <table class="final-table">
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>款式标题</th>
+                  <th class="numeric">长(in)</th>
+                  <th class="numeric">宽(in)</th>
+                  <th class="numeric">高(in)</th>
+                  <th class="numeric">重(lb)</th>
+                  <th class="numeric">定价</th>
+                </tr>
+              </thead>
+              <tbody id="finalPricingRows">
+                <tr>
+                  <td data-final-sku="0">BP-44X69-001</td>
+                  <td>水泡贴-大椭圆</td>
+                  <td class="numeric">3.15</td>
+                  <td class="numeric">4.72</td>
+                  <td class="numeric">0.59</td>
+                  <td class="numeric">0.121</td>
+                  <td><input class="price-input" type="number" value="5.61" min="0" step="0.01" aria-label="BP-44X69-001 定价"></td>
+                </tr>
+                <tr>
+                  <td data-final-sku="1">BP-20X60-002</td>
+                  <td>水泡贴-小长条</td>
+                  <td class="numeric">3.15</td>
+                  <td class="numeric">4.72</td>
+                  <td class="numeric">0.59</td>
+                  <td class="numeric">0.121</td>
+                  <td><input class="price-input" type="number" value="5.61" min="0" step="0.01" aria-label="BP-20X60-002 定价"></td>
+                </tr>
+                <tr>
+                  <td data-final-sku="2">BP-17X60-003</td>
+                  <td>水泡贴-中手表</td>
+                  <td class="numeric">3.15</td>
+                  <td class="numeric">4.72</td>
+                  <td class="numeric">0.59</td>
+                  <td class="numeric">0.121</td>
+                  <td><input class="price-input" type="number" value="5.61" min="0" step="0.01" aria-label="BP-17X60-003 定价"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-        <div class="export-row">
-          <span>Excel表输出</span>
-          <div id="fileLinks" class="file-links"></div>
-        </div>
+          <div class="final-actions">
+            <p id="exportStatus" class="export-status">等待确认价格。</p>
+            <div class="final-action-buttons">
+              <button id="generateExcelBtn" type="button" class="primary-button">确认并生成 Excel</button>
+              <a id="downloadExcelLink" class="download-link is-hidden" href="#" download="防磨贴_最终价格确认表.xls">下载 Excel</a>
+            </div>
+          </div>
+        </section>
       </section>
     </main>
-    <script src="/app.js"></script>
+    <script src="/app.js?v=20260624-2"></script>
   </body>
 </html>

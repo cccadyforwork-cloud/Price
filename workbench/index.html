@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>通用产品定价台</title>
-    <link rel="stylesheet" href="/styles.css?v=20260624-2">
+    <link rel="stylesheet" href="styles.css?v=20260625-ocr3">
   </head>
   <body>
     <main class="workspace-shell">
@@ -59,10 +59,57 @@
           <div class="upload-box">
             <div>
               <strong>采购单</strong>
-              <span>支持 PDF / 图片</span>
+              <span>支持 PDF / 图片 / HTML / 文本</span>
             </div>
-            <input id="purchaseOrderFile" type="file" aria-label="上传采购单" accept=".pdf,.png,.jpg,.jpeg,.webp">
+            <input id="purchaseOrderFile" type="file" aria-label="上传采购单" accept=".pdf,.png,.jpg,.jpeg,.webp,.html,.htm,.txt,.csv">
             <p id="purchaseOrderFileName">已放入：防磨贴采购单.pdf</p>
+            <div class="ocr-actions">
+              <button id="runOcrBtn" type="button" class="ghost-button" disabled>识别图片文字</button>
+              <span id="ocrStatus">未选择图片</span>
+            </div>
+            <div id="purchasePreview" class="upload-preview is-hidden" aria-live="polite"></div>
+          </div>
+
+          <div class="manual-card">
+            <div class="manual-card-title">
+              <strong>订单文本 / OCR 结果</strong>
+              <span>文件识别不到时使用</span>
+            </div>
+            <textarea id="orderTextInput" rows="6" placeholder="把订单详情页、截图 OCR 结果或表格文本粘贴到这里，例如：货号 HJ-11 规格型号 200ml款式3; 彩色 数量 2 单价 4.00 优惠 -0.25 金额 7.75"></textarea>
+            <div class="inline-actions">
+              <button id="parseOrderTextBtn" type="button" class="ghost-button">解析粘贴文本</button>
+              <button id="loadSampleOrderBtn" type="button" class="ghost-button">载入测试订单文本</button>
+            </div>
+          </div>
+
+          <div class="manual-card">
+            <div class="manual-card-title">
+              <strong>手动添加采购行</strong>
+              <span>用于动态网页/图片兜底</span>
+            </div>
+            <div class="manual-row-grid">
+              <label>
+                货号
+                <input id="manualItemCode" type="text" placeholder="例如：HJ-11">
+              </label>
+              <label>
+                款式标题
+                <input id="manualTitle" type="text" placeholder="例如：透明玻璃喷壶">
+              </label>
+              <label>
+                规格
+                <input id="manualSpec" type="text" placeholder="例如：200ml款式3; 彩色">
+              </label>
+              <label>
+                数量
+                <input id="manualQty" type="number" min="0" step="1" placeholder="例如：100">
+              </label>
+              <label>
+                成本价
+                <input id="manualCost" type="number" min="0" step="0.0001" placeholder="单件成本">
+              </label>
+            </div>
+            <button id="addManualRowBtn" type="button" class="ghost-button">添加到识别结果</button>
           </div>
 
           <div class="manual-card">
@@ -100,7 +147,7 @@
           <div class="panel-heading result-heading">
             <div>
               <h2>识别结果</h2>
-              <span>从采购单识别出 3 款产品，尺寸重量已按手动输入补齐。</span>
+              <span id="recognizedSummaryText">从采购单识别出 3 款产品，尺寸重量已按手动输入补齐。</span>
             </div>
             <span id="baseStatus" class="status-pill">待确认</span>
           </div>
@@ -112,10 +159,10 @@
             </div>
             <div>
               <span>采购总数</span>
-              <strong>240 片</strong>
+              <strong>240 件</strong>
             </div>
             <div>
-              <span>实付金额</span>
+              <span>货品成本</span>
               <strong>87.00 RMB</strong>
             </div>
             <div>
@@ -191,7 +238,7 @@
               <h2>补充竞品文件</h2>
               <span>基础表格确认后，再补充竞品资料用于价格对比。</span>
             </div>
-            <span class="status-pill ready">下一步</span>
+            <span id="competitorStatus" class="status-pill">待上传</span>
           </div>
 
           <div class="competitor-input-grid">
@@ -202,6 +249,7 @@
               </div>
               <input id="competitorFiles" type="file" aria-label="上传竞品文件" multiple accept=".html,.htm,.pdf,.png,.jpg,.jpeg,.webp,.xlsx,.xls,.csv">
               <p id="competitorFileSummary">示例已读取：4 个竞品文件，最低对比价 $5.69。</p>
+              <p id="competitorParseStatus" class="mini-status">等待补充竞品资料。</p>
             </div>
 
             <div class="manual-card">
@@ -238,7 +286,7 @@
           </div>
         </section>
 
-        <section class="report-panel" aria-label="定价分析报告">
+        <section id="reportPanel" class="report-panel" aria-label="定价分析报告">
           <div class="panel-heading result-heading">
             <div>
               <h2>定价分析报告</h2>
@@ -250,71 +298,25 @@
           <div class="analysis-narrative" id="reportContent">
             <article class="process-block">
               <h3>配送费分析过程</h3>
-              <p class="lead-text">按你表里的参数算，防磨贴配送费预计为 <mark>$0.88</mark>，保本定价约为 <mark>$3.94</mark>，建议上架不要低于 <mark>$3.99</mark>。</p>
-              <p>我用的表内假设是：</p>
-              <ul>
-                <li>尺寸：8 × 12 × 1.5 cm，重量 55g = 约 1.94oz，落在 4oz 及以下。</li>
-                <li>预计售价会高于 <mark>$3</mark>，所以按表里非服饰类、售价 &gt; $3 的配送费 <mark>$0.88</mark> 测算。</li>
-                <li>这一步只判断配送费档位，不混入竞品价格；竞品会放到下面的利润分析里看。</li>
-              </ul>
+              <p class="lead-text">确认采购单和尺寸重量后，这里会生成当前产品的配送费和成本底线分析。</p>
             </article>
 
             <article class="process-block">
               <h3>竞品与利润分析过程</h3>
-              <p class="lead-text">竞品锚点从上传文件里看到：</p>
-              <div class="comparison-table-wrap">
-                <table class="comparison-table">
-                  <thead>
-                    <tr>
-                      <th>竞品</th>
-                      <th>售价</th>
-                      <th>单片价</th>
-                      <th>评分/评论</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>15PCS</td>
-                      <td><mark>$5.99</mark></td>
-                      <td><mark>$0.40/片</mark></td>
-                      <td>3.6分 / 6评</td>
-                    </tr>
-                    <tr>
-                      <td>30pcs</td>
-                      <td><mark>$5.69</mark></td>
-                      <td><mark>$0.19/片</mark></td>
-                      <td>4.2分 / 41评</td>
-                    </tr>
-                    <tr>
-                      <td>32PCS</td>
-                      <td><mark>$9.99</mark></td>
-                      <td><mark>$0.31/片</mark></td>
-                      <td>4.1分 / 135评</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <p>如果你的 30 片组合按 <mark>$5.61</mark> 上架：</p>
-              <ul>
-                <li>单片价约 <mark>$0.19/片</mark>，基本贴近 30pcs 竞品。</li>
-                <li>按当前采购成本和配送费模型，期望利润率约 <mark>25.0%</mark>。</li>
-                <li>但和最低竞品 <mark>$5.69</mark> 的差距很小，价格优势不明显。</li>
-              </ul>
-              <p class="strategy-text">我的策略：先把定价底线定在 <mark>$3.99</mark> 以上，再用 <mark>$5.61</mark> 作为当前利润目标价测试。后续如果要追 30pcs 的 <mark>$0.19/片</mark> 锚点，需要继续优化组合数量、包装成本或采购成本。</p>
+              <p class="lead-text">补充竞品文件或使用内置示例后，这里会生成当前产品的竞品锚点和利润分析。</p>
             </article>
           </div>
 
           <div class="report-actions">
             <button id="reportExcelBtn" type="button" class="ghost-button">导出 Excel</button>
             <button id="reportTextBtn" type="button" class="ghost-button">导出报告</button>
-            <a id="downloadReportExcelLink" class="download-link is-hidden" href="#" download="防磨贴_定价分析报告.xls">下载分析 Excel</a>
-            <a id="downloadReportTextLink" class="download-link is-hidden" href="#" download="防磨贴_定价分析报告.txt">下载报告文本</a>
+            <a id="downloadReportExcelLink" class="download-link is-hidden" href="#" download="定价分析报告.xls">下载分析 Excel</a>
+            <a id="downloadReportTextLink" class="download-link is-hidden" href="#" download="定价分析报告.txt">下载报告文本</a>
           </div>
         </section>
       </section>
 
-      <section class="final-stage" aria-label="价格确认">
+      <section id="finalStage" class="final-stage" aria-label="价格确认">
         <section class="final-panel">
           <div class="panel-heading result-heading">
             <div>
@@ -379,6 +381,6 @@
         </section>
       </section>
     </main>
-    <script src="/app.js?v=20260624-2"></script>
+    <script src="app.js?v=20260625-ocr3"></script>
   </body>
 </html>

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import json
 import mimetypes
+import os
 import re
 import socket
 import subprocess
 import sys
+import tempfile
 import uuid
 from email.parser import BytesParser
 from email.policy import default
@@ -17,6 +19,8 @@ from openpyxl import load_workbook
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKBENCH_DIR = ROOT / "workbench"
+NODE_BIN = Path("/Users/cc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
+NODE_MODULES = Path("/Users/cc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules")
 CONFIG_PATH = ROOT / "config" / "products" / "blister_pad_bundle.json"
 PRICING_CONFIG_PATH = ROOT / "config" / "pricing_config.json"
 WORKBENCH_STATE_PATH = ROOT / "config" / "workbench_state.json"
@@ -29,7 +33,7 @@ UPLOAD_TARGETS = {
     "competitors": INPUT_DIR / "competitors",
 }
 ALLOWED_SUFFIXES = {
-    "purchase_order": {".pdf", ".xlsx", ".xls"},
+    "purchase_order": {".pdf", ".xlsx", ".xls", ".html", ".htm", ".txt", ".csv", ".png", ".jpg", ".jpeg", ".webp"},
     "product_links": {".txt", ".csv", ".tsv", ".xlsx", ".xls", ".html", ".htm"},
     "dimensions": {".xlsx", ".xls"},
     "competitors": {".html", ".htm"},
@@ -235,6 +239,42 @@ def save_uploads(headers, body):
     return saved
 
 
+def run_image_ocr(headers, body):
+    fields, files = parse_multipart(headers, body)
+    if not files:
+        raise ValueError("没有收到图片")
+    item = files[0]
+    original_name = safe_filename(item["filename"])
+    suffix = Path(original_name).suffix.lower()
+    if suffix not in {".png", ".jpg", ".jpeg", ".webp"}:
+        raise ValueError(f"{original_name} 不是支持的图片格式")
+    with tempfile.NamedTemporaryFile(prefix="price-ocr-", suffix=suffix, delete=False) as tmp:
+        tmp.write(item["payload"])
+        tmp_path = Path(tmp.name)
+    try:
+        node_bin = NODE_BIN if NODE_BIN.exists() else Path("node")
+        env = os.environ.copy()
+        if NODE_MODULES.exists():
+            env["NODE_PATH"] = str(NODE_MODULES)
+        completed = subprocess.run(
+            [str(node_bin), str(WORKBENCH_DIR / "ocr_node.js"), str(tmp_path)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            timeout=180,
+            env=env,
+        )
+        if completed.returncode != 0:
+            raise RuntimeError(completed.stderr.strip() or "OCR 识别失败")
+        payload = json.loads(completed.stdout or "{}")
+        return payload.get("text", "")
+    finally:
+        try:
+            tmp_path.unlink()
+        except FileNotFoundError:
+            pass
+
+
 def extract_links_from_file(path):
     links = []
     if path.suffix.lower() in {".xlsx", ".xls"}:
@@ -389,6 +429,13 @@ class WorkbenchHandler(BaseHTTPRequestHandler):
                 if saved and saved[0]["path"].startswith(str(UPLOAD_TARGETS["product_links"])):
                     merge_product_links(saved)
                 self.send_json({"ok": True, "saved": saved, "state": api_state()})
+            except Exception as exc:
+                self.send_json({"ok": False, "error": str(exc)}, status=400)
+            return
+        if parsed.path == "/api/ocr":
+            try:
+                text = run_image_ocr(self.headers, raw_body)
+                self.send_json({"ok": True, "text": text})
             except Exception as exc:
                 self.send_json({"ok": False, "error": str(exc)}, status=400)
             return

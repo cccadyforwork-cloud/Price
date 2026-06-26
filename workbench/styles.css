@@ -26,7 +26,8 @@ body {
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -234,7 +235,8 @@ button,
   font-weight: 700;
 }
 
-input {
+input,
+textarea {
   width: 100%;
   min-height: 38px;
   border: 1px solid var(--line-strong);
@@ -244,9 +246,79 @@ input {
   padding: 8px 10px;
 }
 
-input:focus {
+textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+input:focus,
+textarea:focus {
   outline: 3px solid rgba(31, 122, 91, 0.16);
   border-color: var(--accent);
+}
+
+.manual-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.manual-row-grid label {
+  display: grid;
+  gap: 6px;
+  color: #4e5c56;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ocr-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ocr-actions span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ocr-actions span.is-busy {
+  color: var(--warning);
+  font-weight: 800;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.upload-preview {
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 10px;
+}
+
+.upload-preview img {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #f1f4f2;
+}
+
+.upload-preview p {
+  margin: 0;
 }
 
 .upload-box,
@@ -283,6 +355,12 @@ input:focus {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.6;
+}
+
+.mini-status {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  font-weight: 750;
 }
 
 .manual-card {
@@ -619,6 +697,11 @@ td {
   background: #ffffff;
 }
 
+.empty {
+  color: var(--muted);
+  text-align: center;
+}
+
 th:nth-child(1),
 td:nth-child(1) {
   width: 142px;
@@ -689,6 +772,7 @@ td input {
   }
 
   .final-actions button,
+  .inline-actions button,
   .final-action-buttons,
   .download-link {
     width: 100%;
@@ -705,6 +789,10 @@ td input {
   }
 
   .dimension-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .manual-row-grid {
     grid-template-columns: 1fr;
   }
 }

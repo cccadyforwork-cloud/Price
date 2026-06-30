@@ -1,5 +1,11 @@
 const finalHeaders = ["SKU", "款式标题", "长(in)", "宽(in)", "高(in)", "重(lb)", "定价"];
 const reportHeaders = ["项目", "数值", "说明"];
+const currencyRateRmbToUsd = 7.2;
+const firstLegShippingUsd = 0.3;
+const referralFeeRate = 0.18;
+const returnRate = 0.1;
+const disposalFeeUsd = 0.25;
+const breakEvenFactor = 0.73476;
 const sampleOrderText = `货号 HJ-11
 货品名称 复古透明浮雕玻璃喷壶 喷水壶室内园艺按压式玻璃浇水壶批发浇水壶
 规格型号：200ml款式3; 彩色 数量 2 单价 4.00 优惠 -0.25 金额 7.75
@@ -14,6 +20,7 @@ let reportTextUrl = "";
 let currentPurchaseRows = [];
 let currentObjectUrl = "";
 let currentImageFile = null;
+let currentCompetitors = [];
 let ocrWorker = null;
 let ocrReady = false;
 let tesseractLoadPromise = null;
@@ -29,7 +36,26 @@ function num(value, fallback = 0) {
 }
 
 function fmt(value, digits = 2) {
+  if (digits <= 0) {
+    return String(Math.round(Number(value || 0)));
+  }
   return Number(value || 0).toFixed(digits).replace(/\.?0+$/g, "");
+}
+
+function money(value, digits = 2) {
+  return `$${Number(value || 0).toFixed(digits)}`;
+}
+
+function signedMoney(value, digits = 2) {
+  const amount = Number(value || 0);
+  const sign = amount > 0 ? "+" : amount < 0 ? "-" : "";
+  return `${sign}${money(Math.abs(amount), digits)}`;
+}
+
+function roundUpToEnding99(value) {
+  const dollars = Math.floor(Number(value || 0));
+  const candidate = dollars + 0.99;
+  return candidate >= value ? candidate : dollars + 1.99;
 }
 
 function cmToIn(value) {
@@ -38,6 +64,10 @@ function cmToIn(value) {
 
 function gToLb(value) {
   return fmt(num(value) / 453.59237, 3);
+}
+
+function gToOz(value) {
+  return num(value) / 28.349523125;
 }
 
 function $(id) {
@@ -119,6 +149,27 @@ function productLabel() {
   return typed;
 }
 
+function syncProductNameFromRows(rows) {
+  const input = $("productName");
+  const firstTitle = rows[0]?.title || "";
+  if (input && firstTitle && (!input.value.trim() || input.value.trim() === "防磨贴")) {
+    input.value = firstTitle;
+  }
+}
+
+function resetCompetitorData(message = "产品已更新，请重新上传当前产品的竞品资料。") {
+  currentCompetitors = [];
+  const fileInput = $("competitorFiles");
+  if (fileInput) {
+    fileInput.value = "";
+  }
+  $("competitorFileSummary").textContent = "暂无竞品文件，上传后自动解析当前产品竞品。";
+  $("competitorParseStatus").textContent = message;
+  $("competitorStatus").textContent = "待上传";
+  $("competitorStatus").classList.remove("ready");
+  updateCompetitorSummary(0);
+}
+
 function targetMarginNumber() {
   const parsed = num($("targetMargin").value, 25);
   return parsed > 1 ? parsed / 100 : parsed;
@@ -129,37 +180,253 @@ function suggestedPrice() {
   return prices.length ? prices[0] : 5.61;
 }
 
+function salePackQty() {
+  const input = $("salePackQty");
+  return Math.max(1, num(input?.value, 30));
+}
+
+function comparisonQty() {
+  return Math.max(1, num($("comparisonUnitQty").value, 1));
+}
+
+function sellingUnitLabel(productName) {
+  return /贴|片|pad|patch/i.test(productName) ? "片" : "件";
+}
+
+function activeCompetitors() {
+  return currentCompetitors;
+}
+
+function parsePackCount(text, fallback = 1) {
+  const source = String(text || "").replace(/(\d+)\s*ml/gi, "");
+  const patterns = [
+    /(\d+)\s*(?:pcs|pc|pieces|piece|count|ct)\b/i,
+    /(\d+)\s*(?:pack|packs|pair|pairs)\b/i,
+    /(\d+)\s*(?:片|件|个|支|套|双|包)/
+  ];
+  for (const pattern of patterns) {
+    const match = source.match(pattern);
+    if (match) {
+      return Math.max(1, num(match[1], fallback));
+    }
+  }
+  return fallback;
+}
+
+function shortCompetitorLabel(title, index) {
+  const cleaned = String(title || "")
+    .replace(/\s+/g, " ")
+    .replace(/\bAmazon\.com\b/gi, "")
+    .replace(/\s*[:|_].*$/g, "")
+    .trim();
+  return cleaned ? cleaned.slice(0, 28) : `竞品${index + 1}`;
+}
+
+function firstMatch(text, patterns) {
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return match[1] || match[0];
+    }
+  }
+  return "";
+}
+
+function parseCompetitorText(text, fileName, index) {
+  const plain = cleanTextFromHtml(text);
+  const title = firstMatch(text, [
+    /id=["']productTitle["'][^>]*>([\s\S]*?)<\/span>/i,
+    /<title[^>]*>([\s\S]*?)<\/title>/i
+  ]) || plain.split(/\r?\n/).find((line) => line.trim().length > 8) || fileName;
+  const cleanTitle = cleanTextFromHtml(title).replace(/\s+/g, " ").trim();
+  const priceText = firstMatch(text, [
+    /aria-label=["'](?:current price\s*)?\$(\d+(?:\.\d{1,2})?)["']/i,
+    /<span[^>]*class=["'][^"']*a-offscreen[^"']*["'][^>]*>\$(\d+(?:\.\d{1,2})?)<\/span>/i,
+    /\$(\d+(?:\.\d{1,2})?)/
+  ]);
+  const price = moneyNumber(priceText);
+  if (!price) {
+    return null;
+  }
+  const ratingText = firstMatch(text, [
+    /(\d(?:\.\d)?)\s*out of\s*5\s*stars/i,
+    /([1-5](?:\.\d)?)\s*分/
+  ]);
+  const reviewText = firstMatch(text, [
+    /id=["']acrCustomerReviewText["'][^>]*>([\d,]+)\s*(?:ratings?|reviews?)<\/span>/i,
+    /([\d,]+)\s*(?:ratings?|reviews?)/i,
+    /([\d,]+)\s*评/
+  ]);
+  const packCount = parsePackCount(`${cleanTitle} ${fileName}`, 1);
+  return {
+    label: shortCompetitorLabel(cleanTitle || fileName, index),
+    title: cleanTitle || fileName,
+    price,
+    packCount,
+    rating: ratingText || reviewText ? `${ratingText ? `${ratingText}分` : "-"} / ${reviewText ? `${reviewText.replace(/,/g, "")}评` : "-"} ` : "待确认"
+  };
+}
+
+async function parseCompetitorFile(file, index) {
+  const suffix = file.name.split(".").pop().toLowerCase();
+  if (!["html", "htm", "txt", "csv"].includes(suffix)) {
+    return null;
+  }
+  const text = await file.text();
+  return parseCompetitorText(text, file.name, index);
+}
+
+function sellingUnitCostUsd(rows, unitQty) {
+  const positiveCosts = rows.map((row) => num(row.cost)).filter((value) => value > 0);
+  if (!positiveCosts.length) {
+    return 0;
+  }
+  if (rows.length > 1) {
+    const pcsPerStyle = unitQty / rows.length;
+    return rows.reduce((sum, row) => sum + num(row.cost) * pcsPerStyle, 0) / currencyRateRmbToUsd;
+  }
+  return positiveCosts[0] * unitQty / currencyRateRmbToUsd;
+}
+
+function rowProfitRows(rows, unitQty, price, shippingFee) {
+  const pcsPerStyle = rows.length > 1 ? unitQty / rows.length : unitQty;
+  return rows.map((row) => {
+    const costUsd = num(row.cost) * pcsPerStyle / currencyRateRmbToUsd;
+    const profit = price * breakEvenFactor - (costUsd + firstLegShippingUsd + shippingFee + disposalFeeUsd * returnRate);
+    return {
+      title: row.spec || row.title || "当前款式",
+      costUsd,
+      profit
+    };
+  }).filter((row) => row.costUsd > 0);
+}
+
+function fbaFeeForOz(weightOz, price) {
+  if (weightOz <= 4) {
+    return price <= 3
+      ? { fee: 0.5, tier: "4oz及以下且售价 <= $3" }
+      : { fee: 0.88, tier: "4oz及以下且售价 > $3" };
+  }
+  if (weightOz <= 8) return { fee: 1.77, tier: "4+~8oz" };
+  if (weightOz <= 12) return { fee: 2.6, tier: "8+~12oz" };
+  if (weightOz <= 16) return { fee: 3.22, tier: "12+~16oz" };
+  return { fee: 3.72, tier: "1lb以上" };
+}
+
+function breakEvenWithFee(saleUnitCostUsd, weightOz) {
+  let tier = fbaFeeForOz(weightOz, 2.99);
+  let breakEven = 0;
+  for (let index = 0; index < 4; index += 1) {
+    const fixedCostUsd = firstLegShippingUsd + tier.fee + disposalFeeUsd * returnRate;
+    breakEven = Math.max(0, (saleUnitCostUsd + fixedCostUsd) / breakEvenFactor);
+    const nextTier = fbaFeeForOz(weightOz, breakEven);
+    if (nextTier.fee === tier.fee) {
+      return { breakEven, shippingFee: tier.fee, shippingTier: tier.tier, fixedCostUsd };
+    }
+    tier = nextTier;
+  }
+  const fixedCostUsd = firstLegShippingUsd + tier.fee + disposalFeeUsd * returnRate;
+  return { breakEven, shippingFee: tier.fee, shippingTier: tier.tier, fixedCostUsd };
+}
+
 function reportData() {
   const rows = activePurchaseRows();
+  const hasPurchaseRows = rows.length > 0;
   const dims = currentDimensions();
   const totalQty = rows.reduce((sum, row) => sum + num(row.quantity), 0);
   const totalCost = rows.reduce((sum, row) => sum + num(row.quantity) * num(row.cost), 0);
   const avgCost = totalQty ? totalCost / totalQty : rows.reduce((sum, row) => sum + num(row.cost), 0) / Math.max(rows.length, 1);
   const price = suggestedPrice();
-  const shippingFee = num(dims.weightG) <= 113 ? 0.88 : 1.28;
   const margin = targetMarginNumber();
-  const breakEven = Math.max(0, avgCost / 7 + shippingFee + 2.35);
-  const targetPrice = Math.max(price, breakEven / Math.max(0.2, 1 - margin));
-  const competitorCount = document.querySelector(".competitor-summary strong")?.textContent || "4 个";
-  const lowestCompetitor = document.querySelectorAll(".competitor-summary strong")[1]?.textContent || "$5.69";
-  const unitQty = num($("comparisonUnitQty").value, 30);
+  const productName = productLabel();
+  const saleQty = salePackQty();
+  const unitQty = comparisonQty();
+  const unitLabel = sellingUnitLabel(productName);
+  const saleUnitCostUsd = sellingUnitCostUsd(rows, saleQty);
+  const weightOz = gToOz(dims.weightG);
+  const returnDisposalReserve = disposalFeeUsd * returnRate;
+  const breakEvenResult = breakEvenWithFee(saleUnitCostUsd, weightOz);
+  const shippingFee = breakEvenResult.shippingFee;
+  const shippingTier = breakEvenResult.shippingTier;
+  const fixedCostUsd = breakEvenResult.fixedCostUsd;
+  const breakEven = breakEvenResult.breakEven;
+  const targetPrice = Math.max(roundUpToEnding99(breakEven), breakEven / Math.max(0.2, 1 - margin));
+  const suggestedMinPrice = roundUpToEnding99(breakEven);
+  const competitors = activeCompetitors().map((competitor) => ({
+    ...competitor,
+    unitPrice: competitor.price / Math.max(1, competitor.packCount),
+    comparisonPrice: competitor.price / Math.max(1, competitor.packCount) * unitQty
+  }));
+  const hasCompetitors = competitors.length > 0;
+  const competitorCount = `${competitors.length} 个`;
+  const lowestCompetitorPrice = hasCompetitors ? Math.min(...competitors.map((competitor) => competitor.price)) : 0;
+  const currentUnitPrice = price / saleQty;
+  const currentComparisonPrice = currentUnitPrice * unitQty;
+  const lowestComparisonCompetitor = hasCompetitors
+    ? competitors.reduce((lowest, competitor) => competitor.comparisonPrice < lowest.comparisonPrice ? competitor : lowest, competitors[0])
+    : null;
+  const lowestTotalCompetitor = hasCompetitors
+    ? competitors.reduce((lowest, competitor) => competitor.price < lowest.price ? competitor : lowest, competitors[0])
+    : null;
+  const closestUnitCompetitor = hasCompetitors
+    ? competitors.reduce((closest, competitor) => {
+      return Math.abs(competitor.comparisonPrice - currentComparisonPrice) < Math.abs(closest.comparisonPrice - currentComparisonPrice) ? competitor : closest;
+    }, competitors[0])
+    : null;
+  const competitorComparisonPrice = closestUnitCompetitor?.comparisonPrice || 0;
+  const competitorUnitPrice = closestUnitCompetitor?.unitPrice || 0;
+  const packagePriceGap = lowestTotalCompetitor ? price - lowestTotalCompetitor.price : 0;
+  const unitPriceGap = closestUnitCompetitor ? currentComparisonPrice - competitorComparisonPrice : 0;
+  const unitPriceConclusion = !closestUnitCompetitor
+    ? "请先上传并解析当前产品的竞品文件，再生成竞品价格结论。"
+    : unitPriceGap <= 0
+      ? `当前 ${unitQty}${unitLabel} 折算价不高于 ${closestUnitCompetitor.label} 竞品，价格位置偏锋利。`
+      : `当前 ${unitQty}${unitLabel} 折算价高于 ${closestUnitCompetitor.label} 竞品，需要靠低总价、差异化或评价来支撑。`;
+  const profitRows = rowProfitRows(rows, saleQty, price, shippingFee);
+  const highCostProfit = profitRows.reduce((highest, row) => !highest || row.costUsd > highest.costUsd ? row : highest, null);
+  const lowCostProfit = profitRows.reduce((lowest, row) => !lowest || row.costUsd < lowest.costUsd ? row : lowest, null);
+  const postReviewPrice = price < 2.99 ? 2.99 : roundUpToEnding99(price + 0.4);
 
   return {
-    productName: productLabel(),
+    productName,
     rows,
+    hasPurchaseRows,
     styleCount: rows.length,
     totalQty,
     totalCost,
     avgCost,
     dims,
     shippingFee,
+    shippingTier,
     breakEven,
     targetPrice,
+    suggestedMinPrice,
     price,
     margin,
     competitorCount,
-    lowestCompetitor,
-    unitQty
+    lowestCompetitorPrice,
+    saleQty,
+    unitQty,
+    unitLabel,
+    saleUnitCostUsd,
+    returnDisposalReserve,
+    fixedCostUsd,
+    competitors,
+    hasCompetitors,
+    lowestTotalCompetitor,
+    lowestComparisonCompetitor,
+    closestUnitCompetitor,
+    currentUnitPrice,
+    currentComparisonPrice,
+    competitorUnitPrice,
+    competitorComparisonPrice,
+    packagePriceGap,
+    unitPriceGap,
+    unitPriceConclusion,
+    highCostProfit,
+    lowCostProfit,
+    postReviewPrice,
+    weightOz
   };
 }
 
@@ -170,27 +437,50 @@ function reportRows() {
     ["采购款数", data.styleCount, "来自采购单识别结果"],
     ["采购总数", data.totalQty, "来自采购单识别结果"],
     ["平均成本", fmt(data.avgCost, 4), "按货品成本 / 采购总数估算"],
-    ["配送费", fmt(data.shippingFee, 2), "按当前重量档位估算"],
-    ["保本参考价", fmt(data.breakEven, 2), "用于判断低价风险"],
-    ["目标定价", fmt(data.targetPrice, 2), `按目标利润率 ${fmt(data.margin * 100, 1)}% 测算`],
-    ["当前确认价", fmt(data.price, 2), "来自价格确认表默认或手动定价"],
-    ["竞品最低价", data.lowestCompetitor, `来自 ${data.competitorCount} 竞品资料/示例锚点`]
+    ["销售单位成本", money(data.saleUnitCostUsd, 2), `按本品售卖数量 ${data.saleQty}${data.unitLabel} 折算`],
+    ["配送费", money(data.shippingFee, 2), "按重量和售价档位估算"],
+    ["保本定价", money(data.breakEven, 2), "按截图里的保本公式折算"],
+    ["建议不低于", money(data.suggestedMinPrice, 2), "向上取 .99 上架价"],
+    ["当前确认价", money(data.price, 2), "来自价格确认表默认或手动定价"],
+    ["本品售卖数量", `${data.saleQty}${data.unitLabel}`, "用于利润和保本计算"],
+    ["竞品对比量", `${data.unitQty}${data.unitLabel}`, "用于竞品价格折算"],
+    ["当前折算价", money(data.currentComparisonPrice, 2), `当前确认价 / ${data.saleQty}${data.unitLabel} × ${data.unitQty}${data.unitLabel}`],
+    ["竞品锚点", data.closestUnitCompetitor?.label || "待上传", `${data.unitQty}${data.unitLabel} 折算价最接近当前价格`],
+    ["折算价差", signedMoney(data.unitPriceGap, 3), data.unitPriceConclusion]
   ];
 }
 
 function reportText() {
   const data = reportData();
+  const highCostLine = data.highCostProfit
+    ? `按你表里的低价配送费模型，成本最高的 ${data.highCostProfit.title} 约有 ${money(data.highCostProfit.profit, 2)}/套 利润；`
+    : "";
+  const lowCostLine = data.lowCostProfit
+    ? `低成本款约有 ${money(data.lowCostProfit.profit, 2)}/套 利润。`
+    : "";
   return [
     `通用产品定价台 - ${data.productName} 定价分析报告`,
     "",
     "配送费分析过程",
-    `${data.productName} 当前包装尺寸为 ${fmt(data.dims.lengthCm, 2)} x ${fmt(data.dims.widthCm, 2)} x ${fmt(data.dims.heightCm, 2)} cm，重量 ${fmt(data.dims.weightG, 2)}g。`,
-    `按内置配送费规则估算，当前配送费约为 $${fmt(data.shippingFee, 2)}，保本参考价约为 $${fmt(data.breakEven, 2)}。`,
+    `按你表里的参数算，${data.productName} 保本定价约为 ${money(data.breakEven, 2)}，建议上架不要低于 ${money(data.suggestedMinPrice, 2)}。`,
+    `尺寸：${fmt(data.dims.lengthCm, 2)} × ${fmt(data.dims.widthCm, 2)} × ${fmt(data.dims.heightCm, 2)} cm，重量 ${fmt(data.dims.weightG, 2)}g = 约 ${fmt(data.weightOz, 2)}oz。`,
+    `按表里非服饰类 ${data.shippingTier} 的配送费 ${money(data.shippingFee, 2)}。`,
+    `保本售价 = (单件成本 + ${fmt(firstLegShippingUsd, 2)} + ${fmt(data.shippingFee, 2)} + ${fmt(data.returnDisposalReserve, 3)}) / ${fmt(breakEvenFactor, 5)}。`,
+    `代入 ${money(data.saleUnitCostUsd, 2)}：(${money(data.saleUnitCostUsd, 2)} + ${money(data.fixedCostUsd, 3)}) / ${fmt(breakEvenFactor, 5)} = ${money(data.breakEven, 2)}。`,
     "",
     "竞品与利润分析过程",
-    `已读取 ${data.competitorCount} 竞品资料，当前最低竞品锚点为 ${data.lowestCompetitor}，对比单位为 ${data.unitQty || "-"} 件。`,
-    `采购单识别 ${data.styleCount} 款，采购总数 ${data.totalQty || "-"} 件，平均成本约 ${fmt(data.avgCost, 4)} RMB。`,
-    `按目标利润率 ${fmt(data.margin * 100, 1)}% 测算，目标定价约 $${fmt(data.targetPrice, 2)}；当前价格确认表为 $${fmt(data.price, 2)}。`,
+    data.hasCompetitors
+      ? `竞品锚点我从你给的 ${data.competitors.length} 个页面快照里看到：`
+      : "还没有解析到当前产品的竞品锚点。请上传当前产品的竞品 HTML 或文本文件。",
+    ...(data.hasCompetitors ? data.competitors.map((item) => `${item.label}：${money(item.price, 2)} / ${item.packCount}${data.unitLabel}，单${data.unitLabel}价 ${money(item.unitPrice, 2)}/${data.unitLabel}，按 ${data.unitQty}${data.unitLabel} 折算为 ${money(item.comparisonPrice, 2)}，${item.rating}`) : []),
+    data.hasCompetitors
+      ? `你的 ${data.saleQty}${data.unitLabel}装卖 ${money(data.price, 2)}：单${data.unitLabel}价 ${money(data.currentUnitPrice, 2)}/${data.unitLabel}，按 ${data.unitQty}${data.unitLabel} 折算为 ${money(data.currentComparisonPrice, 2)}，基本对标 ${data.closestUnitCompetitor.label} 竞品。`
+      : `你的 ${data.saleQty}${data.unitLabel}装卖 ${money(data.price, 2)}：单${data.unitLabel}价 ${money(data.currentUnitPrice, 2)}/${data.unitLabel}，按 ${data.unitQty}${data.unitLabel} 折算为 ${money(data.currentComparisonPrice, 2)}。`,
+    data.hasCompetitors ? `总价门槛：当前售价比最低竞品 ${money(data.lowestTotalCompetitor.price, 2)} 对比。` : "",
+    data.hasCompetitors ? `${highCostLine}${lowCostLine}` : "",
+    data.hasCompetitors
+      ? `策略：首发 ${money(data.price, 2)} 跑评论和转化，累计 20-30 个评价后测试 ${money(data.postReviewPrice, 2)}。不要为了追 ${data.lowestComparisonCompetitor.label} 的 ${money(data.lowestComparisonCompetitor.comparisonPrice, 2)}/${data.unitQty}${data.unitLabel} 去打，应该主打低总价、单尺寸刚需、试用门槛低。`
+      : "策略：先补齐当前产品竞品锚点，再给最终价格策略。",
     "",
     "最终价格确认",
     ...finalRows().map((row) => row.join(" / "))
@@ -199,57 +489,89 @@ function reportText() {
 
 function renderReportContent() {
   const data = reportData();
+  if (!data.hasPurchaseRows) {
+    $("reportContent").innerHTML = `
+      <article class="process-block">
+        <h3>配送费分析过程</h3>
+        <p class="lead-text">请先上传或录入当前产品采购单，并确认尺寸重量。</p>
+        <p>系统会在识别到采购成本、售卖数量、尺寸重量后，再按表内规则生成保本价、配送费和利润底线。</p>
+      </article>
+
+      <article class="process-block">
+        <h3>竞品与利润分析过程</h3>
+        <p class="lead-text">请上传当前产品的竞品 HTML / 文本文件。</p>
+        <p>竞品价格会按“竞品售价 ÷ 竞品售卖数量 × 你填的对比量”折算，不再使用任何固定产品示例。</p>
+      </article>
+    `;
+    return;
+  }
+  const highCostProfit = data.highCostProfit ? money(data.highCostProfit.profit, 2) : "-";
+  const lowCostProfit = data.lowCostProfit ? money(data.lowCostProfit.profit, 2) : "-";
+  const highCostTitle = data.highCostProfit?.title || "成本最高款";
+  const weightTierText = data.weightOz <= 4 ? "落在 4oz 及以下" : `对应 ${data.shippingTier} 档`;
+  const totalPriceCompareText = data.hasCompetitors && data.price < data.lowestTotalCompetitor.price
+    ? `比 ${money(data.lowestTotalCompetitor.price, 2)} 和 ${money(data.competitors[data.competitors.length - 1].price, 2)} 的竞品下单门槛低很多`
+    : data.hasCompetitors
+      ? `没有明显低于 ${money(data.lowestTotalCompetitor.price, 2)} 的最低总价锚点，需要靠利润或差异化支撑`
+      : "暂无当前产品竞品锚点";
+  const competitorRowsHtml = data.hasCompetitors
+    ? data.competitors.map((competitor) => `
+      <tr>
+        <td>${escapeXml(competitor.label)}</td>
+        <td><mark>${money(competitor.price, 2)}</mark> / ${competitor.packCount}${data.unitLabel}</td>
+        <td><mark>${money(competitor.unitPrice, 2)}/${data.unitLabel}</mark></td>
+        <td><mark>${money(competitor.comparisonPrice, 2)}</mark></td>
+        <td>${escapeXml(competitor.rating)}</td>
+      </tr>
+    `).join("")
+    : '<tr><td colspan="5" class="empty">暂无当前产品竞品。请上传竞品 HTML / 文本后再生成报告。</td></tr>';
   $("reportContent").innerHTML = `
     <article class="process-block">
       <h3>配送费分析过程</h3>
-      <p class="lead-text">按当前资料算，${escapeXml(data.productName)} 配送费预计为 <mark>$${fmt(data.shippingFee, 2)}</mark>，保本参考价约为 <mark>$${fmt(data.breakEven, 2)}</mark>。</p>
-      <p>我用的表内假设是：</p>
+      <p class="lead-text">按你表里的参数算，${escapeXml(data.productName)} 保本定价约为 <mark>${money(data.breakEven, 2)}</mark>，建议上架不要低于 <mark>${money(data.suggestedMinPrice, 2)}</mark>。</p>
+      <p class="lead-text">我用的表内假设是：</p>
       <ul>
-        <li>尺寸：${fmt(data.dims.lengthCm, 2)} × ${fmt(data.dims.widthCm, 2)} × ${fmt(data.dims.heightCm, 2)} cm，重量 ${fmt(data.dims.weightG, 2)}g。</li>
-        <li>采购单识别 <mark>${data.styleCount} 款</mark>，采购总数 <mark>${data.totalQty || "-"} 件</mark>，平均成本约 <mark>${fmt(data.avgCost, 4)} RMB</mark>。</li>
-        <li>这一步只判断配送费和成本底线，竞品价格放到下面的利润分析里看。</li>
+        <li>尺寸：${fmt(data.dims.lengthCm, 2)} × ${fmt(data.dims.widthCm, 2)} × ${fmt(data.dims.heightCm, 2)} cm，重量 ${fmt(data.dims.weightG, 2)}g = 约 ${fmt(data.weightOz, 2)}oz，${escapeXml(weightTierText)}。</li>
+        <li>按表里非服饰类 <mark>${escapeXml(data.shippingTier)}</mark> 的配送费 <mark>${money(data.shippingFee, 2)}</mark>。</li>
+        <li>单件成本沿用表里 <mark>${money(data.saleUnitCostUsd, 2)}</mark>。</li>
+        <li>头程 <mark>${money(firstLegShippingUsd, 2)}</mark>。</li>
+        <li>退货率 <mark>${fmt(returnRate * 100, 0)}%</mark>。</li>
+        <li>弃置费 <mark>${money(disposalFeeUsd, 2)}</mark>。</li>
+        <li>亚马逊抽佣 <mark>${fmt(referralFeeRate * 100, 0)}%</mark>。</li>
       </ul>
+      <p class="lead-text">公式折算后是：</p>
+      <p><mark>保本售价 = (单件成本 + ${fmt(firstLegShippingUsd, 2)} + ${fmt(data.shippingFee, 2)} + ${fmt(data.returnDisposalReserve, 3)}) / ${fmt(breakEvenFactor, 5)}</mark></p>
+      <p>代入 <mark>${money(data.saleUnitCostUsd, 2)}</mark>：</p>
+      <p><mark>(${money(data.saleUnitCostUsd, 2)} + ${money(data.fixedCostUsd, 3)}) / ${fmt(breakEvenFactor, 5)} = ${money(data.breakEven, 2)}</mark></p>
+      <p>如果 ${escapeXml(data.productName)} 实际采购成本不是 <mark>${money(data.saleUnitCostUsd, 2)}</mark>，把真实单件成本替进去就行。比如成本每增加 <mark>$0.10</mark>，保本价大约增加 <mark>${money(0.1 / breakEvenFactor, 2)}</mark>。</p>
     </article>
 
     <article class="process-block">
       <h3>竞品与利润分析过程</h3>
-      <p class="lead-text">竞品锚点从上传文件或内置示例里看到：</p>
+      <p class="lead-text">${data.hasCompetitors ? `竞品锚点我从你给的 <mark>${data.competitors.length}</mark> 个页面快照里看到：` : "还没有解析到当前产品的竞品锚点。"}</p>
       <div class="comparison-table-wrap">
         <table class="comparison-table">
           <thead>
             <tr>
-              <th>项目</th>
-              <th>数值</th>
-              <th>说明</th>
+              <th>竞品</th>
+              <th>售价/数量</th>
+              <th>单${data.unitLabel}价</th>
+              <th>${data.unitQty}${data.unitLabel}折算价</th>
+              <th>评分/评论</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>竞品数量</td>
-              <td><mark>${escapeXml(data.competitorCount)}</mark></td>
-              <td>来自竞品上传区</td>
-            </tr>
-            <tr>
-              <td>最低锚点</td>
-              <td><mark>${escapeXml(data.lowestCompetitor)}</mark></td>
-              <td>用于判断当前定价空间</td>
-            </tr>
-            <tr>
-              <td>对比单位</td>
-              <td><mark>${data.unitQty || "-"} 件</mark></td>
-              <td>来自竞品口径设置</td>
-            </tr>
-          </tbody>
+          <tbody>${competitorRowsHtml}</tbody>
         </table>
       </div>
 
-      <p>如果当前价格确认表按 <mark>$${fmt(data.price, 2)}</mark> 上架：</p>
+      <p class="lead-text">你的 ${data.saleQty}${data.unitLabel}装卖 <mark>${money(data.price, 2)}</mark>，当前竞品对比量是 <mark>${data.unitQty}${data.unitLabel}</mark>：</p>
       <ul>
-        <li>按目标利润率 <mark>${fmt(data.margin * 100, 1)}%</mark> 测算，目标价约 <mark>$${fmt(data.targetPrice, 2)}</mark>。</li>
-        <li>当前确认价和目标价的差距会影响利润空间，后续可在价格确认表里手动调整。</li>
-        <li>如果要压低售价，需要继续优化采购成本、组合数量或包装重量。</li>
+        <li>本品单${data.unitLabel}价：<mark>${money(data.currentUnitPrice, 2)}/${data.unitLabel}</mark>；按 ${data.unitQty}${data.unitLabel} 折算为 <mark>${money(data.currentComparisonPrice, 2)}</mark>${data.hasCompetitors ? `，基本对标 ${escapeXml(data.closestUnitCompetitor.label)} 竞品` : "，等待竞品锚点对比"}。</li>
+        ${data.hasCompetitors ? `<li>总价明显低：${escapeXml(totalPriceCompareText)}。</li>` : ""}
+        <li>按你表里的低价配送费模型，成本最高的 ${escapeXml(highCostTitle)} 仍有约 <mark>${highCostProfit}/套</mark> 利润；低成本款利润约 <mark>${lowCostProfit}/套</mark>。</li>
       </ul>
-      <p class="strategy-text">我的策略：先用保本参考价守住底线，再用竞品最低锚点和目标利润率决定最终定价。</p>
+      ${data.hasCompetitors ? `<p>不建议首发 <mark>${money(data.postReviewPrice, 2)}</mark>，虽然利润更好，但单${data.unitLabel}价会到 <mark>${money(data.postReviewPrice / data.saleQty, 2)}/${data.unitLabel}</mark>，按 ${data.unitQty}${data.unitLabel} 折算是 <mark>${money(data.postReviewPrice / data.saleQty * data.unitQty, 2)}</mark>，面对 ${escapeXml(data.closestUnitCompetitor.label)} 的 <mark>${money(data.closestUnitCompetitor.comparisonPrice, 2)}</mark> 不够锋利。</p>` : ""}
+      <p class="strategy-text">${data.hasCompetitors ? `我的策略：首发 <mark>${money(data.price, 2)}</mark> 跑评论和转化，累计 20-30 个评价后涨到 <mark>${money(data.postReviewPrice, 2)}</mark>。不要为了追 ${escapeXml(data.lowestComparisonCompetitor.label)} 的 <mark>${money(data.lowestComparisonCompetitor.comparisonPrice, 2)}/${data.unitQty}${data.unitLabel}</mark> 去打，应该主打“低总价、单尺寸刚需、试用门槛低”。` : "我的策略：先补齐当前产品竞品锚点，再输出最终价格策略。"}</p>
     </article>
   `;
 }
@@ -926,6 +1248,11 @@ function normalizeTitle(rawTitle, spec, index) {
 
 function renderRecognizedRows(rows) {
   const dims = currentDimensions();
+  const previousSignature = currentPurchaseRows.map(rowIdentity).join("||");
+  const nextSignature = rows.map(rowIdentity).join("||");
+  if (previousSignature && nextSignature && previousSignature !== nextSignature) {
+    resetCompetitorData();
+  }
   currentPurchaseRows = rows;
   if (!rows.length) {
     $("recognizedRows").innerHTML = '<tr><td colspan="9" class="empty">暂无采购行，请粘贴订单文本或手动添加采购行。</td></tr>';
@@ -933,6 +1260,7 @@ function renderRecognizedRows(rows) {
     renderFinalRows([]);
     return;
   }
+  syncProductNameFromRows(rows);
   $("recognizedRows").innerHTML = rows.map((row, index) => {
     const sku = row.sku || makeSku(row.spec, index, row.itemCode);
     return `
@@ -1090,10 +1418,8 @@ function resetDownloadState() {
 
 function showGeneratedReportState() {
   if ($("competitorStatus").textContent === "待上传") {
-    $("competitorStatus").textContent = "使用示例";
-    $("competitorStatus").classList.add("ready");
-    $("competitorParseStatus").textContent = "未上传竞品文件，已使用内置示例竞品生成分析。";
-    updateCompetitorSummary(4);
+    $("competitorParseStatus").textContent = "还没有当前产品竞品资料，报告只生成配送费和利润底线，竞品策略待补充。";
+    updateCompetitorSummary();
   }
   renderReportContent();
   $("generateReportBtn").textContent = "报告已生成";
@@ -1105,30 +1431,54 @@ function showGeneratedReportState() {
 
 function updateCompetitorSummary(count) {
   const summaryCards = document.querySelectorAll(".competitor-summary strong");
-  const unitQty = num($("comparisonUnitQty").value, 30);
-  if (summaryCards[0]) summaryCards[0].textContent = `${count || 4} 个`;
-  if (summaryCards[1]) summaryCards[1].textContent = "$5.69";
-  if (summaryCards[2]) summaryCards[2].textContent = `${unitQty || 30} 件`;
+  const unitQty = comparisonQty();
+  const unitLabel = sellingUnitLabel(productLabel());
+  const competitors = activeCompetitors();
+  const lowestComparisonPrice = competitors.reduce((lowest, competitor) => {
+    const comparisonPrice = competitor.price / competitor.packCount * unitQty;
+    return comparisonPrice < lowest ? comparisonPrice : lowest;
+  }, Infinity);
+  const visibleCount = count === undefined ? competitors.length : count;
+  if (summaryCards[0]) summaryCards[0].textContent = `${visibleCount} 个`;
+  if (summaryCards[1]) summaryCards[1].textContent = Number.isFinite(lowestComparisonPrice) ? money(lowestComparisonPrice, 2) : "待上传";
+  if (summaryCards[2]) summaryCards[2].textContent = `${unitQty || 1} ${unitLabel}`;
 }
 
-function handleCompetitorFiles(event) {
-  const count = event.target.files.length;
+async function handleCompetitorFiles(event) {
+  const files = [...event.target.files];
+  const count = files.length;
   if (!count) {
-    $("competitorFileSummary").textContent = "示例已读取：4 个竞品文件，最低对比价 $5.69。";
+    currentCompetitors = [];
+    $("competitorFileSummary").textContent = "暂无竞品文件。";
     $("competitorParseStatus").textContent = "等待补充竞品资料。";
     $("competitorStatus").textContent = "待上传";
     $("competitorStatus").classList.remove("ready");
-    updateCompetitorSummary(4);
+    updateCompetitorSummary();
+    refreshReportDraft();
     return;
   }
 
   $("competitorFileSummary").textContent = `已选择：${count} 个竞品文件。`;
-  $("competitorParseStatus").textContent = "竞品资料已接收，当前按内置示例价格规则生成分析。";
+  $("competitorParseStatus").textContent = "正在解析竞品售价和售卖数量。";
+  const parsed = (await Promise.all(files.map((file, index) => parseCompetitorFile(file, index)))).filter(Boolean);
+  currentCompetitors = parsed;
+  if (!parsed.length) {
+    $("competitorParseStatus").textContent = "没有从竞品文件中解析到售价。请上传包含价格的 HTML / 文本，或后续补手动竞品输入。";
+    $("competitorStatus").textContent = "待补录";
+    $("competitorStatus").classList.remove("ready");
+    updateCompetitorSummary(0);
+    refreshReportDraft();
+    setSiteStatus("竞品文件已接收，但没有解析到可用售价。", "warn");
+    smoothScrollTo("reportPanel");
+    return;
+  }
+  $("competitorFileSummary").textContent = `已解析：${parsed.length} 个竞品锚点。`;
+  $("competitorParseStatus").textContent = `已按当前产品解析竞品售价和售卖数量：${parsed.map((item) => `${item.label} ${money(item.price, 2)} / ${item.packCount}`).join("；")}`;
   $("competitorStatus").textContent = "已整理";
   $("competitorStatus").classList.add("ready");
-  updateCompetitorSummary(count);
+  updateCompetitorSummary(parsed.length);
   refreshReportDraft();
-  setSiteStatus(`已补充 ${count} 个竞品文件，下一步点击“生成报告”。`);
+  setSiteStatus(`已补充并解析 ${parsed.length} 个竞品文件，下一步点击“生成报告”。`);
   smoothScrollTo("reportPanel");
 }
 
@@ -1136,7 +1486,7 @@ function initFileInputs() {
   $("purchaseOrderFile").addEventListener("change", async (event) => {
     const file = event.target.files[0];
     if (!file) {
-      $("purchaseOrderFileName").textContent = "已放入：防磨贴采购单.pdf";
+      $("purchaseOrderFileName").textContent = "等待上传采购单";
       return;
     }
     try {
@@ -1172,7 +1522,16 @@ function initButtons() {
   $("loadSampleOrderBtn").addEventListener("click", loadSampleOrderText);
   $("addManualRowBtn").addEventListener("click", addManualRow);
   $("productName").addEventListener("input", refreshReportDraft);
-  $("comparisonUnitQty").addEventListener("change", refreshReportDraft);
+  $("salePackQty").addEventListener("input", refreshReportDraft);
+  $("salePackQty").addEventListener("change", refreshReportDraft);
+  $("comparisonUnitQty").addEventListener("input", () => {
+    updateCompetitorSummary();
+    refreshReportDraft();
+  });
+  $("comparisonUnitQty").addEventListener("change", () => {
+    updateCompetitorSummary();
+    refreshReportDraft();
+  });
   $("targetMargin").addEventListener("input", refreshReportDraft);
   ["lengthCm", "widthCm", "heightCm", "weightG"].forEach((id) => {
     $(id).addEventListener("change", refreshDimensions);
@@ -1188,7 +1547,10 @@ function initEditableFields() {
   });
 
   document.querySelectorAll(".price-input").forEach((input) => {
-    input.addEventListener("input", resetDownloadState);
+    input.addEventListener("input", () => {
+      resetDownloadState();
+      refreshReportDraft();
+    });
   });
 }
 
@@ -1197,11 +1559,13 @@ document.addEventListener("DOMContentLoaded", () => {
   initFileInputs();
   initButtons();
   initEditableFields();
+  updateCompetitorSummary();
   renderReportContent();
 });
 
 window.priceWorkbench = {
   parsePurchaseOrderText,
+  parseCompetitorText,
   renderRecognizedRows,
   updateSummaryFromRows
 };

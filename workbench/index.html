@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>通用产品定价台</title>
-    <link rel="stylesheet" href="styles.css?v=20260625-ocr3">
+    <link rel="stylesheet" href="styles.css?v=20260630-dynamic-competitors2">
   </head>
   <body>
     <main class="workspace-shell">
@@ -53,7 +53,7 @@
 
           <label class="field">
             产品名称
-            <input id="productName" type="text" value="防磨贴">
+            <input id="productName" type="text" placeholder="上传采购单后自动带入，也可手动输入">
           </label>
 
           <div class="upload-box">
@@ -62,7 +62,7 @@
               <span>支持 PDF / 图片 / HTML / 文本</span>
             </div>
             <input id="purchaseOrderFile" type="file" aria-label="上传采购单" accept=".pdf,.png,.jpg,.jpeg,.webp,.html,.htm,.txt,.csv">
-            <p id="purchaseOrderFileName">已放入：防磨贴采购单.pdf</p>
+            <p id="purchaseOrderFileName">等待上传采购单</p>
             <div class="ocr-actions">
               <button id="runOcrBtn" type="button" class="ghost-button" disabled>识别图片文字</button>
               <span id="ocrStatus">未选择图片</span>
@@ -147,7 +147,7 @@
           <div class="panel-heading result-heading">
             <div>
               <h2>识别结果</h2>
-              <span id="recognizedSummaryText">从采购单识别出 3 款产品，尺寸重量已按手动输入补齐。</span>
+              <span id="recognizedSummaryText">等待上传采购单或录入采购行。</span>
             </div>
             <span id="baseStatus" class="status-pill">待确认</span>
           </div>
@@ -155,15 +155,15 @@
           <div class="summary-grid">
             <div>
               <span>采购款数</span>
-              <strong>3 款</strong>
+              <strong>0 款</strong>
             </div>
             <div>
               <span>采购总数</span>
-              <strong>240 件</strong>
+              <strong>-</strong>
             </div>
             <div>
               <span>货品成本</span>
-              <strong>87.00 RMB</strong>
+              <strong>-</strong>
             </div>
             <div>
               <span>运费</span>
@@ -188,37 +188,7 @@
               </thead>
               <tbody id="recognizedRows">
                 <tr>
-                  <td><input data-final-sku-source="0" value="BP-44X69-001"></td>
-                  <td>水泡贴-大椭圆</td>
-                  <td>44mm*69mm</td>
-                  <td class="numeric">80</td>
-                  <td class="numeric strong">0.5438</td>
-                  <td class="numeric">8</td>
-                  <td class="numeric">12</td>
-                  <td class="numeric">1.5</td>
-                  <td class="numeric">55</td>
-                </tr>
-                <tr>
-                  <td><input data-final-sku-source="1" value="BP-20X60-002"></td>
-                  <td>水泡贴-小长条</td>
-                  <td>20mm*60mm</td>
-                  <td class="numeric">80</td>
-                  <td class="numeric strong">0.2669</td>
-                  <td class="numeric">8</td>
-                  <td class="numeric">12</td>
-                  <td class="numeric">1.5</td>
-                  <td class="numeric">55</td>
-                </tr>
-                <tr>
-                  <td><input data-final-sku-source="2" value="BP-17X60-003"></td>
-                  <td>水泡贴-中手表</td>
-                  <td>17mm*60mm</td>
-                  <td class="numeric">80</td>
-                  <td class="numeric strong">0.2769</td>
-                  <td class="numeric">8</td>
-                  <td class="numeric">12</td>
-                  <td class="numeric">1.5</td>
-                  <td class="numeric">55</td>
+                  <td colspan="9" class="empty">暂无采购行，请上传采购单、粘贴订单文本或手动添加采购行。</td>
                 </tr>
               </tbody>
             </table>
@@ -248,7 +218,7 @@
                 <span>支持多个文件一起上传</span>
               </div>
               <input id="competitorFiles" type="file" aria-label="上传竞品文件" multiple accept=".html,.htm,.pdf,.png,.jpg,.jpeg,.webp,.xlsx,.xls,.csv">
-              <p id="competitorFileSummary">示例已读取：4 个竞品文件，最低对比价 $5.69。</p>
+              <p id="competitorFileSummary">暂无竞品文件，上传后自动解析当前产品竞品。</p>
               <p id="competitorParseStatus" class="mini-status">等待补充竞品资料。</p>
             </div>
 
@@ -259,8 +229,12 @@
               </div>
               <div class="dimension-grid">
                 <label>
-                  对比单位数量
-                  <input id="comparisonUnitQty" type="number" value="30" step="1">
+                  本品售卖数量
+                  <input id="salePackQty" type="number" value="30" step="1">
+                </label>
+                <label>
+                  对比量
+                  <input id="comparisonUnitQty" type="number" value="1" step="1">
                 </label>
                 <label>
                   目标利润率
@@ -273,15 +247,15 @@
           <div class="competitor-summary">
             <div>
               <span>竞品数量</span>
-              <strong>4 个</strong>
+              <strong>0 个</strong>
             </div>
             <div>
-              <span>最低对比价</span>
-              <strong>$5.69</strong>
+              <span>最低折算价</span>
+              <strong>待上传</strong>
             </div>
             <div>
-              <span>对比单位</span>
-              <strong>30 片</strong>
+              <span>对比量</span>
+              <strong>1 片</strong>
             </div>
           </div>
         </section>
@@ -341,31 +315,7 @@
               </thead>
               <tbody id="finalPricingRows">
                 <tr>
-                  <td data-final-sku="0">BP-44X69-001</td>
-                  <td>水泡贴-大椭圆</td>
-                  <td class="numeric">3.15</td>
-                  <td class="numeric">4.72</td>
-                  <td class="numeric">0.59</td>
-                  <td class="numeric">0.121</td>
-                  <td><input class="price-input" type="number" value="5.61" min="0" step="0.01" aria-label="BP-44X69-001 定价"></td>
-                </tr>
-                <tr>
-                  <td data-final-sku="1">BP-20X60-002</td>
-                  <td>水泡贴-小长条</td>
-                  <td class="numeric">3.15</td>
-                  <td class="numeric">4.72</td>
-                  <td class="numeric">0.59</td>
-                  <td class="numeric">0.121</td>
-                  <td><input class="price-input" type="number" value="5.61" min="0" step="0.01" aria-label="BP-20X60-002 定价"></td>
-                </tr>
-                <tr>
-                  <td data-final-sku="2">BP-17X60-003</td>
-                  <td>水泡贴-中手表</td>
-                  <td class="numeric">3.15</td>
-                  <td class="numeric">4.72</td>
-                  <td class="numeric">0.59</td>
-                  <td class="numeric">0.121</td>
-                  <td><input class="price-input" type="number" value="5.61" min="0" step="0.01" aria-label="BP-17X60-003 定价"></td>
+                  <td colspan="7" class="empty">暂无最终价格行。</td>
                 </tr>
               </tbody>
             </table>
@@ -375,12 +325,12 @@
             <p id="exportStatus" class="export-status">等待确认价格。</p>
             <div class="final-action-buttons">
               <button id="generateExcelBtn" type="button" class="primary-button">确认并生成 Excel</button>
-              <a id="downloadExcelLink" class="download-link is-hidden" href="#" download="防磨贴_最终价格确认表.xls">下载 Excel</a>
+              <a id="downloadExcelLink" class="download-link is-hidden" href="#" download="最终价格确认表.xls">下载 Excel</a>
             </div>
           </div>
         </section>
       </section>
     </main>
-    <script src="app.js?v=20260625-ocr3"></script>
+    <script src="app.js?v=20260630-dynamic-competitors2"></script>
   </body>
 </html>

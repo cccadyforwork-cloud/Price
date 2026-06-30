@@ -1101,6 +1101,199 @@ function guessOcrTitle(text) {
   return cleaned.slice(0, 32) || "图片识别款式";
 }
 
+function normalizeOcrColorName(value) {
+  const compact = String(value || "").replace(/\s+/g, "");
+  const shortColors = {
+    金: "金色",
+    黑: "黑色",
+    白: "白色",
+    红: "红色",
+    绿: "绿色",
+    蓝: "蓝色",
+    粉: "粉色",
+    黄: "黄色",
+    紫: "紫色",
+    灰: "灰色",
+    银: "银色",
+    棕: "棕色",
+    米: "米色",
+    橙: "橙色",
+    透: "透明"
+  };
+  return shortColors[compact] || compact;
+}
+
+function extractOcrColor(block) {
+  const tight = compactOcrLine(block).replace(/\s+/g, "");
+  const colorCapture = "(透明|彩色|金色|黑色|白色|红色|绿色|蓝色|粉色|黄色|紫色|灰色|银色|棕色|咖啡色|米色|橙色|金|黑|白|红|绿|蓝|粉|黄|紫|灰|银|棕|米|橙|透)";
+  const patterns = [
+    new RegExp(`颜色[:：][^\\n。；;]{0,120}[（(]${colorCapture}`),
+    new RegExp(`(?:款式|规格|彩花|花|颜色)[^\\n。；;（）()]{0,40}[（(]${colorCapture}`),
+    new RegExp(`[（(]${colorCapture}(?:色|明)?[）)]?`),
+    new RegExp(`颜色[:：][^\\n。；;]{0,40}${colorCapture}`)
+  ];
+
+  for (const pattern of patterns) {
+    const match = tight.match(pattern);
+    if (match) {
+      return normalizeOcrColorName(match[1]);
+    }
+  }
+  return "";
+}
+
+function extractOcrSize(block) {
+  const tight = compactOcrLine(block).replace(/\s+/g, "");
+  const match = tight.match(/(?:尺码|尺寸|码数)[:：]?([A-Za-z0-9.-]{1,8})/);
+  return match ? match[1] : "";
+}
+
+function parseOcrAmountInfo(block) {
+  const compact = compactOcrLine(block);
+  const patterns = [
+    /(?<qty>\d{1,5})\s+(?<price>\d+(?:\.\d+)?)\s*元\s*(?:\/\s*[\u4e00-\u9fa5A-Za-z]+)?\s*(?<discount>-?\d+(?:\.\d+)?)\s+(?<amount>\d+(?:\.\d+)?)/g,
+    /(?<qty>\d{1,5})\s+(?<price>\d+(?:\.\d+)?)\s+(?<discount>-?\d+(?:\.\d+)?)\s+(?<amount>\d+(?:\.\d+)?)(?=\s|$)/g
+  ];
+  let best = null;
+
+  for (const pattern of patterns) {
+    let match;
+    while ((match = pattern.exec(compact)) !== null) {
+      best = match.groups;
+    }
+    if (best) {
+      break;
+    }
+  }
+
+  if (!best) {
+    return null;
+  }
+  const quantity = num(best.qty);
+  const price = moneyNumber(best.price);
+  const amount = moneyNumber(best.amount);
+  if (!quantity || (!price && !amount)) {
+    return null;
+  }
+  return {
+    quantity,
+    price,
+    amount,
+    discount: best.discount || "",
+    cost: amount ? amount / quantity : price
+  };
+}
+
+function normalizeLooseOcrItemCode(block) {
+  const alphaCode = normalizeItemCode(block.match(/[A-Z][A-Z\]]\s*-\s*\d{1,8}/i)?.[0] || "");
+  if (alphaCode) {
+    return alphaCode;
+  }
+  const spaced = String(block || "").replace(/[，,。]/g, " ");
+  const looseCode = spaced.match(/\d{2,8}\s*[*xX×]\s*\d{1,6}(?:\s*[\u4e00-\u9fa5A-Za-z0-9]){0,4}/)?.[0] || "";
+  return looseCode
+    .replace(/[×xX]/g, "*")
+    .replace(/[^\u4e00-\u9fa5A-Za-z0-9*.-]+/g, "")
+    .toUpperCase();
+}
+
+function cleanColorSizeOcrTitle(block, itemCode) {
+  let cleaned = compactOcrLine(block)
+    .replace(/序号.*?金额\s*\(?元?\)?/g, " ")
+    .replace(/货品合计.*$/g, " ")
+    .replace(/实付款.*$/g, " ")
+    .replace(/货品总量.*$/g, " ")
+    .replace(/[（(]\s*(?:金|黑|白|红|绿|蓝|粉|黄|紫|灰|银|棕|米|橙|透)(?:色|明)?/g, " ")
+    .replace(/(?:金|黑|白|红|绿|蓝|粉|黄|紫|灰|银|棕|米|橙|透)(?:色|明)?\s*[）)]/g, " ")
+    .replace(/明\s*[）)]/g, " ")
+    .replace(/[，,\s]\d+\s*[工丁]\s*[，,\s]/g, " ")
+    .replace(/鞋\s*花\s*(?:色|明)/g, "鞋花")
+    .replace(/颜色\s*[:：]\s*[^\n ]+/g, " ")
+    .replace(/\d{1,5}\s+\d+(?:\.\d+)?\s*元\s*(?:\/\s*[\u4e00-\u9fa5A-Za-z]+)?\s*-?\d+(?:\.\d+)?\s+\d+(?:\.\d+)?/g, " ")
+    .replace(/\d{1,5}\s+\d+(?:\.\d+)?\s+-?\d+(?:\.\d+)?\s+\d+(?:\.\d+)?/g, " ")
+    .replace(/尺码\s*[:：]?\s*[A-Za-z0-9.-]+[^。；;\n)]*[）)]?/g, " ")
+    .replace(/码数偏小\d+号/g, " ")
+    .replace(/\d{2,8}\s*[*xX×]\s*\d{1,6}(?:\s*[\u4e00-\u9fa5A-Za-z0-9]){0,4}/g, " ")
+    .replace(/[A-Za-z]+/g, " ")
+    .replace(/[^\u4e00-\u9fa5]+/g, " ")
+    .replace(/颜色|规格|数量|单价|优惠|金额|货号|货品名称|彩\s*花|花\s*色/g, " ")
+    .replace(/金色|黑色|白色|红色|绿色|蓝色|粉色|黄色|紫色|灰色|银色|棕色|咖啡色|米色|橙色|透明/g, " ")
+    .replace(/\s+/g, "");
+
+  if (itemCode) {
+    cleaned = cleaned.replace(itemCode.replace(/[^\u4e00-\u9fa5A-Za-z0-9]/g, ""), "");
+  }
+  return cleaned.slice(0, 42) || "图片识别款式";
+}
+
+function splitColorSizeOcrBlocks(text) {
+  const normalized = normalizeOrderText(text);
+  const byColorLabel = normalized
+    .split(/(?=^\s*颜色\s*[:：])/m)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (byColorLabel.length > 1) {
+    return byColorLabel;
+  }
+
+  const lines = normalized.split(/\r?\n/);
+  const blocks = [];
+  let current = [];
+  for (const line of lines) {
+    if (/颜色\s*[:：]/.test(line) && current.length) {
+      blocks.push(current.join("\n"));
+      current = [line];
+      continue;
+    }
+    current.push(line);
+  }
+  if (current.length) {
+    blocks.push(current.join("\n"));
+  }
+  return blocks.map((part) => part.trim()).filter(Boolean);
+}
+
+function parseColorSizeOcrRows(text) {
+  const rows = [];
+  const used = new Set();
+
+  for (const block of splitColorSizeOcrBlocks(text)) {
+    const amountInfo = parseOcrAmountInfo(block);
+    const color = extractOcrColor(block);
+    const size = extractOcrSize(block);
+    const hasVariantCue = /颜色|尺码|尺寸|码数/.test(block);
+    if (!amountInfo || (!hasVariantCue && !color && !size)) {
+      continue;
+    }
+
+    const itemCode = normalizeLooseOcrItemCode(block);
+    const specParts = [];
+    if (color) {
+      specParts.push(`颜色：${color}`);
+    }
+    if (size) {
+      specParts.push(`尺码：${size}`);
+    }
+    const spec = specParts.join("；") || `OCR款式${rows.length + 1}`;
+    const row = {
+      itemCode,
+      title: cleanColorSizeOcrTitle(block, itemCode) || guessOcrTitle(block),
+      spec,
+      quantity: amountInfo.quantity,
+      cost: amountInfo.cost,
+      amount: amountInfo.amount || "",
+      discount: amountInfo.discount
+    };
+    const key = rowIdentity(row);
+    if (row.quantity > 0 && row.cost && !used.has(key)) {
+      used.add(key);
+      rows.push(row);
+    }
+  }
+
+  return rows;
+}
+
 function parseOcrTableRows(text) {
   const sourceLines = text
     .split(/\r?\n/)
@@ -1117,7 +1310,7 @@ function parseOcrTableRows(text) {
   });
   const rows = [];
   const used = new Set();
-  const colorPattern = /(彩色|黑色|白色|透明|红色|绿色|蓝色|粉色|黄色|紫色)/;
+  const colorPattern = /(彩色|金色|黑色|白色|透明|红色|绿色|蓝色|粉色|黄色|紫色|灰色|银色|棕色|咖啡色|米色|橙色)/;
   const priceLinePattern = /(?<spec>(?:\d\s*)?00ml款式\d+;?|\d{2,4}ml款式\d+;?).*?(?<qty>\d{1,5})\s+(?<price>\d+(?:\.\d+)?)\s+(?<discount>-\d+(?:\.\d+)?)\s+(?<amount>\d+(?:\.\d+)?)/gi;
 
   lines.forEach((entry) => {
@@ -1172,7 +1365,14 @@ function parsePurchaseOrderText(text, fileName = "") {
   const rows = [];
   const used = new Set();
 
-  for (const row of [...parseLabelledRows(plain), ...parseTableLikeRows(lines), ...parseOcrTableRows(plain)]) {
+  const parsedRows = [
+    ...parseColorSizeOcrRows(plain),
+    ...parseLabelledRows(plain),
+    ...parseTableLikeRows(lines),
+    ...parseOcrTableRows(plain)
+  ];
+
+  for (const row of parsedRows) {
     const key = rowIdentity(row);
     if (!used.has(key)) {
       used.add(key);
@@ -1180,26 +1380,28 @@ function parsePurchaseOrderText(text, fileName = "") {
     }
   }
 
-  const unit = "(?:mm|MM|cm|CM|in|IN)?";
-  const linePattern = new RegExp(`(?<title>[\\u4e00-\\u9fa5A-Za-z0-9 -]{0,32}?)\\s*(?<spec>\\d+(?:\\.\\d+)?\\s*${unit}\\s*[xX*×]\\s*\\d+(?:\\.\\d+)?\\s*${unit})\\D{0,50}(?<qty>\\d{1,5})\\D{0,35}(?<price>\\d+(?:\\.\\d{1,4})?)\\D{0,35}(?<amount>\\d+(?:\\.\\d{1,2})?)`, "g");
+  if (!rows.length) {
+    const unit = "(?:mm|MM|cm|CM|in|IN)?";
+    const linePattern = new RegExp(`(?<title>[\\u4e00-\\u9fa5A-Za-z0-9 -]{0,32}?)\\s*(?<spec>\\d+(?:\\.\\d+)?\\s*${unit}\\s*[xX*×]\\s*\\d+(?:\\.\\d+)?\\s*${unit})\\D{0,50}(?<qty>\\d{1,5})\\D{0,35}(?<price>\\d+(?:\\.\\d{1,4})?)\\D{0,35}(?<amount>\\d+(?:\\.\\d{1,2})?)`, "g");
 
-  for (const line of lines) {
-    let match;
-    while ((match = linePattern.exec(line)) !== null) {
-      const spec = match.groups.spec.replace(/\s+/g, "").replace("×", "*");
-      const qty = num(match.groups.qty);
-      const price = moneyNumber(match.groups.price);
-      const amount = moneyNumber(match.groups.amount);
-      const row = {
-          title: normalizeTitle(match.groups.title, spec, rows.length),
-          spec,
-          quantity: qty,
-          cost: amount > 0 ? amount / qty : price
-        };
-      const key = rowIdentity(row);
-      if (qty > 0 && (price > 0 || amount > 0) && !used.has(key)) {
-        used.add(key);
-        rows.push(row);
+    for (const line of lines) {
+      let match;
+      while ((match = linePattern.exec(line)) !== null) {
+        const spec = match.groups.spec.replace(/\s+/g, "").replace("×", "*");
+        const qty = num(match.groups.qty);
+        const price = moneyNumber(match.groups.price);
+        const amount = moneyNumber(match.groups.amount);
+        const row = {
+            title: normalizeTitle(match.groups.title, spec, rows.length),
+            spec,
+            quantity: qty,
+            cost: amount > 0 ? amount / qty : price
+          };
+        const key = rowIdentity(row);
+        if (qty > 0 && (price > 0 || amount > 0) && !used.has(key)) {
+          used.add(key);
+          rows.push(row);
+        }
       }
     }
   }

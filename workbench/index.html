@@ -89,6 +89,10 @@
             </div>
             <div class="manual-row-grid">
               <label>
+                产品 SKU
+                <input id="manualSku" type="text" placeholder="例如：GlassMister-200ml-Green">
+              </label>
+              <label>
                 货号
                 <input id="manualItemCode" type="text" placeholder="例如：HJ-11">
               </label>
@@ -110,6 +114,13 @@
               </label>
             </div>
             <button id="addManualRowBtn" type="button" class="ghost-button">添加到识别结果</button>
+            <div class="bulk-entry">
+              <label>
+                批量粘贴采购行
+                <textarea id="manualBulkRows" rows="5" placeholder="每行一款，列顺序：SKU	货号	款式标题	规格	数量	成本价。也可以从 Excel 直接复制多行粘贴。"></textarea>
+              </label>
+              <button id="addBulkRowsBtn" type="button" class="ghost-button">批量添加到识别结果</button>
+            </div>
           </div>
 
           <div class="manual-card">

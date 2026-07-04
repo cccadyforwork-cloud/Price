@@ -62,6 +62,78 @@ def product_name_from_draft(path):
     return path.stem.replace("_统一输入草稿", "")
 
 
+def infer_product_profile(product_name, rows, competitors):
+    text = " ".join(
+        clean(value).lower()
+        for value in [
+            product_name,
+            *[row.get("中文品名") for row in rows],
+            *[row.get("英文品名") for row in rows],
+            *[row.get("变体/规格") for row in rows],
+            *[item.get("标题") for item in competitors],
+        ]
+        if clean(value)
+    )
+    profile = {
+        "unit_label": "件",
+        "sale_label": "件",
+        "strategy_noun": "材质、规格、使用场景和评价积累",
+        "comparison_basis": "同规格折算价",
+    }
+    rules = [
+        (
+            ("手套", "glove", "gloves", "pair", "pairs", "双"),
+            {
+                "unit_label": "双",
+                "sale_label": "包",
+                "strategy_noun": "防滑涂层、透气性、尺码覆盖和多双装消耗场景",
+                "comparison_basis": "每双折算价",
+            },
+        ),
+        (
+            ("喷壶", "玻璃壶", "spray bottle", "mister", "sprayer", "bottle", "瓶"),
+            {
+                "unit_label": "瓶",
+                "sale_label": "件",
+                "strategy_noun": "容量、玻璃材质、喷头质感、颜色和使用场景",
+                "comparison_basis": "每瓶折算价",
+            },
+        ),
+        (
+            ("瑜伽砖", "yoga block", "block", "砖"),
+            {
+                "unit_label": "块",
+                "sale_label": "件",
+                "strategy_noun": "尺寸、EVA密度、防滑触感、边角处理和颜色",
+                "comparison_basis": "每块折算价",
+            },
+        ),
+        (
+            ("卡片夹", "花束夹", "card holder", "card pick", "floral pick", "pick"),
+            {
+                "unit_label": "支",
+                "sale_label": "包",
+                "strategy_noun": "每包数量、长度、材质和花艺使用场景",
+                "comparison_basis": "每支折算价",
+            },
+        ),
+        (
+            ("防磨贴", "水胶体", "贴", "片", "pad", "pads", "patch", "patches", "bandage"),
+            {
+                "unit_label": "片",
+                "sale_label": "套",
+                "strategy_noun": "片数、尺寸组合、亲肤材料和旅行/磨脚场景",
+                "comparison_basis": "每片折算价",
+            },
+        ),
+    ]
+    for keywords, values in rules:
+        if any(keyword in text for keyword in keywords):
+            profile.update(values)
+            break
+    return profile
+
+
 def fba_fee_for(weight_lb, price):
     for max_lb, predicate, fee, label in FBA_FEE_TIERS:
         if weight_lb <= max_lb and predicate(price):
@@ -293,29 +365,81 @@ def write_upload_workbook(path, results):
 
 def write_markdown(path, product_name, results, competitors):
     first = results[0]
+    rows = [item["row"] for item in results]
+    profile = infer_product_profile(product_name, rows, competitors)
+    unit_label = profile["unit_label"]
+    sale_label = profile["sale_label"]
+    metrics_list = [item["metrics"] for item in results if item["metrics"]]
+    avg_margin = (
+        sum(metric["margin"] for metric in metrics_list) / len(metrics_list)
+        if metrics_list
+        else 0
+    )
+    heaviest = max(
+        results,
+        key=lambda item: item["metrics"]["billable_lb"] if item["metrics"] else 0,
+    )
+    lowest_margin = min(
+        results,
+        key=lambda item: item["metrics"]["margin"] if item["metrics"] else 1,
+    )
     lines = [
         f"# {product_name}正式定价报告",
         "",
-        f"- 竞品最低对比价：${first['competitor_min']:.2f}" if first["competitor_min"] else "- 竞品最低对比价：未识别",
-        f"- 对比单位数量：{first['comparison_unit']:g}",
+        "## 产品口径",
+        "",
+        f"- 对比口径：{profile['comparison_basis']}，当前对比数量为 {first['comparison_unit']:g}{unit_label}。",
+        f"- 售卖单位：报告按每{sale_label}售价计算利润，竞品统一折算到同一数量后比较。",
+        f"- 主要支撑点：{profile['strategy_noun']}。",
+        f"- 竞品最低折算价：${first['competitor_min']:.2f}/{first['comparison_unit']:g}{unit_label}" if first["competitor_min"] else "- 竞品最低折算价：未识别",
+        f"- 平均期望利润率：{avg_margin:.1%}",
         "",
         "## 建议售价",
         "",
-        "| SKU | 规格 | 建议售价 | 结论 | 计费重量 | FBA费 | 期望利润率 |",
-        "| --- | --- | ---: | --- | ---: | ---: | ---: |",
+        "| SKU | 规格 | 建议售价 | 折算对比价 | 结论 | 计费重量 | FBA费 | 期望利润率 |",
+        "| --- | --- | ---: | ---: | --- | ---: | ---: | ---: |",
     ]
     for item in results:
         row = item["row"]
         metric = item["metrics"]
+        pack_count = max(to_float(row.get("销售包数"), 1), 1)
+        comparison_price = item["recommended"] / pack_count * item["comparison_unit"]
         lines.append(
             f"| {row['SKU']} | {row['变体/规格']} | ${item['recommended']:.2f} | "
-            f"{item['conclusion']} | {metric['billable_lb']:.2f} lb | "
+            f"${comparison_price:.2f}/{item['comparison_unit']:g}{unit_label} | {item['conclusion']} | {metric['billable_lb']:.2f} lb | "
             f"${metric['fba_fee']:.2f} | {metric['margin']:.1%} |"
         )
-    lines.extend(["", "## 竞品", ""])
+    lines.extend([
+        "",
+        "## 判断过程",
+        "",
+        (
+            f"- 物流成本：计费重量最高的是 {heaviest['row']['SKU']}，"
+            f"{heaviest['metrics']['billable_lb']:.2f} lb，FBA 档位 {heaviest['metrics']['fba_tier']}。"
+        ),
+        (
+            f"- 利润压力：利润率最低的是 {lowest_margin['row']['SKU']}，"
+            f"期望利润率 {lowest_margin['metrics']['margin']:.1%}，期望利润 ${lowest_margin['metrics']['expected_profit']:.2f}/每{sale_label}。"
+        ),
+        (
+            "- 竞品策略：如果建议价低于或接近竞品折算价，可以优先跑转化；"
+            f"如果高于竞品，需要靠{profile['strategy_noun']}支撑。"
+        ),
+        "",
+        "## 竞品",
+        "",
+    ])
     for item in competitors:
         price = to_float(item.get("单件价USD"))
-        lines.append(f"- ${price:.2f} / {item.get('ASIN')} / {item.get('标题')}")
+        pack_count = to_float(item.get("包数"), 1)
+        page_price = to_float(item.get("页面主售价USD"))
+        comparison_price = price * first["comparison_unit"] if price else 0
+        page_price_text = f"${page_price:.2f}" if page_price else "未识别"
+        comparison_text = f"${comparison_price:.2f}/{first['comparison_unit']:g}{unit_label}" if comparison_price else "未识别"
+        lines.append(
+            f"- {page_price_text} / {pack_count:g}{unit_label} / 折算 {comparison_text} / "
+            f"{item.get('ASIN')} / {item.get('标题')}"
+        )
     path.write_text("\n".join(lines), encoding="utf-8")
 
 

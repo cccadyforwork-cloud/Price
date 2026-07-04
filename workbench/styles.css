@@ -272,6 +272,22 @@ textarea:focus {
   font-weight: 700;
 }
 
+.bulk-entry {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.bulk-entry label {
+  display: grid;
+  gap: 6px;
+  color: #4e5c56;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .inline-actions {
   display: flex;
   gap: 10px;
@@ -598,6 +614,18 @@ mark {
   min-height: 36px;
   text-align: right;
   font-weight: 850;
+}
+
+.table-input {
+  min-height: 34px;
+  width: 100%;
+  padding: 6px 8px;
+  border-color: #d7ded9;
+  font-size: 13px;
+}
+
+.sku-input {
+  font-weight: 800;
 }
 
 .final-actions {

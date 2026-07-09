@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>通用产品定价台</title>
-    <link rel="stylesheet" href="styles.css?v=20260701-color-size-ocr1">
+    <link rel="stylesheet" href="styles.css?v=20260707-price-source1">
   </head>
   <body>
     <main class="workspace-shell">
@@ -55,6 +55,14 @@
             产品名称
             <input id="productName" type="text" placeholder="上传采购单后自动带入，也可手动输入">
           </label>
+
+          <div class="mode-card" aria-label="产品类型">
+            <span>产品类型</span>
+            <div class="mode-toggle">
+              <button id="standardModeBtn" type="button" class="mode-button active" aria-pressed="true">普通单品</button>
+              <button id="bundleModeBtn" type="button" class="mode-button" aria-pressed="false">组合套装</button>
+            </div>
+          </div>
 
           <div class="upload-box">
             <div>
@@ -123,6 +131,62 @@
             </div>
           </div>
 
+          <div id="bundleCard" class="manual-card is-hidden">
+            <div class="manual-card-title">
+              <strong>组合套装</strong>
+              <span>父 SKU + 组件成本</span>
+            </div>
+            <div class="manual-row-grid">
+              <label>
+                套装 SKU
+                <input id="bundleSku" type="text" placeholder="例如：BlisterPad-3Style-24pcs">
+              </label>
+              <label>
+                套装标题
+                <input id="bundleTitle" type="text" placeholder="例如：三款组合防磨贴">
+              </label>
+              <label>
+                套装规格
+                <input id="bundleSpec" type="text" placeholder="例如：3款各8片，共24片/套">
+              </label>
+              <label>
+                单位
+                <input id="bundleUnitLabel" type="text" value="片">
+              </label>
+            </div>
+            <div class="bundle-components">
+              <div class="bundle-component-header">
+                <span>组件</span>
+                <span>每套用量</span>
+                <span>单件成本</span>
+                <span>采购数量</span>
+              </div>
+              <div class="bundle-component-row">
+                <input class="bundle-component-name" type="text" placeholder="款式A">
+                <input class="bundle-component-qty" type="number" min="0" step="1" value="8" aria-label="款式A每套用量">
+                <input class="bundle-component-cost" type="number" min="0" step="0.0001" placeholder="0.00" aria-label="款式A单件成本">
+                <input class="bundle-component-purchase" type="number" min="0" step="1" placeholder="采购片数" aria-label="款式A采购数量">
+              </div>
+              <div class="bundle-component-row">
+                <input class="bundle-component-name" type="text" placeholder="款式B">
+                <input class="bundle-component-qty" type="number" min="0" step="1" value="8" aria-label="款式B每套用量">
+                <input class="bundle-component-cost" type="number" min="0" step="0.0001" placeholder="0.00" aria-label="款式B单件成本">
+                <input class="bundle-component-purchase" type="number" min="0" step="1" placeholder="采购片数" aria-label="款式B采购数量">
+              </div>
+              <div class="bundle-component-row">
+                <input class="bundle-component-name" type="text" placeholder="款式C">
+                <input class="bundle-component-qty" type="number" min="0" step="1" value="8" aria-label="款式C每套用量">
+                <input class="bundle-component-cost" type="number" min="0" step="0.0001" placeholder="0.00" aria-label="款式C单件成本">
+                <input class="bundle-component-purchase" type="number" min="0" step="1" placeholder="采购片数" aria-label="款式C采购数量">
+              </div>
+            </div>
+            <div class="bundle-summary" id="bundlePreview">填写组件后生成一条父 SKU 套装行。</div>
+            <div class="inline-actions">
+              <button id="buildBundleBtn" type="button" class="ghost-button">生成套装行</button>
+              <button id="clearBundleBtn" type="button" class="ghost-button">清空套装</button>
+            </div>
+          </div>
+
           <div class="manual-card">
             <div class="manual-card-title">
               <strong>尺寸重量</strong>
@@ -131,19 +195,19 @@
             <div class="dimension-grid">
               <label>
                 长 cm
-                <input id="lengthCm" type="number" value="8" step="0.1">
+                <input id="lengthCm" type="number" value="0" step="0.1">
               </label>
               <label>
                 宽 cm
-                <input id="widthCm" type="number" value="12" step="0.1">
+                <input id="widthCm" type="number" value="0" step="0.1">
               </label>
               <label>
                 高 cm
-                <input id="heightCm" type="number" value="1.5" step="0.1">
+                <input id="heightCm" type="number" value="0" step="0.1">
               </label>
               <label>
                 重 g
-                <input id="weightG" type="number" value="55" step="1">
+                <input id="weightG" type="number" value="0" step="1">
               </label>
             </div>
           </div>
@@ -241,11 +305,11 @@
               <div class="dimension-grid">
                 <label>
                   本品售卖数量
-                  <input id="salePackQty" type="number" value="30" step="1">
+                  <input id="salePackQty" type="number" value="0" step="1">
                 </label>
                 <label>
                   对比量
-                  <input id="comparisonUnitQty" type="number" value="1" step="1">
+                  <input id="comparisonUnitQty" type="number" value="0" step="1">
                 </label>
                 <label>
                   目标利润率
@@ -342,6 +406,6 @@
         </section>
       </section>
     </main>
-    <script src="app.js?v=20260701-color-size-ocr1"></script>
+    <script src="app.js?v=20260707-price-source1"></script>
   </body>
 </html>

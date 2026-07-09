@@ -264,6 +264,39 @@ textarea:focus {
   margin-bottom: 12px;
 }
 
+.mode-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfa;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.mode-card > span {
+  color: #4e5c56;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.mode-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mode-button {
+  min-height: 38px;
+  padding: 0 10px;
+  font-weight: 800;
+}
+
+.mode-button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 .manual-row-grid label {
   display: grid;
   gap: 6px;
@@ -388,6 +421,42 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  margin-bottom: 12px;
+}
+
+.bundle-components {
+  display: grid;
+  gap: 8px;
+  margin: 6px 0 12px;
+}
+
+.bundle-component-header,
+.bundle-component-row {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 0.9fr 0.9fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.bundle-component-header {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.bundle-component-row input {
+  min-height: 36px;
+  padding: 7px 8px;
+}
+
+.bundle-summary {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px;
   margin-bottom: 12px;
 }
 
@@ -519,6 +588,22 @@ button:disabled {
   margin-top: 8px;
 }
 
+.formula-box {
+  border: 1px solid #d9e1dc;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 12px;
+  margin-top: 14px;
+}
+
+.formula-box p {
+  font-size: 16px;
+}
+
+.formula-box p + p {
+  margin-top: 10px;
+}
+
 mark {
   border-radius: 8px;
   background: #e8eaeb;
@@ -626,6 +711,16 @@ mark {
 
 .sku-input {
   font-weight: 800;
+}
+
+.numeric-input {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.strong-input {
+  color: var(--accent);
+  font-weight: 850;
 }
 
 .final-actions {

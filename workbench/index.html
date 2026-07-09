@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>通用产品定价台</title>
-    <link rel="stylesheet" href="styles.css?v=20260709-merged-fixes1">
+    <link rel="stylesheet" href="styles.css?v=20260710-layout6">
   </head>
   <body>
     <main class="workspace-shell">
@@ -86,7 +86,6 @@
             <textarea id="orderTextInput" rows="6" placeholder="把订单详情页、截图 OCR 结果或表格文本粘贴到这里，例如：货号 HJ-11 规格型号 200ml款式3; 彩色 数量 2 单价 4.00 优惠 -0.25 金额 7.75"></textarea>
             <div class="inline-actions">
               <button id="parseOrderTextBtn" type="button" class="ghost-button">解析粘贴文本</button>
-              <button id="loadSampleOrderBtn" type="button" class="ghost-button">载入测试订单文本</button>
             </div>
           </div>
 
@@ -212,12 +211,9 @@
             </div>
           </div>
 
-          <div class="rule-card">
-            <strong>内置规则</strong>
-            <p>SKU 可人工填写；币种、配送费档位、利润测算规则从项目内读取。</p>
-          </div>
         </aside>
 
+        <div class="workflow-column">
         <section class="result-panel" aria-label="识别结果">
           <div class="panel-heading result-heading">
             <div>
@@ -250,7 +246,7 @@
             <table>
               <thead>
                 <tr>
-                  <th>SKU</th>
+                  <th class="sku-column">SKU</th>
                   <th>款式标题</th>
                   <th>规格</th>
                   <th class="numeric">采购数量</th>
@@ -274,7 +270,6 @@
             <p>采集采购成本，并把手动输入的 SKU、尺寸重量合并到每个采购款式。确认后，这张表会作为下一步配送费和利润定价的基础数据。</p>
           </div>
         </section>
-      </section>
 
       <section class="next-step-grid">
         <section class="competitor-panel" aria-label="竞品输入">
@@ -305,11 +300,11 @@
               <div class="dimension-grid">
                 <label>
                   本品售卖数量
-                  <input id="salePackQty" type="number" value="0" step="1">
+                  <input id="salePackQty" type="number" value="1" min="1" step="1">
                 </label>
                 <label>
                   对比量
-                  <input id="comparisonUnitQty" type="number" value="0" step="1">
+                  <input id="comparisonUnitQty" type="number" value="1" min="1" step="1">
                 </label>
                 <label>
                   目标利润率
@@ -364,6 +359,8 @@
           </div>
         </section>
       </section>
+        </div>
+      </section>
 
       <section id="finalStage" class="final-stage" aria-label="价格确认">
         <section class="final-panel">
@@ -379,7 +376,7 @@
             <table class="final-table">
               <thead>
                 <tr>
-                  <th>SKU</th>
+                  <th class="sku-column">SKU</th>
                   <th>款式标题</th>
                   <th class="numeric">长(in)</th>
                   <th class="numeric">宽(in)</th>
@@ -406,6 +403,6 @@
         </section>
       </section>
     </main>
-    <script src="app.js?v=20260709-merged-fixes1"></script>
+    <script src="app.js?v=20260710-bulk4"></script>
   </body>
 </html>

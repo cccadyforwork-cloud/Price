@@ -32,9 +32,9 @@ textarea {
 }
 
 .workspace-shell {
-  width: min(1440px, 100%);
+  width: min(1680px, 100%);
   margin: 0 auto;
-  padding: 24px;
+  padding: 18px;
   min-width: 0;
 }
 
@@ -177,10 +177,16 @@ button,
 
 .main-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: minmax(360px, 430px) minmax(720px, 1fr);
+  gap: 14px;
   align-items: start;
   margin-bottom: 18px;
+}
+
+.workflow-column {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
 }
 
 .input-panel,
@@ -195,9 +201,9 @@ button,
 }
 
 .input-panel {
-  padding: 18px;
+  padding: 16px;
   display: grid;
-  gap: 16px;
+  gap: 14px;
   position: sticky;
   top: 18px;
 }
@@ -313,6 +319,10 @@ textarea:focus {
   border-top: 1px solid var(--line);
 }
 
+.bulk-entry textarea {
+  min-height: 150px;
+}
+
 .bulk-entry label {
   display: grid;
   gap: 6px;
@@ -372,7 +382,6 @@ button:disabled {
 
 .upload-box,
 .manual-card,
-.rule-card,
 .check-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -386,8 +395,7 @@ button:disabled {
 }
 
 .upload-box strong,
-.manual-card strong,
-.rule-card strong {
+.manual-card strong {
   display: block;
   font-size: 15px;
 }
@@ -399,7 +407,6 @@ button:disabled {
 }
 
 .upload-box p,
-.rule-card p,
 .check-panel p {
   color: var(--muted);
   font-size: 13px;
@@ -466,12 +473,6 @@ button:disabled {
   gap: 10px;
 }
 
-.rule-card {
-  padding: 14px;
-  display: grid;
-  gap: 6px;
-}
-
 .result-heading {
   align-items: center;
 }
@@ -504,42 +505,79 @@ button:disabled {
 
 .next-step-grid {
   display: grid;
-  grid-template-columns: minmax(320px, 0.78fr) minmax(0, 1.22fr);
-  gap: 18px;
+  grid-template-columns: 1fr;
+  gap: 14px;
   align-items: start;
 }
 
 .competitor-input-grid {
   display: grid;
-  gap: 14px;
-  margin-top: 16px;
+  grid-template-columns: minmax(300px, 1.2fr) minmax(260px, 0.8fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.competitor-panel {
+  padding: 14px 18px;
+}
+
+.competitor-panel .panel-heading {
+  padding-bottom: 10px;
+}
+
+.competitor-panel .upload-box,
+.competitor-panel .manual-card {
+  padding: 8px 10px;
+  gap: 6px;
+}
+
+.competitor-panel .manual-card-title {
+  margin-bottom: 8px;
+}
+
+.competitor-panel .dimension-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.competitor-panel input {
+  min-height: 34px;
+  padding: 6px 8px;
+}
+
+.competitor-panel .upload-box p {
+  line-height: 1.35;
+}
+
+.competitor-panel .mini-status {
+  padding-top: 6px;
 }
 
 .competitor-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 14px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .competitor-summary div {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fbfcfa;
-  padding: 12px;
-  min-height: 70px;
+  padding: 8px 10px;
+  min-height: 48px;
 }
 
 .competitor-summary span {
   display: block;
   color: var(--muted);
   font-size: 12px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .competitor-summary strong {
   display: block;
-  font-size: 19px;
+  font-size: 17px;
   line-height: 1.2;
 }
 
@@ -780,11 +818,12 @@ mark {
   overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
+  min-height: 300px;
 }
 
 table {
   width: 100%;
-  min-width: 900px;
+  min-width: 980px;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -827,17 +866,17 @@ td {
 
 th:nth-child(1),
 td:nth-child(1) {
-  width: 142px;
+  width: 200px;
 }
 
 th:nth-child(2),
 td:nth-child(2) {
-  width: 130px;
+  width: 160px;
 }
 
 th:nth-child(3),
 td:nth-child(3) {
-  width: 110px;
+  width: 150px;
 }
 
 .numeric {
@@ -903,6 +942,10 @@ td input {
 
   .input-panel {
     position: static;
+  }
+
+  .bulk-entry textarea {
+    min-height: 150px;
   }
 }
 

@@ -7,13 +7,6 @@ const returnRate = 0.1;
 const disposalFeeUsd = 0.25;
 const refundCommissionLossRate = referralFeeRate;
 const breakEvenFactor = (1 - returnRate) * (1 - referralFeeRate) - returnRate * referralFeeRate * refundCommissionLossRate;
-const sampleOrderText = `货号 HJ-11
-货品名称 复古透明浮雕玻璃喷壶 喷水壶室内园艺按压式玻璃浇水壶批发浇水壶
-规格型号：200ml款式3; 彩色 数量 2 单价 4.00 优惠 -0.25 金额 7.75
-规格型号：200ml款式1; 彩色 数量 2 单价 4.00 优惠 -0.25 金额 7.75
-规格型号：200ml款式4; 彩色 数量 2 单价 4.00 优惠 -0.25 金额 7.75
-规格型号：200ml款式2; 彩色 数量 2 单价 4.00 优惠 -0.25 金额 7.75
-货品合计 32.00 元 货品总量 8 运费 10.80 元 优惠 -1.00 元 实付款 41.80 元`;
 
 let finalExcelUrl = "";
 let reportExcelUrl = "";
@@ -193,11 +186,11 @@ function suggestedPrice() {
 
 function salePackQty() {
   const input = $("salePackQty");
-  return Math.max(0, num(input?.value, 0));
+  return Math.max(1, num(input?.value, 1));
 }
 
 function comparisonQty() {
-  return Math.max(0, num($("comparisonUnitQty").value, 0));
+  return Math.max(1, num($("comparisonUnitQty").value, 1));
 }
 
 function profileText(productName = "", rows = [], competitors = []) {
@@ -2163,10 +2156,10 @@ function splitBulkColumns(line) {
   if (!trimmed) {
     return [];
   }
-  if (!/[\t,，]/.test(trimmed)) {
+  if (!/[\t,，|｜]/.test(trimmed)) {
     return [trimmed];
   }
-  const delimiter = trimmed.includes("\t") ? /\t/ : /[,，]/;
+  const delimiter = trimmed.includes("\t") ? /\t/ : /[|｜]/.test(trimmed) ? /[|｜]/ : /[,，]/;
   return trimmed.split(delimiter).map((item) => item.trim());
 }
 
@@ -2180,38 +2173,47 @@ function rowFromBulkColumns(columns, index) {
   if (columns.length === 1) {
     return rowFromLooseBulkLine(columns[0], index);
   }
-  const [sku, itemCode, title, spec, quantity, cost] = columns;
-  if (columns.length >= 6) {
+  const values = columns.map(cleanBulkValue).filter(Boolean);
+  if (values.length >= 6 && isBulkSku(values[0])) {
+    const [sku, itemCode, title, spec, quantity, cost] = values;
     return {
       sku: cleanBulkValue(sku),
       itemCode: cleanBulkValue(itemCode),
       title: cleanBulkValue(title) || `采购款式-${currentPurchaseRows.length + index + 1}`,
       spec: cleanBulkValue(spec) || "手动规格",
-      quantity: cleanBulkValue(quantity),
-      cost: cleanBulkValue(cost)
+      quantity: cleanBulkNumber(quantity),
+      cost: cleanBulkNumber(cost)
     };
   }
-  if (columns.length === 5) {
-    return {
-      sku: cleanBulkValue(columns[0]),
-      itemCode: "",
-      title: cleanBulkValue(columns[1]) || `采购款式-${currentPurchaseRows.length + index + 1}`,
-      spec: cleanBulkValue(columns[2]) || "手动规格",
-      quantity: cleanBulkValue(columns[3]),
-      cost: cleanBulkValue(columns[4])
-    };
+  return rowFromDelimitedBulkColumns(values, index);
+}
+
+function rowFromDelimitedBulkColumns(values, index) {
+  const costIndex = findLastNumericIndex(values);
+  const quantityIndex = findLastNumericIndex(values, costIndex - 1);
+  if (quantityIndex < 0 || costIndex < 0) {
+    throw new Error("批量粘贴至少需要 款式/规格、数量、成本价；SKU 可在表格里人工填写");
   }
-  if (columns.length === 4) {
-    return {
-      sku: "",
-      itemCode: "",
-      title: cleanBulkValue(columns[0]) || cleanBulkValue($("productName")?.value) || `采购款式-${currentPurchaseRows.length + index + 1}`,
-      spec: cleanBulkValue(columns[1]) || cleanBulkValue(columns[0]) || "手动规格",
-      quantity: cleanBulkValue(columns[2]),
-      cost: cleanBulkValue(columns[3])
-    };
+
+  const quantity = cleanBulkNumber(values[quantityIndex]);
+  const cost = cleanBulkNumber(values[costIndex]);
+  const descriptive = values.filter((_, valueIndex) => valueIndex !== quantityIndex && valueIndex !== costIndex);
+  let sku = "";
+  if (descriptive.length && isBulkSku(descriptive[0])) {
+    sku = descriptive.shift();
   }
-  throw new Error("批量粘贴至少需要 款式/规格、数量、成本价；SKU 可在表格里人工填写");
+
+  const fallback = cleanBulkValue($("productName")?.value) || `采购款式-${currentPurchaseRows.length + index + 1}`;
+  const title = descriptive[0] || fallback;
+  const spec = descriptive.length > 1 ? descriptive.slice(1).join(" ") : title || "手动规格";
+  return {
+    sku,
+    itemCode: "",
+    title,
+    spec,
+    quantity,
+    cost
+  };
 }
 
 function numericLabelValue(text, labels) {
@@ -2236,6 +2238,13 @@ function splitTitleAndSpec(text, index) {
   }
   if (words.length === 1) {
     return { title: words[0], spec: words[0] };
+  }
+  const dimensionStart = words.findIndex((word) => /\d+(?:\.\d+)?\s*(cm|厘米|mm|毫米|in|inch|英寸|g|kg|lb|oz|ml|l|升)\b/i.test(word));
+  if (dimensionStart > 0) {
+    return {
+      title: words.slice(0, dimensionStart).join(" "),
+      spec: words.slice(dimensionStart).join(" ")
+    };
   }
   return {
     title: words.slice(0, -1).join(" "),
@@ -2296,6 +2305,25 @@ function rowFromLooseBulkLine(line, index) {
 
 function cleanBulkValue(value) {
   return String(value ?? "").replace(/^["']|["']$/g, "").trim();
+}
+
+function cleanBulkNumber(value) {
+  const match = cleanBulkValue(value).match(/-?\d+(?:\.\d+)?/);
+  return match ? match[0] : "";
+}
+
+function findLastNumericIndex(values, startIndex = values.length - 1) {
+  for (let index = Math.min(startIndex, values.length - 1); index >= 0; index -= 1) {
+    if (cleanBulkNumber(values[index])) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function isBulkSku(value) {
+  const cleaned = cleanBulkValue(value);
+  return /^[A-Z0-9][A-Z0-9_-]{2,}$/i.test(cleaned) && /[A-Za-z]/.test(cleaned);
 }
 
 function rowsFromBulkInput(text) {
@@ -2465,11 +2493,6 @@ function parsePastedOrderText() {
   $("baseStatus").textContent = "待确认";
   $("baseStatus").classList.remove("ready");
   setSiteStatus(`已从粘贴文本识别 ${rows.length} 款产品，请检查表格后确认。`);
-}
-
-function loadSampleOrderText() {
-  $("orderTextInput").value = sampleOrderText;
-  parsePastedOrderText();
 }
 
 function addManualRow() {
@@ -2690,7 +2713,6 @@ function initButtons() {
   $("generateExcelBtn").addEventListener("click", generateFinalExcel);
   $("parseOrderTextBtn").addEventListener("click", parsePastedOrderText);
   $("runOcrBtn").addEventListener("click", () => runImageOcr({ autoParse: true }));
-  $("loadSampleOrderBtn").addEventListener("click", loadSampleOrderText);
   $("addManualRowBtn").addEventListener("click", addManualRow);
   $("addBulkRowsBtn").addEventListener("click", addBulkRows);
   $("standardModeBtn").addEventListener("click", () => setProductMode("standard"));

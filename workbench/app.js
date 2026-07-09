@@ -403,8 +403,8 @@ function sellingUnitCostUsd(rows, unitQty) {
     return num(rows[0].bundleSaleUnitCostRmb || rows[0].cost) / currencyRateRmbToUsd;
   }
   if (rows.length > 1) {
-    const pcsPerStyle = unitQty / rows.length;
-    return rows.reduce((sum, row) => sum + num(row.cost) * pcsPerStyle, 0) / currencyRateRmbToUsd;
+    const highestCost = Math.max(...rows.map((row) => num(row.cost)).filter((value) => value > 0));
+    return highestCost * unitQty / currencyRateRmbToUsd;
   }
   return positiveCosts[0] * unitQty / currencyRateRmbToUsd;
 }
@@ -419,9 +419,8 @@ function rowProfitRows(rows, unitQty, price, shippingFee) {
       profit
     }].filter((row) => row.costUsd > 0);
   }
-  const pcsPerStyle = rows.length > 1 ? unitQty / rows.length : unitQty;
   return rows.map((row) => {
-    const costUsd = num(row.cost) * pcsPerStyle / currencyRateRmbToUsd;
+    const costUsd = num(row.cost) * unitQty / currencyRateRmbToUsd;
     const profit = price * breakEvenFactor - (costUsd + firstLegShippingUsd + shippingFee + disposalFeeUsd * returnRate);
     return {
       title: row.spec || row.title || "当前款式",
@@ -516,12 +515,30 @@ function suggestedDefaultPriceForRows(rows) {
   return priceForTargetMargin(saleUnitCostUsd, weightOz, targetMarginNumber());
 }
 
-function currentPriceSource() {
-  const input = document.querySelector("#finalPricingRows .price-input");
+function suggestedDefaultPriceForRow(row, rows) {
+  if (row?.bundle) {
+    return suggestedDefaultPriceForRows([row]);
+  }
+  const saleQty = saleQtyForRows(rows);
+  const dims = currentDimensions();
+  if (!row || saleQty <= 0 || dims.lengthCm <= 0 || dims.widthCm <= 0 || dims.heightCm <= 0 || dims.weightG <= 0) {
+    return 0;
+  }
+  const saleUnitCostUsd = num(row.cost) * saleQty / currencyRateRmbToUsd;
+  const weightOz = gToOz(dims.weightG);
+  return priceForTargetMargin(saleUnitCostUsd, weightOz, targetMarginNumber());
+}
+
+function priceSourceForIndex(index) {
+  const input = document.querySelectorAll("#finalPricingRows .price-input")[index];
   if (!input || !num(input.value)) {
     return "待填写";
   }
   return input.dataset.autoPrice === "true" ? "系统按目标利润率自动生成" : "价格确认表手动输入";
+}
+
+function currentPriceSource() {
+  return priceSourceForIndex(0);
 }
 
 function refreshAutoPrices() {
@@ -529,15 +546,91 @@ function refreshAutoPrices() {
   if (!rows.length) {
     return;
   }
-  const defaultPrice = suggestedDefaultPriceForRows(rows);
-  document.querySelectorAll("#finalPricingRows .price-input").forEach((input) => {
+  document.querySelectorAll("#finalPricingRows .price-input").forEach((input, index) => {
     if (input.dataset.autoPrice === "true" || !num(input.value)) {
+      const defaultPrice = suggestedDefaultPriceForRow(rows[index], rows);
       input.value = defaultPrice ? fmt(defaultPrice, 2) : "";
       input.dataset.autoPrice = "true";
     }
   });
   resetDownloadState();
   refreshReportDraft();
+}
+
+function rowPricingDetails(rows, saleQty, weightOz, margin) {
+  const finalPriceRows = finalRows();
+  return rows.map((row, index) => {
+    const saleUnitCostUsd = row.bundle
+      ? num(row.bundleSaleUnitCostRmb || row.cost) / currencyRateRmbToUsd
+      : num(row.cost) * saleQty / currencyRateRmbToUsd;
+    const breakEvenDetail = breakEvenWithFee(saleUnitCostUsd, weightOz);
+    const targetDetail = targetPriceDetails(saleUnitCostUsd, weightOz, margin);
+    const confirmedPrice = num(finalPriceRows[index]?.[6]) || targetDetail.suggestedPrice;
+    const currentFee = fbaFeeForOz(weightOz, confirmedPrice);
+    const returnDisposalReserve = disposalFeeUsd * returnRate;
+    const currentFixedCostUsd = saleUnitCostUsd + firstLegShippingUsd + currentFee.fee + returnDisposalReserve;
+    const currentProfit = confirmedPrice * breakEvenFactor - currentFixedCostUsd;
+    const targetProfit = targetDetail.suggestedPrice * breakEvenFactor - targetDetail.fixedCostUsd;
+    return {
+      row,
+      index,
+      label: row.spec || row.title || `款式${index + 1}`,
+      sku: row.sku || "",
+      costRmb: row.bundle ? num(row.bundleSaleUnitCostRmb || row.cost) : num(row.cost),
+      saleUnitCostUsd,
+      breakEvenPrice: breakEvenDetail.breakEven,
+      breakEvenShippingFee: breakEvenDetail.shippingFee,
+      breakEvenShippingTier: breakEvenDetail.shippingTier,
+      suggestedMinPrice: roundUpToEnding99(breakEvenDetail.breakEven),
+      targetRawPrice: targetDetail.rawPrice,
+      targetPrice: targetDetail.suggestedPrice,
+      targetShippingFee: targetDetail.shippingFee,
+      targetShippingTier: targetDetail.shippingTier,
+      targetFixedCostUsd: targetDetail.fixedCostUsd,
+      targetProfit,
+      targetProfitMargin: targetDetail.suggestedPrice > 0 ? targetProfit / targetDetail.suggestedPrice : 0,
+      confirmedPrice,
+      priceSource: priceSourceForIndex(index),
+      currentShippingFee: currentFee.fee,
+      currentShippingTier: currentFee.tier,
+      currentFixedCostUsd,
+      currentProfit,
+      currentProfitMargin: confirmedPrice > 0 ? currentProfit / confirmedPrice : 0
+    };
+  });
+}
+
+function groupedPricingDetails(rowDetails) {
+  const groups = new Map();
+  for (const item of rowDetails) {
+    const key = [
+      fmt(item.costRmb, 4),
+      fmt(item.saleUnitCostUsd, 4),
+      fmt(item.breakEvenShippingFee, 2),
+      item.breakEvenShippingTier,
+      fmt(item.targetPrice, 2),
+      fmt(item.targetShippingFee, 2),
+      item.targetShippingTier,
+      fmt(item.confirmedPrice, 2),
+      fmt(item.currentShippingFee, 2),
+      item.currentShippingTier,
+      item.priceSource
+    ].join("|");
+    if (!groups.has(key)) {
+      groups.set(key, {
+        ...item,
+        items: []
+      });
+    }
+    groups.get(key).items.push(item);
+  }
+  return [...groups.values()];
+}
+
+function pricingGroupLabel(group) {
+  return group.items
+    .map((item) => `${item.sku || "-"} ${item.label}`.trim())
+    .join("；");
 }
 
 function reportData() {
@@ -560,6 +653,7 @@ function reportData() {
   const profile = inferProductProfile(productName, rows, activeCompetitors());
   const unitLabel = bundleRow?.bundleUnitLabel || profile.unitLabel;
   const saleLabel = bundleRow ? "套" : profile.saleUnitLabel;
+  const pricingCostRow = bundleRow || rows.reduce((highest, row) => !highest || num(row.cost) > num(highest.cost) ? row : highest, null);
   const saleUnitCostUsd = sellingUnitCostUsd(rows, saleQty);
   const weightOz = gToOz(dims.weightG);
   const returnDisposalReserve = disposalFeeUsd * returnRate;
@@ -618,6 +712,8 @@ function reportData() {
   const profitRows = rowProfitRows(rows, saleQty, price, currentShippingFee);
   const highCostProfit = profitRows.reduce((highest, row) => !highest || row.costUsd > highest.costUsd ? row : highest, null);
   const lowCostProfit = profitRows.reduce((lowest, row) => !lowest || row.costUsd < lowest.costUsd ? row : lowest, null);
+  const rowDetails = rowPricingDetails(rows, saleQty, weightOz, margin);
+  const pricingGroups = groupedPricingDetails(rowDetails);
   const postReviewPrice = price < 2.99 ? 2.99 : roundUpToEnding99(price + profile.reviewStep);
 
   return {
@@ -659,6 +755,7 @@ function reportData() {
     unitQty,
     unitLabel,
     saleLabel,
+    pricingCostRow,
     saleUnitCostUsd,
     returnDisposalReserve,
     fixedCostUsd,
@@ -679,6 +776,8 @@ function reportData() {
     targetUnitPriceGap,
     currentLowestUnitPriceGap,
     unitPriceConclusion,
+    rowDetails,
+    pricingGroups,
     highCostProfit,
     lowCostProfit,
     postReviewPrice,
@@ -694,7 +793,7 @@ function reportRows() {
     [isBundle ? "销售SKU数" : "采购款数", data.styleCount, isBundle ? "套装组件已合并为父 SKU" : "来自采购单识别结果"],
     [isBundle ? "可售套数" : "采购总数", data.totalQty, isBundle ? "按组件采购数量和每套用量取最少可组成套数" : "来自采购单识别结果"],
     [isBundle ? "每套成本" : "平均成本", fmt(data.avgCost, 4), isBundle ? "按组件用量合计" : "按货品成本 / 采购总数估算"],
-    ["销售单位成本", money(data.saleUnitCostUsd, 2), `按本品每${data.saleLabel}售卖数量 ${data.saleQty}${data.unitLabel} 折算`],
+    ["销售单位成本", money(data.saleUnitCostUsd, 2), data.bundleRow ? `按套装每${data.saleLabel}成本折算` : `按最高成本款 ${data.pricingCostRow?.spec || data.pricingCostRow?.title || "当前款式"} × ${data.saleQty}${data.unitLabel} 保守折算`],
     ["当前售价配送费", money(data.currentShippingFee, 2), `当前确认价 ${money(data.price, 2)} 对应 ${data.currentShippingTier}`],
     ["保本测算配送费", money(data.breakEvenShippingFee, 2), `保本价 ${money(data.breakEven, 2)} 对应 ${data.breakEvenShippingTier}`],
     ["保本定价", money(data.breakEven, 2), "按截图里的保本公式折算"],
@@ -710,7 +809,14 @@ function reportRows() {
     ["当前折算价", money(data.currentComparisonPrice, 2), `当前确认价 / ${data.saleQty}${data.unitLabel} × ${data.unitQty}${data.unitLabel}`],
     ["最低竞品锚点", data.lowestComparisonCompetitor?.label || "待上传", `${data.profile.competitorBasis}最低折算价`],
     ["建议价折算价差", signedMoney(data.targetUnitPriceGap, 3), data.hasCompetitors ? `相对 ${data.lowestComparisonCompetitor.label}` : "待上传竞品"],
-    ["当前折算价差", signedMoney(data.currentLowestUnitPriceGap, 3), data.unitPriceConclusion]
+    ["当前折算价差", signedMoney(data.currentLowestUnitPriceGap, 3), data.unitPriceConclusion],
+    ["", "", ""],
+    ["分组定价明细", "保本价 / 目标利润建议价 / 当前确认价", "相同成本和配送费条件的款式合并展示"],
+    ...data.pricingGroups.map((group) => [
+      pricingGroupLabel(group),
+      `成本 ${fmt(group.costRmb, 4)} RMB；销售单位成本 ${money(group.saleUnitCostUsd, 2)}；保本价 ${money(group.breakEvenPrice, 2)}；目标利润建议价 ${money(group.targetPrice, 2)}；当前确认价 ${money(group.confirmedPrice, 2)}`,
+      `包含 ${group.items.length} 款；目标利润率 ${percent(group.targetProfitMargin)}；当前利润 ${money(group.currentProfit, 2)}；当前利润率 ${percent(group.currentProfitMargin)}`
+    ])
   ];
 }
 
@@ -729,7 +835,10 @@ function reportText() {
     `尺寸：${fmt(data.dims.lengthCm, 2)} × ${fmt(data.dims.widthCm, 2)} × ${fmt(data.dims.heightCm, 2)} cm，重量 ${fmt(data.dims.weightG, 2)}g = 约 ${fmt(data.weightOz, 2)}oz。`,
     `保本价对应配送费：${data.breakEvenShippingTier}，配送费 ${money(data.breakEvenShippingFee, 2)}。`,
     `净入账系数 = (1 - ${fmt(returnRate * 100, 0)}%) × (1 - ${fmt(referralFeeRate * 100, 0)}%) - ${fmt(returnRate * 100, 0)}% × ${fmt(referralFeeRate * 100, 0)}% × ${fmt(refundCommissionLossRate * 100, 0)}% = ${fmt(breakEvenFactor, 5)}。`,
-    `保本售价 = (单件成本 + ${fmt(firstLegShippingUsd, 2)} + ${fmt(data.breakEvenShippingFee, 2)} + ${fmt(data.returnDisposalReserve, 3)}) / ${fmt(breakEvenFactor, 5)}。`,
+    data.bundleRow
+      ? `保本售价使用套装成本：${money(data.saleUnitCostUsd, 2)}。`
+      : `保本售价使用最高成本款 ${data.pricingCostRow?.spec || data.pricingCostRow?.title || "当前款式"}：${fmt(data.pricingCostRow?.cost, 4)} RMB × ${data.saleQty}${data.unitLabel} / ${currencyRateRmbToUsd} = ${money(data.saleUnitCostUsd, 2)}。`,
+    `保本售价 = (销售单位成本 + ${fmt(firstLegShippingUsd, 2)} + ${fmt(data.breakEvenShippingFee, 2)} + ${fmt(data.returnDisposalReserve, 3)}) / ${fmt(breakEvenFactor, 5)}。`,
     `代入 ${money(data.saleUnitCostUsd, 2)}：(${money(data.saleUnitCostUsd, 2)} + ${money(data.fixedCostUsd, 3)}) / ${fmt(breakEvenFactor, 5)} = ${money(data.breakEven, 2)}。`,
     `建议不低于：${money(data.suggestedMinPrice, 2)}。`,
     "",
@@ -757,6 +866,17 @@ function reportText() {
       ? `当前确认价按 ${data.unitQty}${data.unitLabel} 折算为 ${money(data.currentComparisonPrice, 2)}，比最低折算竞品 ${data.lowestComparisonCompetitor.label} ${signedMoney(data.currentLowestUnitPriceGap, 2)}。`
       : `当前确认价按 ${data.unitQty}${data.unitLabel} 折算为 ${money(data.currentComparisonPrice, 2)}。`,
     data.hasCompetitors ? `${highCostLine}${lowCostLine}` : "",
+    "",
+    "分组定价明细",
+    ...data.pricingGroups.map((group) => [
+      `包含款式：${pricingGroupLabel(group)}`,
+      `成本 ${fmt(group.costRmb, 4)} RMB`,
+      `销售单位成本 ${money(group.saleUnitCostUsd, 2)}`,
+      `保本价 ${money(group.breakEvenPrice, 2)}（${group.breakEvenShippingTier} / 配送费 ${money(group.breakEvenShippingFee, 2)}）`,
+      `目标利润建议价 ${money(group.targetPrice, 2)}（利润率 ${percent(group.targetProfitMargin)}）`,
+      `当前确认价 ${money(group.confirmedPrice, 2)}（${group.priceSource}）`,
+      `当前利润 ${money(group.currentProfit, 2)}，利润率 ${percent(group.currentProfitMargin)}`
+    ].join("；")),
     data.hasCompetitors
       ? `策略：首发 ${money(data.price, 2)} 先验证转化和评价，累计 20-30 个评价后测试 ${money(data.postReviewPrice, 2)}。不要只追 ${data.lowestComparisonCompetitor.label} 的 ${money(data.lowestComparisonCompetitor.comparisonPrice, 2)}/${data.unitQty}${data.unitLabel}，重点看${data.profile.valueAnchor}。${data.profile.launchFocus}。`
       : "策略：先补齐当前产品竞品锚点，再给最终价格策略。",
@@ -835,6 +955,19 @@ function renderReportContent() {
         <td>-</td>
       </tr>
     `;
+  const pricingGroupRowsHtml = data.pricingGroups.length
+    ? data.pricingGroups.map((group) => `
+      <tr>
+        <td>${escapeXml(pricingGroupLabel(group))}</td>
+        <td><mark>${fmt(group.costRmb, 4)} RMB</mark></td>
+        <td><mark>${money(group.saleUnitCostUsd, 2)}</mark></td>
+        <td>${money(group.breakEvenPrice, 2)}<br><span class="muted">${escapeXml(group.breakEvenShippingTier)} / ${money(group.breakEvenShippingFee, 2)}</span></td>
+        <td>${money(group.targetPrice, 2)}<br><span class="muted">${escapeXml(group.targetShippingTier)} / 利润率 ${percent(group.targetProfitMargin)}</span></td>
+        <td>${money(group.confirmedPrice, 2)}<br><span class="muted">${escapeXml(group.priceSource)}</span></td>
+        <td><mark>${percent(group.currentProfitMargin)}</mark><br><span class="muted">利润 ${money(group.currentProfit, 2)}</span></td>
+      </tr>
+    `).join("")
+    : '<tr><td colspan="7" class="empty">暂无分组定价明细。</td></tr>';
   $("reportContent").innerHTML = `
     <article class="process-block">
       <h3>保本价计算</h3>
@@ -842,7 +975,7 @@ function renderReportContent() {
       <ul>
         <li>尺寸：${fmt(data.dims.lengthCm, 2)} × ${fmt(data.dims.widthCm, 2)} × ${fmt(data.dims.heightCm, 2)} cm，重量 ${fmt(data.dims.weightG, 2)}g = 约 ${fmt(data.weightOz, 2)}oz，${escapeXml(weightTierText)}。</li>
         <li>保本价对应配送费：<mark>${escapeXml(data.breakEvenShippingTier)}</mark>，配送费 <mark>${money(data.breakEvenShippingFee, 2)}</mark>。</li>
-        <li>销售单位成本：<mark>${money(data.saleUnitCostUsd, 2)}</mark>。</li>
+        <li>销售单位成本：<mark>${money(data.saleUnitCostUsd, 2)}</mark>。${data.bundleRow ? "按套装成本折算。" : `按最高成本款 ${escapeXml(data.pricingCostRow?.spec || data.pricingCostRow?.title || "当前款式")}：${fmt(data.pricingCostRow?.cost, 4)} RMB × ${data.saleQty}${data.unitLabel} / ${currencyRateRmbToUsd} 保守折算。`}</li>
         ${bundleSummaryHtml}
         <li>头程 <mark>${money(firstLegShippingUsd, 2)}</mark>。</li>
         <li>退货预留：退货率 <mark>${fmt(returnRate * 100, 0)}%</mark> × 弃置费 <mark>${money(disposalFeeUsd, 2)}</mark> = <mark>${money(data.returnDisposalReserve, 3)}</mark>。</li>
@@ -903,6 +1036,27 @@ function renderReportContent() {
         </table>
       </div>
       ${data.hasCompetitors ? `<p>整包价门槛：系统建议售价比最低整包竞品 ${escapeXml(data.lowestTotalCompetitor.label)} 的 ${money(data.lowestTotalCompetitor.price, 2)} ${signedMoney(data.targetPackagePriceGap, 2)}；当前确认价比最低整包竞品 ${signedMoney(data.packagePriceGap, 2)}。</p>` : ""}
+    </article>
+
+    <article class="process-block">
+      <h3>分组定价明细</h3>
+      <p class="lead-text">相同成本、配送费档位和确认价条件的款式会合并展示；条件不同才拆成单独一组。</p>
+      <div class="comparison-table-wrap">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>包含款式</th>
+              <th>单件成本</th>
+              <th>销售单位成本</th>
+              <th>保本价</th>
+              <th>目标利润建议价</th>
+              <th>当前确认价</th>
+              <th>当前利润率</th>
+            </tr>
+          </thead>
+          <tbody>${pricingGroupRowsHtml}</tbody>
+        </table>
+      </div>
     </article>
 
     <article class="process-block">
@@ -998,28 +1152,111 @@ function showFilePreview(file, suffix) {
   setPurchasePreview("");
 }
 
-function imageFileToCanvas(file, maxWidth = 2200) {
+function otsuThreshold(grays) {
+  const histogram = new Array(256).fill(0);
+  for (const gray of grays) {
+    histogram[gray] += 1;
+  }
+  const total = grays.length;
+  let sum = 0;
+  for (let level = 0; level < 256; level += 1) {
+    sum += level * histogram[level];
+  }
+  let backgroundWeight = 0;
+  let backgroundSum = 0;
+  let maxVariance = 0;
+  let threshold = 180;
+  for (let level = 0; level < 256; level += 1) {
+    backgroundWeight += histogram[level];
+    if (!backgroundWeight) continue;
+    const foregroundWeight = total - backgroundWeight;
+    if (!foregroundWeight) break;
+    backgroundSum += level * histogram[level];
+    const backgroundMean = backgroundSum / backgroundWeight;
+    const foregroundMean = (sum - backgroundSum) / foregroundWeight;
+    const variance = backgroundWeight * foregroundWeight * (backgroundMean - foregroundMean) ** 2;
+    if (variance > maxVariance) {
+      maxVariance = variance;
+      threshold = level;
+    }
+  }
+  return Math.max(145, Math.min(215, threshold + 18));
+}
+
+function eraseTableRules(data, width, height) {
+  const darkRows = new Array(height).fill(0);
+  const darkColumns = new Array(width).fill(0);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const offset = (y * width + x) * 4;
+      if (data[offset] < 128) {
+        darkRows[y] += 1;
+        darkColumns[x] += 1;
+      }
+    }
+  }
+  const rowsToErase = darkRows
+    .map((count, index) => count > width * 0.45 ? index : -1)
+    .filter((index) => index >= 0);
+  const columnsToErase = darkColumns
+    .map((count, index) => count > height * 0.35 ? index : -1)
+    .filter((index) => index >= 0);
+
+  const whitenPixel = (x, y) => {
+    if (x < 0 || x >= width || y < 0 || y >= height) return;
+    const offset = (y * width + x) * 4;
+    data[offset] = 255;
+    data[offset + 1] = 255;
+    data[offset + 2] = 255;
+  };
+
+  for (const y of rowsToErase) {
+    for (let dy = -1; dy <= 1; dy += 1) {
+      for (let x = 0; x < width; x += 1) {
+        whitenPixel(x, y + dy);
+      }
+    }
+  }
+  for (const x of columnsToErase) {
+    for (let dx = -1; dx <= 1; dx += 1) {
+      for (let y = 0; y < height; y += 1) {
+        whitenPixel(x + dx, y);
+      }
+    }
+  }
+}
+
+function imageFileToCanvas(file, maxWidth = 2800) {
   return new Promise((resolve, reject) => {
     const image = new Image();
     const objectUrl = URL.createObjectURL(file);
     image.onload = () => {
       URL.revokeObjectURL(objectUrl);
-      const scale = Math.min(1, maxWidth / image.naturalWidth);
+      const targetWidth = 1800;
+      const scale = Math.min(maxWidth / image.naturalWidth, Math.max(1, targetWidth / image.naturalWidth));
       const canvas = document.createElement("canvas");
       canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
       canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.imageSmoothingEnabled = false;
       ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
+      const grays = [];
       for (let index = 0; index < data.length; index += 4) {
         const gray = data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
-        const boosted = gray > 180 ? 255 : gray < 105 ? 0 : gray;
+        grays.push(Math.round(gray));
+      }
+      const threshold = otsuThreshold(grays);
+      for (let index = 0; index < data.length; index += 4) {
+        const gray = grays[index / 4];
+        const boosted = gray > threshold ? 255 : 0;
         data[index] = boosted;
         data[index + 1] = boosted;
         data[index + 2] = boosted;
       }
+      eraseTableRules(data, canvas.width, canvas.height);
       ctx.putImageData(imageData, 0, 0);
       resolve(canvas);
     };
@@ -1359,7 +1596,7 @@ function defaultPurchaseRows() {
       spec,
       quantity,
       cost,
-      sku: sku || makeSku(spec, index),
+      sku: sku || "",
       itemCode: skuPrefixFromSpec(spec)
     };
   }).filter(Boolean);
@@ -1926,6 +2163,9 @@ function splitBulkColumns(line) {
   if (!trimmed) {
     return [];
   }
+  if (!/[\t,，]/.test(trimmed)) {
+    return [trimmed];
+  }
   const delimiter = trimmed.includes("\t") ? /\t/ : /[,，]/;
   return trimmed.split(delimiter).map((item) => item.trim());
 }
@@ -1937,6 +2177,9 @@ function looksLikeBulkHeader(columns) {
 }
 
 function rowFromBulkColumns(columns, index) {
+  if (columns.length === 1) {
+    return rowFromLooseBulkLine(columns[0], index);
+  }
   const [sku, itemCode, title, spec, quantity, cost] = columns;
   if (columns.length >= 6) {
     return {
@@ -1960,15 +2203,95 @@ function rowFromBulkColumns(columns, index) {
   }
   if (columns.length === 4) {
     return {
-      sku: cleanBulkValue(columns[0]),
+      sku: "",
       itemCode: "",
-      title: cleanBulkValue($("productName")?.value) || `采购款式-${currentPurchaseRows.length + index + 1}`,
-      spec: cleanBulkValue(columns[1]) || "手动规格",
+      title: cleanBulkValue(columns[0]) || cleanBulkValue($("productName")?.value) || `采购款式-${currentPurchaseRows.length + index + 1}`,
+      spec: cleanBulkValue(columns[1]) || cleanBulkValue(columns[0]) || "手动规格",
       quantity: cleanBulkValue(columns[2]),
       cost: cleanBulkValue(columns[3])
     };
   }
-  throw new Error("批量粘贴至少需要 4 列：SKU、规格、数量、成本价");
+  throw new Error("批量粘贴至少需要 款式/规格、数量、成本价；SKU 可在表格里人工填写");
+}
+
+function numericLabelValue(text, labels) {
+  const pattern = labels.join("|");
+  const match = String(text || "").match(new RegExp(`(?:${pattern})\\s*[：:]?\\s*(-?\\d+(?:\\.\\d+)?)`, "i"));
+  return match ? cleanBulkValue(match[1]) : "";
+}
+
+function removeLabeledNumber(text, labels) {
+  const pattern = labels.join("|");
+  return String(text || "").replace(new RegExp(`(?:${pattern})\\s*[：:]?\\s*-?\\d+(?:\\.\\d+)?`, "gi"), " ");
+}
+
+function splitTitleAndSpec(text, index) {
+  const words = cleanBulkValue(text)
+    .replace(/^(款式|标题|品名|规格)\s*[：:]?/g, "")
+    .split(/\s+/)
+    .filter(Boolean);
+  const fallback = `采购款式-${currentPurchaseRows.length + index + 1}`;
+  if (!words.length) {
+    return { title: fallback, spec: "手动规格" };
+  }
+  if (words.length === 1) {
+    return { title: words[0], spec: words[0] };
+  }
+  return {
+    title: words.slice(0, -1).join(" "),
+    spec: words[words.length - 1]
+  };
+}
+
+function rowFromLooseBulkLine(line, index) {
+  const normalized = String(line || "")
+    .replace(/[，,；;]/g, " ")
+    .replace(/：/g, ":")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const skuMatch = normalized.match(/(?:^|\s)(?:sku|货号)\s*:\s*(\S+)/i);
+  const explicitSku = skuMatch ? cleanBulkValue(skuMatch[1]) : "";
+  let quantity = numericLabelValue(normalized, ["数量", "qty"]);
+  let cost = numericLabelValue(normalized, ["成本价", "成本", "单价", "price"]);
+
+  let body = normalized
+    .replace(/(?:^|\s)(?:sku|货号)\s*:\s*\S+/gi, " ")
+    .replace(/\b(?:sku|货号)\b/gi, " ");
+  body = removeLabeledNumber(body, ["数量", "qty"]);
+  body = removeLabeledNumber(body, ["成本价", "成本", "单价", "price"]);
+  body = body
+    .replace(/\b(?:款式|标题|品名|规格)\s*:/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const tailMatch = body.match(/^(.*?)\s+(\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)$/);
+  if (tailMatch) {
+    body = cleanBulkValue(tailMatch[1]);
+    quantity = quantity || cleanBulkValue(tailMatch[2]);
+    cost = cost || cleanBulkValue(tailMatch[3]);
+  }
+
+  const parts = body.split(/\s+/).filter(Boolean);
+  let sku = explicitSku;
+  if (!sku && parts[0] && /^[A-Z0-9][A-Z0-9_-]{2,}$/i.test(parts[0]) && parts.length >= 2) {
+    sku = cleanBulkValue(parts.shift());
+  }
+  body = parts.join(" ");
+
+  if (body && quantity && cost) {
+    const { title, spec } = splitTitleAndSpec(body, index);
+    return {
+      sku,
+      itemCode: "",
+      title,
+      spec,
+      quantity,
+      cost
+    };
+  }
+
+  throw new Error("批量粘贴至少需要 款式/规格、数量、成本价；SKU 可写可不写，也可以在表格里人工填写");
 }
 
 function cleanBulkValue(value) {
@@ -2017,7 +2340,7 @@ function renderRecognizedRows(rows) {
   }
   syncProductNameFromRows(rows);
   $("recognizedRows").innerHTML = rows.map((row, index) => {
-    const sku = row.sku || makeSku(row.spec, index, row.itemCode);
+    const sku = row.sku || "";
     const quantityValue = row.quantity === "" ? "" : fmt(row.quantity, 0);
     const costValue = row.cost === "" ? "" : fmt(row.bundle ? row.bundleSaleUnitCostRmb || row.cost : row.cost, 4);
     return `
@@ -2050,25 +2373,25 @@ function renderFinalRows(rows) {
     resetDownloadState();
     return;
   }
-  const defaultPrice = suggestedDefaultPriceForRows(rows);
   const previousPrices = finalRows().map((row) => row[6]);
   const previousAutoFlags = [...document.querySelectorAll("#finalPricingRows .price-input")]
     .map((input) => input.dataset.autoPrice === "true");
   $("finalPricingRows").innerHTML = rows.map((row, index) => {
-    const sku = row.sku || makeSku(row.spec, index, row.itemCode);
+    const sku = row.sku || "";
+    const defaultPrice = suggestedDefaultPriceForRow(row, rows);
     const previousPrice = previousPrices[index] || "";
     const wasManual = previousPrice && previousAutoFlags[index] === false;
     const priceValue = wasManual ? previousPrice : defaultPrice ? fmt(defaultPrice, 2) : "";
     const autoPrice = wasManual ? "false" : "true";
     return `
       <tr>
-        <td data-final-sku="${index}">${escapeXml(sku)}</td>
+        <td data-final-sku="${index}">${escapeXml(sku || "-")}</td>
         <td data-final-title="${index}">${escapeXml(finalTitle(row))}</td>
         <td class="numeric">${cmToIn(dims.lengthCm)}</td>
         <td class="numeric">${cmToIn(dims.widthCm)}</td>
         <td class="numeric">${cmToIn(dims.heightCm)}</td>
         <td class="numeric">${gToLb(dims.weightG)}</td>
-        <td><input class="price-input" type="number" value="${escapeXml(priceValue)}" min="0" step="0.01" data-auto-price="${autoPrice}" aria-label="${escapeXml(sku)} 定价"></td>
+        <td><input class="price-input" type="number" value="${escapeXml(priceValue)}" min="0" step="0.01" data-auto-price="${autoPrice}" aria-label="${escapeXml(sku || `第${index + 1}行`)} 定价"></td>
       </tr>
     `;
   }).join("");

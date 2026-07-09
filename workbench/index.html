@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>通用产品定价台</title>
-    <link rel="stylesheet" href="styles.css?v=20260707-price-source1">
+    <link rel="stylesheet" href="styles.css?v=20260709-merged-fixes1">
   </head>
   <body>
     <main class="workspace-shell">
@@ -125,7 +125,7 @@
             <div class="bulk-entry">
               <label>
                 批量粘贴采购行
-                <textarea id="manualBulkRows" rows="5" placeholder="每行一款，列顺序：SKU	货号	款式标题	规格	数量	成本价。也可以从 Excel 直接复制多行粘贴。"></textarea>
+                <textarea id="manualBulkRows" rows="5" placeholder="每行一款，可直接粘贴：黄麻猫玩具 蝴蝶 10 9；也支持 SKU 黄麻猫玩具 老鼠 10 6.5，SKU 可添加后在表格里人工填写。"></textarea>
               </label>
               <button id="addBulkRowsBtn" type="button" class="ghost-button">批量添加到识别结果</button>
             </div>
@@ -214,7 +214,7 @@
 
           <div class="rule-card">
             <strong>内置规则</strong>
-            <p>SKU 生成规则、币种、配送费档位、利润测算规则从项目内读取。</p>
+            <p>SKU 可人工填写；币种、配送费档位、利润测算规则从项目内读取。</p>
           </div>
         </aside>
 
@@ -271,7 +271,7 @@
 
           <div class="check-panel">
             <h3>这一步输出</h3>
-            <p>系统生成 SKU，采集采购成本，并把手动输入的尺寸重量合并到每个采购款式。确认后，这张表会作为下一步配送费和利润定价的基础数据。</p>
+            <p>采集采购成本，并把手动输入的 SKU、尺寸重量合并到每个采购款式。确认后，这张表会作为下一步配送费和利润定价的基础数据。</p>
           </div>
         </section>
       </section>
@@ -406,6 +406,6 @@
         </section>
       </section>
     </main>
-    <script src="app.js?v=20260707-price-source1"></script>
+    <script src="app.js?v=20260709-merged-fixes1"></script>
   </body>
 </html>

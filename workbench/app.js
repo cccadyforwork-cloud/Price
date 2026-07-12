@@ -5,6 +5,7 @@ const firstLegShippingUsd = 0.3;
 const referralFeeRate = 0.18;
 const returnRate = 0.1;
 const disposalFeeUsd = 0.25;
+const dimensionalWeightDivisor = 139;
 const refundCommissionLossRate = referralFeeRate;
 const breakEvenFactor = (1 - returnRate) * (1 - referralFeeRate) - returnRate * referralFeeRate * refundCommissionLossRate;
 
@@ -19,6 +20,25 @@ let currentCompetitors = [];
 let ocrWorker = null;
 let ocrReady = false;
 let tesseractLoadPromise = null;
+let editingPricingHistoryIndex = null;
+
+const pricingHistoryStorageKey = "priceWorkbench.pricingHistoryProducts";
+const defaultPricingHistoryProducts = [
+  { name: "宠物 AirTag 项圈", purchaseCostRmb: "待补", shippingFee: 1.77, finalPrice: 4.89 },
+  { name: "宠物 AirTag 夜光项圈", purchaseCostRmb: "待补", shippingFee: 0.88, finalPrice: 5.49 },
+  { name: "健身摇摇杯", purchaseCostRmb: "待补", shippingFee: 2.6, finalPrice: 3.59 },
+  { name: "猫玩具大棉签", purchaseCostRmb: "待补", shippingFee: 0.88, finalPrice: 5.99 },
+  { name: "黄麻猫玩具", purchaseCostRmb: "待补", shippingFee: 0.88, finalPrice: "$3.99-$4.99" },
+  { name: "水晶鞋装饰", purchaseCostRmb: "待补", shippingFee: 3.72, finalPrice: 8.99 },
+  { name: "运动毛巾", purchaseCostRmb: "待补", shippingFee: 0.88, finalPrice: 3.99 },
+  { name: "防磨贴", purchaseCostRmb: 10.875, shippingFee: 0.88, finalPrice: 5.61 },
+  { name: "花束卡片夹", purchaseCostRmb: "¥1.50-¥3.00", shippingFee: 0.5, finalPrice: 2.99 },
+  { name: "园艺手套", purchaseCostRmb: 2.3667, shippingFee: 1.77, finalPrice: 4.99 },
+  { name: "玻璃喷壶", purchaseCostRmb: 5.225, shippingFee: 3.22, finalPrice: 8.82 },
+  { name: "玻璃壶", purchaseCostRmb: 5.225, shippingFee: 3.22, finalPrice: 8.82 },
+  { name: "瑜伽砖", purchaseCostRmb: 3.4, shippingFee: 5.11, finalPrice: 12.53 }
+];
+let pricingHistoryProducts = [...defaultPricingHistoryProducts];
 
 function moneyNumber(value) {
   const parsed = Number(String(value || "").replace(/[^\d.-]/g, ""));
@@ -67,6 +87,21 @@ function gToLb(value) {
 
 function gToOz(value) {
   return num(value) / 28.349523125;
+}
+
+function cmToRawIn(value) {
+  return num(value) / 2.54;
+}
+
+function billableWeightFromDims(dims) {
+  const actualOz = gToOz(dims.weightG);
+  const dimensionalLb = cmToRawIn(dims.lengthCm) * cmToRawIn(dims.widthCm) * cmToRawIn(dims.heightCm) / dimensionalWeightDivisor;
+  const dimensionalOz = dimensionalLb * 16;
+  return {
+    actualOz,
+    dimensionalOz,
+    billableOz: Math.max(actualOz, dimensionalOz)
+  };
 }
 
 function $(id) {
@@ -504,7 +539,8 @@ function suggestedDefaultPriceForRows(rows) {
     return 0;
   }
   const saleUnitCostUsd = sellingUnitCostUsd(rows, saleQty);
-  const weightOz = gToOz(dims.weightG);
+  const weight = billableWeightFromDims(dims);
+  const weightOz = weight.billableOz;
   return priceForTargetMargin(saleUnitCostUsd, weightOz, targetMarginNumber());
 }
 
@@ -518,7 +554,8 @@ function suggestedDefaultPriceForRow(row, rows) {
     return 0;
   }
   const saleUnitCostUsd = num(row.cost) * saleQty / currencyRateRmbToUsd;
-  const weightOz = gToOz(dims.weightG);
+  const weight = billableWeightFromDims(dims);
+  const weightOz = weight.billableOz;
   return priceForTargetMargin(saleUnitCostUsd, weightOz, targetMarginNumber());
 }
 
@@ -567,7 +604,7 @@ function rowPricingDetails(rows, saleQty, weightOz, margin) {
     return {
       row,
       index,
-      label: row.spec || row.title || `款式${index + 1}`,
+      label: row.title || row.spec || `款式${index + 1}`,
       sku: row.sku || "",
       costRmb: row.bundle ? num(row.bundleSaleUnitCostRmb || row.cost) : num(row.cost),
       saleUnitCostUsd,
@@ -622,7 +659,7 @@ function groupedPricingDetails(rowDetails) {
 
 function pricingGroupLabel(group) {
   return group.items
-    .map((item) => `${item.sku || "-"} ${item.label}`.trim())
+    .map((item) => item.row?.title || item.label || `款式${item.index + 1}`)
     .join("；");
 }
 
@@ -648,7 +685,8 @@ function reportData() {
   const saleLabel = bundleRow ? "套" : profile.saleUnitLabel;
   const pricingCostRow = bundleRow || rows.reduce((highest, row) => !highest || num(row.cost) > num(highest.cost) ? row : highest, null);
   const saleUnitCostUsd = sellingUnitCostUsd(rows, saleQty);
-  const weightOz = gToOz(dims.weightG);
+  const weight = billableWeightFromDims(dims);
+  const weightOz = weight.billableOz;
   const returnDisposalReserve = disposalFeeUsd * returnRate;
   const breakEvenResult = breakEvenWithFee(saleUnitCostUsd, weightOz);
   const breakEvenShippingFee = breakEvenResult.shippingFee;
@@ -774,7 +812,9 @@ function reportData() {
     highCostProfit,
     lowCostProfit,
     postReviewPrice,
-    weightOz
+    weightOz,
+    actualWeightOz: weight.actualOz,
+    dimensionalWeightOz: weight.dimensionalOz
   };
 }
 
@@ -803,13 +843,15 @@ function reportRows() {
     ["最低竞品锚点", data.lowestComparisonCompetitor?.label || "待上传", `${data.profile.competitorBasis}最低折算价`],
     ["建议价折算价差", signedMoney(data.targetUnitPriceGap, 3), data.hasCompetitors ? `相对 ${data.lowestComparisonCompetitor.label}` : "待上传竞品"],
     ["当前折算价差", signedMoney(data.currentLowestUnitPriceGap, 3), data.unitPriceConclusion],
-    ["", "", ""],
-    ["分组定价明细", "保本价 / 目标利润建议价 / 当前确认价", "相同成本和配送费条件的款式合并展示"],
-    ...data.pricingGroups.map((group) => [
-      pricingGroupLabel(group),
-      `成本 ${fmt(group.costRmb, 4)} RMB；销售单位成本 ${money(group.saleUnitCostUsd, 2)}；保本价 ${money(group.breakEvenPrice, 2)}；目标利润建议价 ${money(group.targetPrice, 2)}；当前确认价 ${money(group.confirmedPrice, 2)}`,
-      `包含 ${group.items.length} 款；目标利润率 ${percent(group.targetProfitMargin)}；当前利润 ${money(group.currentProfit, 2)}；当前利润率 ${percent(group.currentProfitMargin)}`
-    ])
+    ...(data.pricingGroups.length > 1 ? [
+      ["", "", ""],
+      ["分组定价明细", "保本价 / 目标利润建议价 / 当前确认价", "不同成本、配送费档位或确认价条件才拆组"],
+      ...data.pricingGroups.map((group) => [
+        pricingGroupLabel(group),
+        `成本 ${fmt(group.costRmb, 4)} RMB；销售单位成本 ${money(group.saleUnitCostUsd, 2)}；保本价 ${money(group.breakEvenPrice, 2)}；目标利润建议价 ${money(group.targetPrice, 2)}；当前确认价 ${money(group.confirmedPrice, 2)}`,
+        `包含 ${group.items.length} 款；目标利润率 ${percent(group.targetProfitMargin)}；当前利润 ${money(group.currentProfit, 2)}；当前利润率 ${percent(group.currentProfitMargin)}`
+      ])
+    ] : [])
   ];
 }
 
@@ -825,7 +867,7 @@ function reportText() {
     `通用产品定价台 - ${data.productName} 定价分析报告`,
     "",
     "保本价计算过程",
-    `尺寸：${fmt(data.dims.lengthCm, 2)} × ${fmt(data.dims.widthCm, 2)} × ${fmt(data.dims.heightCm, 2)} cm，重量 ${fmt(data.dims.weightG, 2)}g = 约 ${fmt(data.weightOz, 2)}oz。`,
+    `尺寸：${fmt(data.dims.lengthCm, 2)} × ${fmt(data.dims.widthCm, 2)} × ${fmt(data.dims.heightCm, 2)} cm，实重 ${fmt(data.dims.weightG, 2)}g = ${fmt(data.actualWeightOz, 2)}oz；体积重 ${fmt(data.dimensionalWeightOz, 2)}oz；计费重 ${fmt(data.weightOz, 2)}oz。`,
     `保本价对应配送费：${data.breakEvenShippingTier}，配送费 ${money(data.breakEvenShippingFee, 2)}。`,
     `净入账系数 = (1 - ${fmt(returnRate * 100, 0)}%) × (1 - ${fmt(referralFeeRate * 100, 0)}%) - ${fmt(returnRate * 100, 0)}% × ${fmt(referralFeeRate * 100, 0)}% × ${fmt(refundCommissionLossRate * 100, 0)}% = ${fmt(breakEvenFactor, 5)}。`,
     data.bundleRow
@@ -859,17 +901,19 @@ function reportText() {
       ? `当前确认价按 ${data.unitQty}${data.unitLabel} 折算为 ${money(data.currentComparisonPrice, 2)}，比最低折算竞品 ${data.lowestComparisonCompetitor.label} ${signedMoney(data.currentLowestUnitPriceGap, 2)}。`
       : `当前确认价按 ${data.unitQty}${data.unitLabel} 折算为 ${money(data.currentComparisonPrice, 2)}。`,
     data.hasCompetitors ? `${highCostLine}${lowCostLine}` : "",
-    "",
-    "分组定价明细",
-    ...data.pricingGroups.map((group) => [
-      `包含款式：${pricingGroupLabel(group)}`,
-      `成本 ${fmt(group.costRmb, 4)} RMB`,
-      `销售单位成本 ${money(group.saleUnitCostUsd, 2)}`,
-      `保本价 ${money(group.breakEvenPrice, 2)}（${group.breakEvenShippingTier} / 配送费 ${money(group.breakEvenShippingFee, 2)}）`,
-      `目标利润建议价 ${money(group.targetPrice, 2)}（利润率 ${percent(group.targetProfitMargin)}）`,
-      `当前确认价 ${money(group.confirmedPrice, 2)}（${group.priceSource}）`,
-      `当前利润 ${money(group.currentProfit, 2)}，利润率 ${percent(group.currentProfitMargin)}`
-    ].join("；")),
+    ...(data.pricingGroups.length > 1 ? [
+      "",
+      "分组定价明细",
+      ...data.pricingGroups.map((group) => [
+        `包含款式：${pricingGroupLabel(group)}`,
+        `成本 ${fmt(group.costRmb, 4)} RMB`,
+        `销售单位成本 ${money(group.saleUnitCostUsd, 2)}`,
+        `保本价 ${money(group.breakEvenPrice, 2)}（${group.breakEvenShippingTier} / 配送费 ${money(group.breakEvenShippingFee, 2)}）`,
+        `目标利润建议价 ${money(group.targetPrice, 2)}（利润率 ${percent(group.targetProfitMargin)}）`,
+        `当前确认价 ${money(group.confirmedPrice, 2)}（${group.priceSource}）`,
+        `当前利润 ${money(group.currentProfit, 2)}，利润率 ${percent(group.currentProfitMargin)}`
+      ].join("；"))
+    ] : []),
     data.hasCompetitors
       ? `策略：首发 ${money(data.price, 2)} 先验证转化和评价，累计 20-30 个评价后测试 ${money(data.postReviewPrice, 2)}。不要只追 ${data.lowestComparisonCompetitor.label} 的 ${money(data.lowestComparisonCompetitor.comparisonPrice, 2)}/${data.unitQty}${data.unitLabel}，重点看${data.profile.valueAnchor}。${data.profile.launchFocus}。`
       : "策略：先补齐当前产品竞品锚点，再给最终价格策略。",
@@ -895,12 +939,13 @@ function renderReportContent() {
         <p>竞品价格会按“竞品售价 ÷ 竞品售卖数量 × 你填的对比量”折算，不再使用任何固定产品示例。</p>
       </article>
     `;
+    renderCurrentProfitPanel(data);
     return;
   }
   const highCostProfit = data.highCostProfit ? money(data.highCostProfit.profit, 2) : "-";
   const lowCostProfit = data.lowCostProfit ? money(data.lowCostProfit.profit, 2) : "-";
   const highCostTitle = data.highCostProfit?.title || "成本最高款";
-  const weightTierText = data.weightOz <= 4 ? "落在 4oz 及以下" : `对应 ${data.currentShippingTier} 档`;
+  const weightTierText = data.weightOz <= 4 ? "计费重落在 4oz 及以下" : `计费重对应 ${data.currentShippingTier} 档`;
   const bundleSummaryHtml = data.bundleRow
     ? `<li>套装结构：${escapeXml(bundleRowSummary(data.bundleRow))}。</li>`
     : "";
@@ -948,7 +993,7 @@ function renderReportContent() {
         <td>-</td>
       </tr>
     `;
-  const pricingGroupRowsHtml = data.pricingGroups.length
+  const pricingGroupRowsHtml = data.pricingGroups.length > 1
     ? data.pricingGroups.map((group) => `
       <tr>
         <td>${escapeXml(pricingGroupLabel(group))}</td>
@@ -960,13 +1005,35 @@ function renderReportContent() {
         <td><mark>${percent(group.currentProfitMargin)}</mark><br><span class="muted">利润 ${money(group.currentProfit, 2)}</span></td>
       </tr>
     `).join("")
-    : '<tr><td colspan="7" class="empty">暂无分组定价明细。</td></tr>';
+    : "";
+  const pricingGroupsSectionHtml = data.pricingGroups.length > 1 ? `
+    <article class="process-block">
+      <h3>分组定价明细</h3>
+      <p class="lead-text">不同成本、配送费档位或确认价条件才拆组；包含款式使用识别结果里的款式标题。</p>
+      <div class="comparison-table-wrap">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>包含款式</th>
+              <th>单件成本</th>
+              <th>销售单位成本</th>
+              <th>保本价</th>
+              <th>目标利润建议价</th>
+              <th>当前确认价</th>
+              <th>当前利润率</th>
+            </tr>
+          </thead>
+          <tbody>${pricingGroupRowsHtml}</tbody>
+        </table>
+      </div>
+    </article>
+  ` : "";
   $("reportContent").innerHTML = `
     <article class="process-block">
       <h3>保本价计算</h3>
       <p class="lead-text">${escapeXml(data.productName)} 的保本价是 <mark>${money(data.breakEven, 2)}</mark>，向上取 .99 后建议不低于 <mark>${money(data.suggestedMinPrice, 2)}</mark>。</p>
       <ul>
-        <li>尺寸：${fmt(data.dims.lengthCm, 2)} × ${fmt(data.dims.widthCm, 2)} × ${fmt(data.dims.heightCm, 2)} cm，重量 ${fmt(data.dims.weightG, 2)}g = 约 ${fmt(data.weightOz, 2)}oz，${escapeXml(weightTierText)}。</li>
+        <li>尺寸：${fmt(data.dims.lengthCm, 2)} × ${fmt(data.dims.widthCm, 2)} × ${fmt(data.dims.heightCm, 2)} cm，实重 ${fmt(data.dims.weightG, 2)}g = ${fmt(data.actualWeightOz, 2)}oz；体积重 ${fmt(data.dimensionalWeightOz, 2)}oz；计费重 ${fmt(data.weightOz, 2)}oz，${escapeXml(weightTierText)}。</li>
         <li>保本价对应配送费：<mark>${escapeXml(data.breakEvenShippingTier)}</mark>，配送费 <mark>${money(data.breakEvenShippingFee, 2)}</mark>。</li>
         <li>销售单位成本：<mark>${money(data.saleUnitCostUsd, 2)}</mark>。${data.bundleRow ? "按套装成本折算。" : `按最高成本款 ${escapeXml(data.pricingCostRow?.spec || data.pricingCostRow?.title || "当前款式")}：${fmt(data.pricingCostRow?.cost, 4)} RMB × ${data.saleQty}${data.unitLabel} / ${currencyRateRmbToUsd} 保守折算。`}</li>
         ${bundleSummaryHtml}
@@ -1031,27 +1098,27 @@ function renderReportContent() {
       ${data.hasCompetitors ? `<p>整包价门槛：系统建议售价比最低整包竞品 ${escapeXml(data.lowestTotalCompetitor.label)} 的 ${money(data.lowestTotalCompetitor.price, 2)} ${signedMoney(data.targetPackagePriceGap, 2)}；当前确认价比最低整包竞品 ${signedMoney(data.packagePriceGap, 2)}。</p>` : ""}
     </article>
 
-    <article class="process-block">
-      <h3>分组定价明细</h3>
-      <p class="lead-text">相同成本、配送费档位和确认价条件的款式会合并展示；条件不同才拆成单独一组。</p>
-      <div class="comparison-table-wrap">
-        <table class="comparison-table">
-          <thead>
-            <tr>
-              <th>包含款式</th>
-              <th>单件成本</th>
-              <th>销售单位成本</th>
-              <th>保本价</th>
-              <th>目标利润建议价</th>
-              <th>当前确认价</th>
-              <th>当前利润率</th>
-            </tr>
-          </thead>
-          <tbody>${pricingGroupRowsHtml}</tbody>
-        </table>
-      </div>
-    </article>
+    ${pricingGroupsSectionHtml}
+  `;
+  renderCurrentProfitPanel(data);
+}
 
+function renderCurrentProfitPanel(data = reportData()) {
+  const panel = $("currentProfitPanel");
+  if (!panel) return;
+  if (!data.hasPurchaseRows) {
+    panel.innerHTML = `
+      <article class="process-block">
+        <h3>当前确认价利润率</h3>
+        <p class="lead-text">等待最终价格行生成后，这里会显示当前确认价对应的利润率。</p>
+      </article>
+    `;
+    return;
+  }
+  const highCostProfit = data.highCostProfit ? money(data.highCostProfit.profit, 2) : "-";
+  const lowCostProfit = data.lowCostProfit ? money(data.lowCostProfit.profit, 2) : "-";
+  const highCostTitle = data.highCostProfit?.title || "成本最高款";
+  panel.innerHTML = `
     <article class="process-block">
       <h3>当前确认价利润率</h3>
       <p class="lead-text">当前确认价是 <mark>${money(data.price, 2)}</mark>（${escapeXml(data.priceSource)}）。如果你后期人工修改最终定价，这一块会按修改后的价格重新计算利润率。</p>
@@ -1080,6 +1147,7 @@ function markReportStale() {
 function refreshReportDraft() {
   renderReportContent();
   markReportStale();
+  renderPricingHistoryNav();
 }
 
 function setLink(link, href) {
@@ -1102,6 +1170,200 @@ function smoothScrollTo(id) {
   if (element) {
     element.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+}
+
+function moneyRange(values) {
+  const usable = values.filter((value) => Number.isFinite(value) && value > 0);
+  if (!usable.length) {
+    return "待计算";
+  }
+  const min = Math.min(...usable);
+  const max = Math.max(...usable);
+  return Math.abs(max - min) < 0.005 ? money(min, 2) : `${money(min, 2)}-${money(max, 2)}`;
+}
+
+function rmbRange(values, digits = 2) {
+  const usable = values.filter((value) => Number.isFinite(value) && value > 0);
+  if (!usable.length) {
+    return "待计算";
+  }
+  const min = Math.min(...usable);
+  const max = Math.max(...usable);
+  const formatRmb = (value) => `¥${Number(value || 0).toFixed(digits).replace(/\.?0+$/g, "")}`;
+  return Math.abs(max - min) < 0.0005 ? formatRmb(min) : `${formatRmb(min)}-${formatRmb(max)}`;
+}
+
+function formatHistoryValue(value, formatter) {
+  if (typeof value === "number") {
+    return formatter(value);
+  }
+  return String(value || "待补");
+}
+
+function parseEditableHistoryValue(value) {
+  const text = String(value ?? "").trim();
+  if (!text || text === "待补") {
+    return "待补";
+  }
+  const parsed = Number(text.replace(/[^\d.-]/g, ""));
+  return Number.isFinite(parsed) && !/[~-]/.test(text) ? parsed : text;
+}
+
+function loadPricingHistoryProducts() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(pricingHistoryStorageKey) || "null");
+    if (Array.isArray(saved)) {
+      pricingHistoryProducts = saved.filter((item) => item && item.name);
+    }
+  } catch (error) {
+    pricingHistoryProducts = [...defaultPricingHistoryProducts];
+  }
+}
+
+function savePricingHistoryProducts() {
+  localStorage.setItem(pricingHistoryStorageKey, JSON.stringify(pricingHistoryProducts));
+}
+
+function editPricingHistoryProduct(index) {
+  editingPricingHistoryIndex = pricingHistoryProducts[index] ? index : null;
+  renderPricingHistoryNav();
+}
+
+function cancelPricingHistoryEdit() {
+  editingPricingHistoryIndex = null;
+  renderPricingHistoryNav();
+}
+
+function savePricingHistoryEdit(index) {
+  const item = pricingHistoryProducts[index];
+  const card = document.querySelector(`[data-pricing-edit-form="${index}"]`);
+  if (!item || !card) {
+    return;
+  }
+  const name = card.querySelector('[data-edit-field="name"]')?.value.trim() || item.name;
+  const purchaseCostRmb = card.querySelector('[data-edit-field="purchase"]')?.value || "待补";
+  const shippingFee = card.querySelector('[data-edit-field="shipping"]')?.value || "待补";
+  const finalPrice = card.querySelector('[data-edit-field="price"]')?.value || "待补";
+  pricingHistoryProducts[index] = {
+    name,
+    purchaseCostRmb: parseEditableHistoryValue(purchaseCostRmb),
+    shippingFee: parseEditableHistoryValue(shippingFee),
+    finalPrice: parseEditableHistoryValue(finalPrice)
+  };
+  editingPricingHistoryIndex = null;
+  savePricingHistoryProducts();
+  renderPricingHistoryNav();
+}
+
+function deletePricingHistoryProduct(index) {
+  const item = pricingHistoryProducts[index];
+  if (!item) {
+    return;
+  }
+  if (!window.confirm(`删除“${item.name}”？`)) {
+    return;
+  }
+  pricingHistoryProducts.splice(index, 1);
+  if (editingPricingHistoryIndex === index) {
+    editingPricingHistoryIndex = null;
+  }
+  savePricingHistoryProducts();
+  renderPricingHistoryNav();
+}
+
+function currentPricingNavItem() {
+  if (!currentPurchaseRows.length) {
+    return null;
+  }
+  try {
+    const data = reportData();
+    const prices = finalRows().map((row) => num(row[6])).filter((value) => value > 0);
+    const fees = data.rowDetails?.map((item) => item.currentShippingFee) || [];
+    const costs = data.rowDetails?.map((item) => item.costRmb) || currentPurchaseRows.map((row) => num(row.cost));
+    return {
+      name: data.productName || productLabel(),
+      purchaseCostText: rmbRange(costs, 4),
+      shippingFeeText: moneyRange(fees.length ? fees : [data.currentShippingFee]),
+      finalPriceText: moneyRange(prices.length ? prices : [data.price || data.targetPrice]),
+      current: true
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+function renderPricingHistoryNav() {
+  const list = $("pricingHistoryList");
+  if (!list) {
+    return;
+  }
+  const currentItem = currentPricingNavItem();
+  const currentName = currentItem?.name || "";
+  const historyItems = pricingHistoryProducts
+    .map((item, sourceIndex) => ({ item, sourceIndex }))
+    .filter(({ item }) => item.name !== currentName)
+    .map(({ item, sourceIndex }) => ({
+      name: item.name,
+      purchaseCostText: formatHistoryValue(item.purchaseCostRmb, (value) => rmbRange([value], 4)),
+      shippingFeeText: formatHistoryValue(item.shippingFee, (value) => money(value, 2)),
+      finalPriceText: formatHistoryValue(item.finalPrice, (value) => money(value, 2)),
+      current: false,
+      sourceIndex,
+      editing: sourceIndex === editingPricingHistoryIndex
+    }));
+  const items = currentItem ? [currentItem, ...historyItems] : historyItems;
+  if (!items.length) {
+    list.innerHTML = '<p class="empty-nav">暂无已完成的定价分析。</p>';
+    return;
+  }
+  list.innerHTML = items.map((item, index) => `
+    <div class="pricing-history-item ${item.current ? "is-current" : ""}">
+      <button class="pricing-history-main" type="button" data-pricing-nav="${index}">
+        <span class="pricing-history-title">${escapeXml(item.current ? `${item.name}（当前）` : item.name)}</span>
+        <span class="pricing-history-meta">
+          <span>采购价<strong>${escapeXml(item.purchaseCostText)}</strong></span>
+          <span>配送费<strong>${escapeXml(item.shippingFeeText)}</strong></span>
+          <span>最终售价<strong>${escapeXml(item.finalPriceText)}</strong></span>
+        </span>
+      </button>
+      ${item.current ? "" : `
+        ${item.editing ? `
+          <span class="pricing-history-edit-form" data-pricing-edit-form="${item.sourceIndex}">
+            <label>产品<input data-edit-field="name" type="text" value="${escapeAttr(item.name)}"></label>
+            <label>采购价<input data-edit-field="purchase" type="text" value="${escapeAttr(item.purchaseCostText)}"></label>
+            <label>配送费<input data-edit-field="shipping" type="text" value="${escapeAttr(item.shippingFeeText)}"></label>
+            <label>售价<input data-edit-field="price" type="text" value="${escapeAttr(item.finalPriceText)}"></label>
+            <span class="pricing-history-actions">
+              <button type="button" class="mini-button primary-mini" data-pricing-save="${item.sourceIndex}">保存</button>
+              <button type="button" class="mini-button" data-pricing-cancel>取消</button>
+            </span>
+          </span>
+        ` : `
+          <span class="pricing-history-actions">
+            <button type="button" class="mini-button" data-pricing-edit="${item.sourceIndex}">修改</button>
+            <button type="button" class="mini-button danger" data-pricing-delete="${item.sourceIndex}">删除</button>
+          </span>
+        `}
+      `}
+    </div>
+  `).join("");
+  document.querySelectorAll("[data-pricing-nav]").forEach((button, index) => {
+    button.addEventListener("click", () => {
+      smoothScrollTo(items[index].current ? "finalStage" : "reportPanel");
+    });
+  });
+  document.querySelectorAll("[data-pricing-edit]").forEach((button) => {
+    button.addEventListener("click", () => editPricingHistoryProduct(Number(button.dataset.pricingEdit)));
+  });
+  document.querySelectorAll("[data-pricing-save]").forEach((button) => {
+    button.addEventListener("click", () => savePricingHistoryEdit(Number(button.dataset.pricingSave)));
+  });
+  document.querySelectorAll("[data-pricing-cancel]").forEach((button) => {
+    button.addEventListener("click", cancelPricingHistoryEdit);
+  });
+  document.querySelectorAll("[data-pricing-delete]").forEach((button) => {
+    button.addEventListener("click", () => deletePricingHistoryProduct(Number(button.dataset.pricingDelete)));
+  });
 }
 
 function setOcrStatus(message, isBusy = false) {
@@ -1137,7 +1399,7 @@ function showFilePreview(file, suffix) {
     return;
   }
   if (suffix === "pdf") {
-    setPurchasePreview(`<p>已选择 PDF：${escapeXml(file.name)}。当前前端会保留文件名，请把 PDF 中的订单文字粘贴到下方，或用手动添加采购行继续测试。</p>`);
+    setPurchasePreview(`<p>已选择 PDF：${escapeXml(file.name)}。当前前端会保留文件名；PDF 明细请改用手动添加或批量添加采购行继续。</p>`);
     setOcrStatus("PDF 暂不支持 OCR");
     return;
   }
@@ -1367,7 +1629,6 @@ async function runImageOcr({ autoParse = true } = {}) {
       rawText = result.data?.text || "";
     }
     const text = normalizeOcrText(rawText);
-    $("orderTextInput").value = text;
 
     if (!text) {
       setSiteStatus("图片 OCR 没有识别到文字，请换更清晰截图或手动输入。", "warn");
@@ -1377,7 +1638,7 @@ async function runImageOcr({ autoParse = true } = {}) {
     }
 
     if (!autoParse) {
-      setSiteStatus("图片文字已识别，请检查 OCR 文本后点击解析。");
+      setSiteStatus("图片文字已识别。");
       setOcrStatus("OCR 完成");
       $("baseStatus").textContent = "待解析";
       return;
@@ -1410,6 +1671,7 @@ function generateFinalExcel() {
   $("downloadExcelLink").download = `${safeDownloadName(productLabel())}_最终价格确认表.xls`;
   setLink($("downloadExcelLink"), finalExcelUrl);
   $("exportStatus").textContent = `已生成 ${finalRows().length} 条 SKU 的 Excel 表格。`;
+  renderPricingHistoryNav();
   setSiteStatus("最终价格确认表已生成，请点击底部的“下载 Excel”。");
   $("downloadExcelLink").scrollIntoView({ behavior: "smooth", block: "center" });
 }
@@ -2361,8 +2623,8 @@ function renderRecognizedRows(rows) {
   }
   currentPurchaseRows = rows;
   if (!rows.length) {
-    $("recognizedRows").innerHTML = '<tr><td colspan="9" class="empty">暂无采购行，请粘贴订单文本或手动添加采购行。</td></tr>';
-    $("recognizedSummaryText").textContent = "暂无采购行，请粘贴订单文本或手动添加采购行。";
+    $("recognizedRows").innerHTML = '<tr><td colspan="9" class="empty">暂无采购行，请上传采购单或手动添加采购行。</td></tr>';
+    $("recognizedSummaryText").textContent = "暂无采购行，请上传采购单或手动添加采购行。";
     renderFinalRows([]);
     return;
   }
@@ -2399,6 +2661,7 @@ function renderFinalRows(rows) {
   if (!rows.length) {
     $("finalPricingRows").innerHTML = '<tr><td colspan="7" class="empty">暂无最终价格行。</td></tr>';
     resetDownloadState();
+    renderPricingHistoryNav();
     return;
   }
   const previousPrices = finalRows().map((row) => row[6]);
@@ -2424,6 +2687,7 @@ function renderFinalRows(rows) {
     `;
   }).join("");
   resetDownloadState();
+  renderPricingHistoryNav();
 }
 
 function updateSummaryFromRows(rows) {
@@ -2436,6 +2700,7 @@ function updateSummaryFromRows(rows) {
   if (cards[0]) cards[0].textContent = bundleRow ? "1 个SKU" : `${rows.length} 款`;
   if (cards[1]) cards[1].textContent = totalQty ? `${totalQty} ${bundleRow ? "套" : "件"}` : "-";
   if (cards[2]) cards[2].textContent = totalAmount ? `${fmt(totalAmount, 2)} RMB` : "-";
+  renderPricingHistoryNav();
 }
 
 async function handlePurchaseOrderFile(file) {
@@ -2451,7 +2716,7 @@ async function handlePurchaseOrderFile(file) {
     if (["png", "jpg", "jpeg", "webp"].includes(suffix)) {
       await runImageOcr({ autoParse: true });
     } else {
-      setSiteStatus("已选择 PDF 采购单。PDF OCR 下一步再接；现在请粘贴订单文字或手动添加采购行。", "warn");
+      setSiteStatus("已选择 PDF 采购单。PDF OCR 下一步再接；现在请手动添加或批量添加采购行。", "warn");
     }
     return;
   }
@@ -2460,8 +2725,8 @@ async function handlePurchaseOrderFile(file) {
   const rows = parsePurchaseOrderText(text, file.name);
   if (!rows.length) {
     const message = looksLikeDynamicShell(text)
-      ? "这个 HTML 是 1688 动态页面壳，里面没有订单明细数据。已清空示例行，请粘贴订单文字，或手动添加采购行继续测试。"
-      : "没有从采购单中识别到规格行。请粘贴订单文字，或手动添加采购行继续测试。";
+      ? "这个 HTML 是 1688 动态页面壳，里面没有订单明细数据。已清空示例行，请手动添加或批量添加采购行继续测试。"
+      : "没有从采购单中识别到规格行。请手动添加或批量添加采购行继续测试。";
     renderRecognizedRows([]);
     updateSummaryFromRows([]);
     $("baseStatus").textContent = "待补录";
@@ -2475,24 +2740,6 @@ async function handlePurchaseOrderFile(file) {
   $("baseStatus").textContent = "待确认";
   $("baseStatus").classList.remove("ready");
   setSiteStatus(`已从 ${file.name} 识别 ${rows.length} 款产品，请检查表格后确认。`);
-}
-
-function parsePastedOrderText() {
-  const text = $("orderTextInput").value.trim();
-  if (!text) {
-    setSiteStatus("请先粘贴订单文字。", "warn");
-    return;
-  }
-  const rows = parsePurchaseOrderText(text, "pasted.txt");
-  if (!rows.length) {
-    setSiteStatus("粘贴文本里没有识别到采购行。可以改用手动添加采购行。", "warn");
-    return;
-  }
-  renderRecognizedRows(rows);
-  updateSummaryFromRows(rows);
-  $("baseStatus").textContent = "待确认";
-  $("baseStatus").classList.remove("ready");
-  setSiteStatus(`已从粘贴文本识别 ${rows.length} 款产品，请检查表格后确认。`);
 }
 
 function addManualRow() {
@@ -2694,12 +2941,6 @@ function initFileInputs() {
 }
 
 function initButtons() {
-  $("saveDraftBtn").addEventListener("click", () => {
-    $("baseStatus").textContent = "草稿已保存";
-    $("baseStatus").classList.add("ready");
-    setSiteStatus("草稿已保存。");
-  });
-
   $("confirmBaseBtn").addEventListener("click", () => {
     $("baseStatus").textContent = "已确认";
     $("baseStatus").classList.add("ready");
@@ -2711,7 +2952,6 @@ function initButtons() {
   $("reportExcelBtn").addEventListener("click", generateReportExcel);
   $("reportTextBtn").addEventListener("click", generateReportText);
   $("generateExcelBtn").addEventListener("click", generateFinalExcel);
-  $("parseOrderTextBtn").addEventListener("click", parsePastedOrderText);
   $("runOcrBtn").addEventListener("click", () => runImageOcr({ autoParse: true }));
   $("addManualRowBtn").addEventListener("click", addManualRow);
   $("addBulkRowsBtn").addEventListener("click", addBulkRows);
@@ -2764,6 +3004,7 @@ function initPriceInputs() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  loadPricingHistoryProducts();
   currentPurchaseRows = defaultPurchaseRows();
   initFileInputs();
   initButtons();
@@ -2771,6 +3012,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateCompetitorSummary();
   updateBundlePreview();
   renderReportContent();
+  renderPricingHistoryNav();
 });
 
 window.priceWorkbench = {

@@ -13,10 +13,6 @@
           <p class="eyebrow">通用产品定价台</p>
           <h1>从采购单到定价分析报告</h1>
         </div>
-        <div class="topbar-actions">
-          <button id="saveDraftBtn" type="button" class="ghost-button">保存草稿</button>
-          <button id="confirmBaseBtn" type="button" class="primary-button">确认基础表格</button>
-        </div>
       </header>
 
       <section class="flow-strip" aria-label="流程">
@@ -44,6 +40,18 @@
 
       <section id="siteStatus" class="site-status" aria-live="polite">网站已加载，可以开始确认资料。</section>
 
+      <aside class="pricing-nav" aria-label="已做定价分析的产品">
+        <div class="pricing-nav-heading">
+          <div>
+            <h2>产品导航</h2>
+            <span>已做定价分析</span>
+          </div>
+        </div>
+        <div id="pricingHistoryList" class="pricing-history-list" aria-live="polite">
+          <p class="empty-nav">等待加载定价产品。</p>
+        </div>
+      </aside>
+
       <section class="main-grid">
         <aside class="input-panel" aria-label="输入区">
           <div class="panel-heading">
@@ -64,35 +72,24 @@
             </div>
           </div>
 
-          <div class="upload-box">
-            <div>
-              <strong>采购单</strong>
-              <span>支持 PDF / 图片 / HTML / 文本</span>
-            </div>
-            <input id="purchaseOrderFile" type="file" aria-label="上传采购单" accept=".pdf,.png,.jpg,.jpeg,.webp,.html,.htm,.txt,.csv">
-            <p id="purchaseOrderFileName">等待上传采购单</p>
-            <div class="ocr-actions">
-              <button id="runOcrBtn" type="button" class="ghost-button" disabled>识别图片文字</button>
-              <span id="ocrStatus">未选择图片</span>
-            </div>
-            <div id="purchasePreview" class="upload-preview is-hidden" aria-live="polite"></div>
-          </div>
-
           <div class="manual-card">
             <div class="manual-card-title">
-              <strong>订单文本 / OCR 结果</strong>
-              <span>文件识别不到时使用</span>
+              <strong>批量添加采购行</strong>
+              <span>每行一款</span>
             </div>
-            <textarea id="orderTextInput" rows="6" placeholder="把订单详情页、截图 OCR 结果或表格文本粘贴到这里，例如：货号 HJ-11 规格型号 200ml款式3; 彩色 数量 2 单价 4.00 优惠 -0.25 金额 7.75"></textarea>
-            <div class="inline-actions">
-              <button id="parseOrderTextBtn" type="button" class="ghost-button">解析粘贴文本</button>
+            <div class="bulk-entry compact-entry">
+              <label>
+                批量粘贴采购行
+                <textarea id="manualBulkRows" rows="5" placeholder="每行一款，可直接粘贴：黄麻猫玩具 蝴蝶 10 9；也支持 SKU 黄麻猫玩具 老鼠 10 6.5，SKU 可添加后在表格里人工填写。"></textarea>
+              </label>
+              <button id="addBulkRowsBtn" type="button" class="ghost-button">批量添加到识别结果</button>
             </div>
           </div>
 
           <div class="manual-card">
             <div class="manual-card-title">
               <strong>手动添加采购行</strong>
-              <span>用于动态网页/图片兜底</span>
+              <span>单行补录</span>
             </div>
             <div class="manual-row-grid">
               <label>
@@ -121,13 +118,45 @@
               </label>
             </div>
             <button id="addManualRowBtn" type="button" class="ghost-button">添加到识别结果</button>
-            <div class="bulk-entry">
-              <label>
-                批量粘贴采购行
-                <textarea id="manualBulkRows" rows="5" placeholder="每行一款，可直接粘贴：黄麻猫玩具 蝴蝶 10 9；也支持 SKU 黄麻猫玩具 老鼠 10 6.5，SKU 可添加后在表格里人工填写。"></textarea>
-              </label>
-              <button id="addBulkRowsBtn" type="button" class="ghost-button">批量添加到识别结果</button>
+          </div>
+
+          <div class="manual-card">
+            <div class="manual-card-title">
+              <strong>尺寸重量</strong>
+              <span>每款一致</span>
             </div>
+            <div class="dimension-grid">
+              <label>
+                长 cm
+                <input id="lengthCm" type="number" value="0" step="0.1">
+              </label>
+              <label>
+                宽 cm
+                <input id="widthCm" type="number" value="0" step="0.1">
+              </label>
+              <label>
+                高 cm
+                <input id="heightCm" type="number" value="0" step="0.1">
+              </label>
+              <label>
+                重 g
+                <input id="weightG" type="number" value="0" step="1">
+              </label>
+            </div>
+          </div>
+
+          <div class="upload-box">
+            <div>
+              <strong>采购单</strong>
+              <span>支持 PDF / 图片 / HTML / 文本</span>
+            </div>
+            <input id="purchaseOrderFile" type="file" aria-label="上传采购单" accept=".pdf,.png,.jpg,.jpeg,.webp,.html,.htm,.txt,.csv">
+            <p id="purchaseOrderFileName">等待上传采购单</p>
+            <div class="ocr-actions">
+              <button id="runOcrBtn" type="button" class="ghost-button" disabled>识别图片文字</button>
+              <span id="ocrStatus">未选择图片</span>
+            </div>
+            <div id="purchasePreview" class="upload-preview is-hidden" aria-live="polite"></div>
           </div>
 
           <div id="bundleCard" class="manual-card is-hidden">
@@ -186,31 +215,6 @@
             </div>
           </div>
 
-          <div class="manual-card">
-            <div class="manual-card-title">
-              <strong>尺寸重量</strong>
-              <span>每款一致</span>
-            </div>
-            <div class="dimension-grid">
-              <label>
-                长 cm
-                <input id="lengthCm" type="number" value="0" step="0.1">
-              </label>
-              <label>
-                宽 cm
-                <input id="widthCm" type="number" value="0" step="0.1">
-              </label>
-              <label>
-                高 cm
-                <input id="heightCm" type="number" value="0" step="0.1">
-              </label>
-              <label>
-                重 g
-                <input id="weightG" type="number" value="0" step="1">
-              </label>
-            </div>
-          </div>
-
         </aside>
 
         <div class="workflow-column">
@@ -259,10 +263,14 @@
               </thead>
               <tbody id="recognizedRows">
                 <tr>
-                  <td colspan="9" class="empty">暂无采购行，请上传采购单、粘贴订单文本或手动添加采购行。</td>
+                  <td colspan="9" class="empty">暂无采购行，请上传采购单或手动添加采购行。</td>
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <div class="result-actions">
+            <button id="confirmBaseBtn" type="button" class="primary-button">确认基础表格</button>
           </div>
 
           <div class="check-panel">
@@ -391,6 +399,13 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <div id="currentProfitPanel" class="analysis-narrative profit-after-final">
+            <article class="process-block">
+              <h3>当前确认价利润率</h3>
+              <p class="lead-text">等待最终价格行生成后，这里会显示当前确认价对应的利润率。</p>
+            </article>
           </div>
 
           <div class="final-actions">

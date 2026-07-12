@@ -76,13 +76,6 @@ h3 {
   line-height: 1.3;
 }
 
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 button,
 .download-link {
   min-height: 40px;
@@ -177,7 +170,7 @@ button,
 
 .main-grid {
   display: grid;
-  grid-template-columns: minmax(360px, 430px) minmax(720px, 1fr);
+  grid-template-columns: minmax(340px, 410px) minmax(680px, 1fr);
   gap: 14px;
   align-items: start;
   margin-bottom: 18px;
@@ -190,6 +183,7 @@ button,
 }
 
 .input-panel,
+.pricing-nav,
 .result-panel,
 .competitor-panel,
 .report-panel,
@@ -198,6 +192,157 @@ button,
   border-radius: 8px;
   background: var(--panel);
   box-shadow: var(--shadow);
+}
+
+.pricing-nav {
+  padding: 14px;
+  margin-bottom: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.pricing-nav-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pricing-nav-heading span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pricing-history-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.pricing-history-item {
+  width: 210px;
+  flex: 0 0 210px;
+  min-height: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfa;
+  text-align: left;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.pricing-history-item:hover,
+.pricing-history-item:focus-within {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.pricing-history-item.is-current {
+  border-color: #b7d7c7;
+  background: var(--accent-soft);
+}
+
+.pricing-history-main {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pricing-history-title {
+  display: block;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.35;
+  min-height: 36px;
+}
+
+.pricing-history-meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.pricing-history-meta span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.pricing-history-meta strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}
+
+.pricing-history-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.mini-button {
+  min-height: 30px;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 800;
+  background: #ffffff;
+}
+
+.mini-button.danger {
+  border-color: #d6a6a0;
+  color: #9c3328;
+}
+
+.mini-button.primary-mini {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.pricing-history-edit-form {
+  display: grid;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.pricing-history-edit-form label {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pricing-history-edit-form input {
+  min-height: 32px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.empty-nav {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .input-panel {
@@ -214,6 +359,17 @@ button,
 .final-panel {
   padding: 18px;
   min-width: 0;
+}
+
+.result-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.profit-after-final {
+  margin-top: 14px;
 }
 
 .panel-heading {
@@ -317,6 +473,12 @@ textarea:focus {
   margin-top: 14px;
   padding-top: 14px;
   border-top: 1px solid var(--line);
+}
+
+.bulk-entry.compact-entry {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
 }
 
 .bulk-entry textarea {
@@ -915,11 +1077,6 @@ td input {
     flex-direction: column;
   }
 
-  .topbar-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
   .flow-strip,
   .main-grid,
   .summary-grid,
@@ -941,6 +1098,10 @@ td input {
   }
 
   .input-panel {
+    position: static;
+  }
+
+  .pricing-nav {
     position: static;
   }
 

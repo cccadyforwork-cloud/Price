@@ -1,0 +1,4 @@
+workbench-server.err.log
+workbench-server.out.log
+workbench/__pycache__/
+*.pyc

@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "products": {
+    "园艺手套": {
+      "firstCalculatedAt": 1784086759.238701,
+      "sequence": 1
+    },
+    "玻璃喷壶": {
+      "firstCalculatedAt": 1784086759.2397287,
+      "sequence": 2
+    },
+    "玻璃壶": {
+      "firstCalculatedAt": 1784086759.2407463,
+      "sequence": 3
+    },
+    "瑜伽砖": {
+      "firstCalculatedAt": 1784086759.2407463,
+      "sequence": 4
+    },
+    "花束卡片夹": {
+      "firstCalculatedAt": 1784086759.2422373,
+      "sequence": 5
+    },
+    "防磨贴": {
+      "firstCalculatedAt": 1784086759.2436128,
+      "sequence": 6
+    }
+  }
+}

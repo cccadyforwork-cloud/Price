@@ -7,6 +7,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import time
 import uuid
 from email.parser import BytesParser
 from email.policy import default
@@ -24,6 +25,7 @@ NODE_MODULES = Path("/Users/cc/.cache/codex-runtimes/codex-primary-runtime/depen
 CONFIG_PATH = ROOT / "config" / "products" / "blister_pad_bundle.json"
 PRICING_CONFIG_PATH = ROOT / "config" / "pricing_config.json"
 WORKBENCH_STATE_PATH = ROOT / "config" / "workbench_state.json"
+HISTORY_ORDER_PATH = ROOT / "config" / "pricing_history_order.json"
 OUTPUT_DIR = ROOT / "output"
 INPUT_DIR = ROOT / "input"
 UPLOAD_TARGETS = {
@@ -169,6 +171,178 @@ def output_state(product_batch):
     }
 
 
+def get_value(row, *keys):
+    for key in keys:
+        if key in row and row.get(key) not in (None, ""):
+            return row.get(key)
+    return ""
+
+
+def output_file(batch, *suffixes):
+    for suffix in suffixes:
+        path = OUTPUT_DIR / f"{batch}_{suffix}"
+        if path.exists():
+            return path
+    return None
+
+
+def read_history_order():
+    if not HISTORY_ORDER_PATH.exists():
+        return {"version": 1, "products": {}}
+    try:
+        data = read_json(HISTORY_ORDER_PATH)
+    except (OSError, json.JSONDecodeError):
+        return {"version": 1, "products": {}}
+    products = data.get("products") if isinstance(data, dict) else {}
+    return {"version": 1, "products": products if isinstance(products, dict) else {}}
+
+
+def write_history_order(data):
+    HISTORY_ORDER_PATH.parent.mkdir(parents=True, exist_ok=True)
+    write_json(HISTORY_ORDER_PATH, data)
+
+
+def history_batches():
+    batches = {}
+    for path in OUTPUT_DIR.glob("*.xlsx"):
+        if path.name.startswith(("~$", ".~")):
+            continue
+        for suffix in ("正式定价结果.xlsx", "自动定价结果.xlsx"):
+            marker = f"_{suffix}"
+            if path.name.endswith(marker):
+                batches[path.name[: -len(marker)]] = path
+    return batches
+
+
+def history_record(batch, result_path, order_info=None):
+    draft_path = output_file(batch, "统一输入草稿.xlsx")
+    upload_path = output_file(batch, "上品系统导入.xlsx")
+    report_path = output_file(batch, "正式定价报告.md", "自动定价报告.md")
+    draft_rows = workbook_rows(draft_path, "统一输入草稿", 200) if draft_path else []
+    result_rows = workbook_rows(result_path, "建议售价", 200)
+    upload_rows = workbook_rows(upload_path, "上品系统导入", 200) if upload_path else []
+    competitor_rows = workbook_rows(result_path, "竞品", 200)
+    result_by_sku = {row.get("SKU"): row for row in result_rows if row.get("SKU")}
+    upload_by_sku = {row.get("SKU"): row for row in upload_rows if row.get("SKU")}
+    source_rows = draft_rows or result_rows
+    rows = []
+    for index, row in enumerate(source_rows):
+        sku = get_value(row, "SKU")
+        result = result_by_sku.get(sku, row)
+        title = get_value(row, "中文品名", "英文品名") or batch
+        spec = get_value(row, "变体/规格", "规格") or title or f"采购款式-{index + 1}"
+        rows.append(
+            {
+                "sku": sku,
+                "itemCode": "",
+                "title": title,
+                "spec": spec,
+                "quantity": get_value(row, "采购数量"),
+                "cost": get_value(row, "采购单价RMB/包", "单件成本RMB") or get_value(result, "单件成本RMB"),
+            }
+        )
+    final_rows = []
+    for row in result_rows:
+        sku = get_value(row, "SKU")
+        upload = upload_by_sku.get(sku, {})
+        final_rows.append(
+            {
+                "sku": sku,
+                "title": get_value(row, "规格"),
+                "price": get_value(row, "建议售价USD", "建议售价", "建议整包售价"),
+                "weightLb": get_value(row, "计费重量lb"),
+                "fbaFee": get_value(row, "FBA费"),
+                "profitRate": get_value(row, "期望利润率"),
+                "sizeCm": get_value(upload, "包装尺寸cm"),
+                "weightGText": get_value(upload, "包装重量g"),
+            }
+        )
+    first_draft = draft_rows[0] if draft_rows else {}
+    first_upload = upload_rows[0] if upload_rows else {}
+    dims = {
+        "lengthCm": get_value(first_draft, "包装长cm"),
+        "widthCm": get_value(first_draft, "包装宽cm"),
+        "heightCm": get_value(first_draft, "包装高cm"),
+        "weightG": get_value(first_draft, "包装重量g"),
+    }
+    if not any(dims.values()) and first_upload.get("包装尺寸cm"):
+        parts = [part.strip() for part in str(first_upload.get("包装尺寸cm")).replace("×", "*").split("*")]
+        if len(parts) >= 3:
+            dims["lengthCm"], dims["widthCm"], dims["heightCm"] = parts[:3]
+        dims["weightG"] = str(first_upload.get("包装重量g") or "").replace("g", "").strip()
+    competitors = []
+    for index, row in enumerate(competitor_rows):
+        title = get_value(row, "标题", "文件") or f"竞品{index + 1}"
+        competitors.append(
+            {
+                "label": get_value(row, "ASIN") or str(title)[:28],
+                "title": title,
+                "price": get_value(row, "页面主售价USD", "页面主售价"),
+                "packCount": get_value(row, "包数") or 1,
+                "rating": "评分待确认",
+                "sales": "销量待确认",
+            }
+        )
+    prices = [row.get("price") for row in final_rows if row.get("price") not in (None, "")]
+    fees = [row.get("fbaFee") for row in final_rows if row.get("fbaFee") not in (None, "")]
+    costs = [row.get("cost") for row in rows if row.get("cost") not in (None, "")]
+    return {
+        "name": batch,
+        "source": "output",
+        "firstCalculatedAt": (order_info or {}).get("firstCalculatedAt", result_path.stat().st_ctime),
+        "orderSequence": (order_info or {}).get("sequence", 0),
+        "updatedAt": result_path.stat().st_mtime,
+        "purchaseCostRmb": costs[0] if len(set(map(str, costs))) == 1 and costs else " / ".join(str(item) for item in costs[:3]) or "待补",
+        "shippingFee": fees[0] if len(set(map(str, fees))) == 1 and fees else " / ".join(str(item) for item in fees[:3]) or "待补",
+        "finalPrice": prices[0] if len(set(map(str, prices))) == 1 and prices else " / ".join(str(item) for item in prices[:3]) or "待补",
+        "rows": rows,
+        "finalRows": final_rows,
+        "dimensions": dims,
+        "salePackQty": get_value(first_draft, "销售包数") or 1,
+        "comparisonQty": get_value(first_draft, "对比单位数量") or 1,
+        "targetMargin": get_value(first_draft, "目标最低利润率") or "",
+        "competitors": competitors,
+        "report": read_report(report_path) if report_path else "",
+        "files": {
+            "draft": str(draft_path) if draft_path else "",
+            "result": str(result_path),
+            "report": str(report_path) if report_path else "",
+            "upload": str(upload_path) if upload_path else "",
+        },
+    }
+
+
+def output_history():
+    records = []
+    batches = sorted(history_batches().items())
+    order_data = read_history_order()
+    products = order_data["products"]
+    changed = False
+    next_sequence = max(
+        [int(item.get("sequence", 0)) for item in products.values() if isinstance(item, dict)] or [0]
+    )
+    for batch, result_path in batches:
+        if not isinstance(products.get(batch), dict):
+            next_sequence += 1
+            products[batch] = {
+                "firstCalculatedAt": result_path.stat().st_ctime or time.time(),
+                "sequence": next_sequence,
+            }
+            changed = True
+    if changed:
+        write_history_order(order_data)
+    for batch, result_path in batches:
+        try:
+            records.append(history_record(batch, result_path, products.get(batch)))
+        except Exception as exc:
+            records.append({"name": batch, "source": "output", "error": str(exc)})
+    return sorted(
+        records,
+        key=lambda item: (item.get("firstCalculatedAt", 0), item.get("orderSequence", 0)),
+        reverse=True,
+    )
+
+
 def safe_filename(name):
     cleaned = Path(name or "upload").name.replace("\x00", "").strip()
     return cleaned or f"upload-{uuid.uuid4().hex[:8]}"
@@ -178,14 +352,25 @@ def input_files():
     state = {}
     for key, directory in UPLOAD_TARGETS.items():
         directory.mkdir(parents=True, exist_ok=True)
+        files = []
+        for path in directory.iterdir():
+            if not path.is_file() or path.name.startswith(("~$", ".~", ".DS_Store")):
+                continue
+            try:
+                stat = path.stat()
+            except OSError:
+                continue
+            files.append(
+                {
+                    "name": path.name,
+                    "path": str(path),
+                    "size": stat.st_size,
+                    "mtime": stat.st_mtime,
+                }
+            )
         state[key] = [
-            {
-                "name": path.name,
-                "path": str(path),
-                "size": path.stat().st_size,
-            }
-            for path in sorted(directory.iterdir(), key=lambda item: item.stat().st_mtime, reverse=True)
-            if path.is_file() and not path.name.startswith(("~$", ".~", ".DS_Store"))
+            {key_name: item[key_name] for key_name in ("name", "path", "size")}
+            for item in sorted(files, key=lambda item: item["mtime"], reverse=True)
         ]
     return state
 
@@ -359,6 +544,7 @@ def api_state():
         "inputFiles": input_files(),
         "workbench": workbench,
         "outputs": output_state(product["product_batch"]),
+        "history": output_history(),
     }
 
 
@@ -393,6 +579,9 @@ class WorkbenchHandler(BaseHTTPRequestHandler):
         route = parsed.path
         if route == "/api/state":
             self.send_json(api_state())
+            return
+        if route == "/api/history":
+            self.send_json({"records": output_history()})
             return
         if route.startswith("/files/output/"):
             name = unquote(route.removeprefix("/files/output/"))

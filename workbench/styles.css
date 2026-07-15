@@ -100,13 +100,6 @@ button,
   color: #33433c;
 }
 
-.flow-strip {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 18px;
-}
-
 .site-status {
   min-height: 42px;
   border: 1px solid #b7d7c7;
@@ -125,47 +118,6 @@ button,
   border-color: #efcf9c;
   background: var(--warning-soft);
   color: var(--warning);
-}
-
-.flow-step {
-  min-height: 52px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.7);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  color: var(--muted);
-}
-
-.flow-step span {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1px solid var(--line-strong);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 800;
-  flex: 0 0 auto;
-}
-
-.flow-step strong {
-  font-size: 14px;
-}
-
-.flow-step.active {
-  border-color: #b7d7c7;
-  background: var(--accent-soft);
-  color: var(--ink);
-}
-
-.flow-step.active span {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #ffffff;
 }
 
 .main-grid {
@@ -349,8 +301,6 @@ button,
   padding: 16px;
   display: grid;
   gap: 14px;
-  position: sticky;
-  top: 18px;
 }
 
 .result-panel,
@@ -1077,7 +1027,6 @@ td input {
     flex-direction: column;
   }
 
-  .flow-strip,
   .main-grid,
   .summary-grid,
   .next-step-grid,

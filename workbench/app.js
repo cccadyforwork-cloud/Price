@@ -22,9 +22,15 @@ let ocrReady = false;
 let tesseractLoadPromise = null;
 let editingPricingHistoryIndex = null;
 let isRestoringWorkbenchDraft = false;
+let editingOutputPricingHistoryKey = null;
+let outputPricingHistoryRecords = [];
+let outputPricingHistoryOverrides = {};
+let hiddenOutputPricingHistoryNames = new Set();
 
 const pricingHistoryStorageKey = "priceWorkbench.pricingHistoryProducts";
 const workbenchDraftStorageKey = "priceWorkbench.currentDraft";
+const outputPricingHistoryOverridesStorageKey = "priceWorkbench.outputHistoryOverrides";
+const hiddenOutputPricingHistoryStorageKey = "priceWorkbench.hiddenOutputHistoryNames";
 const defaultPricingHistoryProducts = [
   { name: "宠物 AirTag 项圈", purchaseCostRmb: "待补", shippingFee: 1.77, finalPrice: 4.89 },
   { name: "宠物 AirTag 夜光项圈", purchaseCostRmb: "待补", shippingFee: 0.88, finalPrice: 5.49 },
@@ -1234,19 +1240,61 @@ function loadPricingHistoryProducts() {
   } catch (error) {
     pricingHistoryProducts = [...defaultPricingHistoryProducts];
   }
+  try {
+    const overrides = JSON.parse(localStorage.getItem(outputPricingHistoryOverridesStorageKey) || "{}");
+    outputPricingHistoryOverrides = overrides && typeof overrides === "object" && !Array.isArray(overrides) ? overrides : {};
+  } catch (error) {
+    outputPricingHistoryOverrides = {};
+  }
+  try {
+    const hidden = JSON.parse(localStorage.getItem(hiddenOutputPricingHistoryStorageKey) || "[]");
+    hiddenOutputPricingHistoryNames = new Set(Array.isArray(hidden) ? hidden : []);
+  } catch (error) {
+    hiddenOutputPricingHistoryNames = new Set();
+  }
+}
+
+async function loadOutputPricingHistory() {
+  try {
+    const response = await fetch("/api/history");
+    if (!response.ok) {
+      throw new Error("历史记录接口暂时不可用");
+    }
+    const payload = await response.json();
+    outputPricingHistoryRecords = Array.isArray(payload.records)
+      ? payload.records.filter((item) => item && item.name && !item.error)
+      : [];
+    renderPricingHistoryNav();
+  } catch (error) {
+    outputPricingHistoryRecords = [];
+    console.warn(error);
+  }
 }
 
 function savePricingHistoryProducts() {
   localStorage.setItem(pricingHistoryStorageKey, JSON.stringify(pricingHistoryProducts));
 }
 
+function saveOutputPricingHistoryPrefs() {
+  localStorage.setItem(outputPricingHistoryOverridesStorageKey, JSON.stringify(outputPricingHistoryOverrides));
+  localStorage.setItem(hiddenOutputPricingHistoryStorageKey, JSON.stringify([...hiddenOutputPricingHistoryNames]));
+}
+
 function editPricingHistoryProduct(index) {
   editingPricingHistoryIndex = pricingHistoryProducts[index] ? index : null;
+  editingOutputPricingHistoryKey = null;
+  renderPricingHistoryNav();
+}
+
+function editOutputPricingHistoryProduct(key) {
+  editingOutputPricingHistoryKey = key || null;
+  editingPricingHistoryIndex = null;
   renderPricingHistoryNav();
 }
 
 function cancelPricingHistoryEdit() {
   editingPricingHistoryIndex = null;
+  editingOutputPricingHistoryKey = null;
   renderPricingHistoryNav();
 }
 
@@ -1271,6 +1319,28 @@ function savePricingHistoryEdit(index) {
   renderPricingHistoryNav();
 }
 
+function saveOutputPricingHistoryEdit(key) {
+  const card = [...document.querySelectorAll("[data-pricing-output-edit-form]")]
+    .find((element) => element.dataset.pricingOutputEditForm === key);
+  const source = outputPricingHistoryRecords.find((item) => item.name === key);
+  if (!card || !source) {
+    return;
+  }
+  const name = card.querySelector('[data-edit-field="name"]')?.value.trim() || source.name;
+  const purchaseCostRmb = card.querySelector('[data-edit-field="purchase"]')?.value || "待补";
+  const shippingFee = card.querySelector('[data-edit-field="shipping"]')?.value || "待补";
+  const finalPrice = card.querySelector('[data-edit-field="price"]')?.value || "待补";
+  outputPricingHistoryOverrides[key] = {
+    name,
+    purchaseCostRmb: parseEditableHistoryValue(purchaseCostRmb),
+    shippingFee: parseEditableHistoryValue(shippingFee),
+    finalPrice: parseEditableHistoryValue(finalPrice)
+  };
+  editingOutputPricingHistoryKey = null;
+  saveOutputPricingHistoryPrefs();
+  renderPricingHistoryNav();
+}
+
 function deletePricingHistoryProduct(index) {
   const item = pricingHistoryProducts[index];
   if (!item) {
@@ -1284,6 +1354,23 @@ function deletePricingHistoryProduct(index) {
     editingPricingHistoryIndex = null;
   }
   savePricingHistoryProducts();
+  renderPricingHistoryNav();
+}
+
+function deleteOutputPricingHistoryProduct(key) {
+  const source = outputPricingHistoryRecords.find((item) => item.name === key);
+  const displayName = outputPricingHistoryOverrides[key]?.name || source?.name || key;
+  if (!source) {
+    return;
+  }
+  if (!window.confirm(`从导航里删除“${displayName}”？结果文件会保留。`)) {
+    return;
+  }
+  hiddenOutputPricingHistoryNames.add(key);
+  if (editingOutputPricingHistoryKey === key) {
+    editingOutputPricingHistoryKey = null;
+  }
+  saveOutputPricingHistoryPrefs();
   renderPricingHistoryNav();
 }
 
@@ -1308,6 +1395,84 @@ function currentPricingNavItem() {
   }
 }
 
+function normalizedHistoryRecord(record) {
+  const historyKey = record.name;
+  const override = outputPricingHistoryOverrides[historyKey] || {};
+  return {
+    ...record,
+    historyKey,
+    name: override.name || record.name,
+    purchaseCostText: formatHistoryValue(override.purchaseCostRmb ?? record.purchaseCostRmb, (value) => rmbRange([value], 4)),
+    shippingFeeText: formatHistoryValue(override.shippingFee ?? record.shippingFee, (value) => money(value, 2)),
+    finalPriceText: formatHistoryValue(override.finalPrice ?? record.finalPrice, (value) => money(value, 2)),
+    current: false,
+    firstCalculatedAt: Number(record.firstCalculatedAt || record.updatedAt || 0),
+    orderSequence: Number(record.orderSequence || 0),
+    updatedAt: Number(record.updatedAt || 0),
+    source: record.source || "manual"
+  };
+}
+
+function loadPricingHistoryRecord(record) {
+  if (!record?.rows?.length) {
+    setSiteStatus(`“${record?.name || "这条记录"}”只有摘要，没有找到完整结果文件。`, "warn");
+    smoothScrollTo("reportPanel");
+    return;
+  }
+  $("productName").value = record.name || "";
+  currentProductMode = "standard";
+  const dims = record.dimensions || {};
+  [["lengthCm", dims.lengthCm], ["widthCm", dims.widthCm], ["heightCm", dims.heightCm], ["weightG", dims.weightG]].forEach(([id, value]) => {
+    if ($(id) && value !== undefined && value !== null && value !== "") {
+      $(id).value = value;
+    }
+  });
+  if ($("salePackQty")) {
+    $("salePackQty").value = record.salePackQty || 1;
+  }
+  if ($("comparisonUnitQty")) {
+    $("comparisonUnitQty").value = record.comparisonQty || record.salePackQty || 1;
+  }
+  if ($("targetMargin") && record.targetMargin !== undefined && record.targetMargin !== null && record.targetMargin !== "") {
+    const margin = num(record.targetMargin);
+    $("targetMargin").value = margin > 0 && margin <= 1 ? `${fmt(margin * 100, 0)}%` : record.targetMargin;
+  }
+  renderRecognizedRows(record.rows);
+  updateSummaryFromRows(record.rows);
+  const priceInputs = document.querySelectorAll("#finalPricingRows .price-input");
+  (record.finalRows || []).forEach((row, index) => {
+    const input = priceInputs[index];
+    if (input && row.price !== undefined && row.price !== null && row.price !== "") {
+      input.value = fmt(row.price, 2);
+      input.dataset.autoPrice = "false";
+    }
+  });
+  currentCompetitors = (record.competitors || []).filter((item) => num(item.price) > 0).map((item, index) => ({
+    label: item.label || shortCompetitorLabel(item.title, index),
+    title: item.title || item.label || `竞品${index + 1}`,
+    price: num(item.price),
+    packCount: Math.max(1, num(item.packCount, 1)),
+    rating: item.rating || "评分待确认",
+    sales: item.sales || "销量待确认"
+  }));
+  $("competitorFileSummary").textContent = currentCompetitors.length
+    ? `已从历史结果载入 ${currentCompetitors.length} 个竞品。`
+    : "这条历史记录没有竞品数据。";
+  $("competitorParseStatus").textContent = "历史定价记录已载入。";
+  $("competitorStatus").textContent = currentCompetitors.length ? "历史记录" : "待上传";
+  $("competitorStatus").classList.toggle("ready", currentCompetitors.length > 0);
+  updateCompetitorSummary(currentCompetitors.length);
+  renderReportContent();
+  $("baseStatus").textContent = "历史记录";
+  $("baseStatus").classList.add("ready");
+  $("generateReportBtn").textContent = "历史报告已载入";
+  $("generateReportBtn").classList.add("is-confirmed");
+  resetDownloadState();
+  renderPricingHistoryNav();
+  setSiteStatus(`已载入“${record.name}”的历史定价结果。`);
+  smoothScrollTo("reportPanel");
+}
+
 function renderPricingHistoryNav() {
   const list = $("pricingHistoryList");
   if (!list) {
@@ -1315,19 +1480,35 @@ function renderPricingHistoryNav() {
   }
   const currentItem = currentPricingNavItem();
   const currentName = currentItem?.name || "";
+  const outputItems = outputPricingHistoryRecords
+    .filter((item) => !hiddenOutputPricingHistoryNames.has(item.name))
+    .map((item) => {
+      const normalized = normalizedHistoryRecord(item);
+      return {
+        ...normalized,
+        current: normalized.name === currentName || item.name === currentName
+      };
+    })
+    .sort((a, b) => (
+      Number(b.firstCalculatedAt || 0) - Number(a.firstCalculatedAt || 0)
+      || Number(b.orderSequence || 0) - Number(a.orderSequence || 0)
+    ));
+  const hasCurrentOutputItem = outputItems.some((item) => item.current);
+  const usedNames = new Set([...outputItems.map((item) => item.name)].filter(Boolean));
   const historyItems = pricingHistoryProducts
     .map((item, sourceIndex) => ({ item, sourceIndex }))
-    .filter(({ item }) => item.name !== currentName)
+    .filter(({ item }) => !usedNames.has(item.name))
     .map(({ item, sourceIndex }) => ({
       name: item.name,
       purchaseCostText: formatHistoryValue(item.purchaseCostRmb, (value) => rmbRange([value], 4)),
       shippingFeeText: formatHistoryValue(item.shippingFee, (value) => money(value, 2)),
       finalPriceText: formatHistoryValue(item.finalPrice, (value) => money(value, 2)),
       current: false,
+      source: "manual",
       sourceIndex,
       editing: sourceIndex === editingPricingHistoryIndex
     }));
-  const items = currentItem ? [currentItem, ...historyItems] : historyItems;
+  const items = currentItem && !hasCurrentOutputItem ? [currentItem, ...outputItems, ...historyItems] : [...outputItems, ...historyItems];
   if (!items.length) {
     list.innerHTML = '<p class="empty-nav">暂无已完成的定价分析。</p>';
     return;
@@ -1342,22 +1523,22 @@ function renderPricingHistoryNav() {
           <span>最终售价<strong>${escapeXml(item.finalPriceText)}</strong></span>
         </span>
       </button>
-      ${item.current ? "" : `
-        ${item.editing ? `
-          <span class="pricing-history-edit-form" data-pricing-edit-form="${item.sourceIndex}">
+      ${item.current && item.source !== "output" ? "" : `
+        ${(item.source === "output" ? item.historyKey === editingOutputPricingHistoryKey : item.editing) ? `
+          <span class="pricing-history-edit-form" ${item.source === "output" ? `data-pricing-output-edit-form="${escapeAttr(item.historyKey)}"` : `data-pricing-edit-form="${item.sourceIndex}"`}>
             <label>产品<input data-edit-field="name" type="text" value="${escapeAttr(item.name)}"></label>
             <label>采购价<input data-edit-field="purchase" type="text" value="${escapeAttr(item.purchaseCostText)}"></label>
             <label>配送费<input data-edit-field="shipping" type="text" value="${escapeAttr(item.shippingFeeText)}"></label>
             <label>售价<input data-edit-field="price" type="text" value="${escapeAttr(item.finalPriceText)}"></label>
             <span class="pricing-history-actions">
-              <button type="button" class="mini-button primary-mini" data-pricing-save="${item.sourceIndex}">保存</button>
+              <button type="button" class="mini-button primary-mini" ${item.source === "output" ? `data-pricing-output-save="${escapeAttr(item.historyKey)}"` : `data-pricing-save="${item.sourceIndex}"`}>保存</button>
               <button type="button" class="mini-button" data-pricing-cancel>取消</button>
             </span>
           </span>
         ` : `
           <span class="pricing-history-actions">
-            <button type="button" class="mini-button" data-pricing-edit="${item.sourceIndex}">修改</button>
-            <button type="button" class="mini-button danger" data-pricing-delete="${item.sourceIndex}">删除</button>
+            <button type="button" class="mini-button" ${item.source === "output" ? `data-pricing-output-edit="${escapeAttr(item.historyKey)}"` : `data-pricing-edit="${item.sourceIndex}"`}>修改</button>
+            <button type="button" class="mini-button danger" ${item.source === "output" ? `data-pricing-output-delete="${escapeAttr(item.historyKey)}"` : `data-pricing-delete="${item.sourceIndex}"`}>删除</button>
           </span>
         `}
       `}
@@ -1365,20 +1546,39 @@ function renderPricingHistoryNav() {
   `).join("");
   document.querySelectorAll("[data-pricing-nav]").forEach((button, index) => {
     button.addEventListener("click", () => {
-      smoothScrollTo(items[index].current ? "finalStage" : "reportPanel");
+      const item = items[index];
+      if (item.current) {
+        smoothScrollTo("finalStage");
+        return;
+      }
+      if (item.source === "output") {
+        loadPricingHistoryRecord(item);
+        return;
+      }
+      setSiteStatus(`“${item.name}”只有导航摘要，没有找到完整结果文件。`, "warn");
+      smoothScrollTo("reportPanel");
     });
   });
   document.querySelectorAll("[data-pricing-edit]").forEach((button) => {
     button.addEventListener("click", () => editPricingHistoryProduct(Number(button.dataset.pricingEdit)));
   });
+  document.querySelectorAll("[data-pricing-output-edit]").forEach((button) => {
+    button.addEventListener("click", () => editOutputPricingHistoryProduct(button.dataset.pricingOutputEdit));
+  });
   document.querySelectorAll("[data-pricing-save]").forEach((button) => {
     button.addEventListener("click", () => savePricingHistoryEdit(Number(button.dataset.pricingSave)));
+  });
+  document.querySelectorAll("[data-pricing-output-save]").forEach((button) => {
+    button.addEventListener("click", () => saveOutputPricingHistoryEdit(button.dataset.pricingOutputSave));
   });
   document.querySelectorAll("[data-pricing-cancel]").forEach((button) => {
     button.addEventListener("click", cancelPricingHistoryEdit);
   });
   document.querySelectorAll("[data-pricing-delete]").forEach((button) => {
     button.addEventListener("click", () => deletePricingHistoryProduct(Number(button.dataset.pricingDelete)));
+  });
+  document.querySelectorAll("[data-pricing-output-delete]").forEach((button) => {
+    button.addEventListener("click", () => deleteOutputPricingHistoryProduct(button.dataset.pricingOutputDelete));
   });
 }
 
@@ -3127,6 +3327,7 @@ document.addEventListener("DOMContentLoaded", () => {
   restoreWorkbenchDraft();
   updateCompetitorSummary();
   renderPricingHistoryNav();
+  loadOutputPricingHistory();
 });
 
 window.priceWorkbench = {

@@ -127,12 +127,23 @@ def parse_competitor_html(path):
     title_match = re.search(
         r'id="productTitle"[^>]*>(.*?)</span>', raw, flags=re.S | re.I
     )
-    price_match = re.search(
-        r'<span class="a-price-whole">(\d+)'
-        r'<span class="a-price-decimal">\.?</span></span>\s*'
-        r'<span class="a-price-fraction">(\d+)</span>',
-        raw,
-    )
+    price = None
+    for pattern in [
+        r'<span[^>]*class="[^"]*aok-offscreen[^"]*"[^>]*>\s*\$(\d+(?:\.\d{1,2})?)\s*</span>[\s\S]{0,240}<span[^>]*class="[^"]*priceToPay[^"]*"',
+        r'<div[^>]*id="corePrice[^"]*"[^>]*>[\s\S]{0,1600}?<span[^>]*class="[^"]*(?:aok-offscreen|a-offscreen)[^"]*"[^>]*>\s*\$(\d+(?:\.\d{1,2})?)\s*</span>',
+        r'<div[^>]*id="corePriceDisplay_desktop_feature_div"[^>]*>[\s\S]{0,1600}?<span[^>]*class="[^"]*(?:aok-offscreen|a-offscreen)[^"]*"[^>]*>\s*\$(\d+(?:\.\d{1,2})?)\s*</span>',
+        r'aria-label="(?:current price\s*)?\$(\d+(?:\.\d{1,2})?)"',
+        r'<span[^>]*class="[^"]*a-offscreen[^"]*"[^>]*>\s*\$(\d+(?:\.\d{1,2})?)\s*</span>',
+        r'<span class="a-price-whole">(\d+)<span class="a-price-decimal">\.?</span></span>\s*<span class="a-price-fraction">(\d+)</span>',
+    ]:
+        price_match = re.search(pattern, raw, flags=re.S | re.I)
+        if not price_match:
+            continue
+        if price_match.lastindex and price_match.lastindex >= 2:
+            price = float(f"{price_match.group(1)}.{price_match.group(2)}")
+        else:
+            price = float(price_match.group(1))
+        break
     asins = []
     for pattern in [
         r'data-asin="(B0[A-Z0-9]{8})"',
@@ -151,9 +162,7 @@ def parse_competitor_html(path):
         "file": path.name,
         "asin": asins[0] if asins else "",
         "title": title,
-        "price": float(f"{price_match.group(1)}.{price_match.group(2)}")
-        if price_match
-        else None,
+        "price": price,
         "pack_count": parse_pack_count(title),
     }
 

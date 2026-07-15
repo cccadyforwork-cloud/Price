@@ -21,8 +21,10 @@ let ocrWorker = null;
 let ocrReady = false;
 let tesseractLoadPromise = null;
 let editingPricingHistoryIndex = null;
+let isRestoringWorkbenchDraft = false;
 
 const pricingHistoryStorageKey = "priceWorkbench.pricingHistoryProducts";
+const workbenchDraftStorageKey = "priceWorkbench.currentDraft";
 const defaultPricingHistoryProducts = [
   { name: "宠物 AirTag 项圈", purchaseCostRmb: "待补", shippingFee: 1.77, finalPrice: 4.89 },
   { name: "宠物 AirTag 夜光项圈", purchaseCostRmb: "待补", shippingFee: 0.88, finalPrice: 5.49 },
@@ -175,7 +177,7 @@ function finalRows() {
 }
 
 function activePurchaseRows() {
-  return currentPurchaseRows.length ? currentPurchaseRows : defaultPurchaseRows();
+  return currentPurchaseRows;
 }
 
 function productLabel() {
@@ -190,7 +192,7 @@ function productLabel() {
 function syncProductNameFromRows(rows) {
   const input = $("productName");
   const firstTitle = rows[0]?.title || "";
-  if (input && firstTitle && (!input.value.trim() || input.value.trim() === "防磨贴")) {
+  if (input && firstTitle && !input.value.trim()) {
     input.value = firstTitle;
   }
 }
@@ -342,8 +344,9 @@ function activeCompetitors() {
 function parsePackCount(text, fallback = 1) {
   const source = String(text || "").replace(/(\d+)\s*ml/gi, "");
   const patterns = [
-    /(\d+)\s*(?:pcs|pc|pieces|piece|count|ct)\b/i,
-    /(\d+)\s*(?:pack|packs|pair|pairs)\b/i,
+    /(\d+)\s*[-–—]?\s*(?:pcs|pc|pieces|piece|count|ct)\b/i,
+    /(\d+)\s*[-–—]?\s*(?:pack|packs|pair|pairs)\b/i,
+    /(?:pack|packs|set|sets|bundle|bundles|box|boxes)\s+of\s+(\d+)\b/i,
     /(\d+)\s*(?:片|件|个|支|套|双|包)/
   ];
   for (const pattern of patterns) {
@@ -374,6 +377,23 @@ function firstMatch(text, patterns) {
   return "";
 }
 
+function extractCompetitorPriceText(text) {
+  const scopedPatterns = [
+    /<span[^>]*class=["'][^"']*aok-offscreen[^"']*["'][^>]*>\s*\$(\d+(?:\.\d{1,2})?)\s*<\/span>[\s\S]{0,240}<span[^>]*class=["'][^"']*priceToPay[^"']*["'][^>]*>/i,
+    /<div[^>]*id=["']corePrice[^"']*["'][^>]*>[\s\S]{0,1600}?<span[^>]*class=["'][^"']*(?:aok-offscreen|a-offscreen)[^"']*["'][^>]*>\s*\$(\d+(?:\.\d{1,2})?)\s*<\/span>/i,
+    /<div[^>]*id=["']corePriceDisplay_desktop_feature_div["'][^>]*>[\s\S]{0,1600}?<span[^>]*class=["'][^"']*(?:aok-offscreen|a-offscreen)[^"']*["'][^>]*>\s*\$(\d+(?:\.\d{1,2})?)\s*<\/span>/i
+  ];
+  const scoped = firstMatch(text, scopedPatterns);
+  if (scoped) {
+    return scoped;
+  }
+  return firstMatch(text, [
+    /aria-label=["'](?:current price\s*)?\$(\d+(?:\.\d{1,2})?)["']/i,
+    /<span[^>]*class=["'][^"']*a-offscreen[^"']*["'][^>]*>\s*\$(\d+(?:\.\d{1,2})?)\s*<\/span>/i,
+    /\$(\d+(?:\.\d{1,2})?)/
+  ]);
+}
+
 function parseCompetitorText(text, fileName, index) {
   const plain = cleanTextFromHtml(text);
   const title = firstMatch(text, [
@@ -381,11 +401,7 @@ function parseCompetitorText(text, fileName, index) {
     /<title[^>]*>([\s\S]*?)<\/title>/i
   ]) || plain.split(/\r?\n/).find((line) => line.trim().length > 8) || fileName;
   const cleanTitle = cleanTextFromHtml(title).replace(/\s+/g, " ").trim();
-  const priceText = firstMatch(text, [
-    /aria-label=["'](?:current price\s*)?\$(\d+(?:\.\d{1,2})?)["']/i,
-    /<span[^>]*class=["'][^"']*a-offscreen[^"']*["'][^>]*>\$(\d+(?:\.\d{1,2})?)<\/span>/i,
-    /\$(\d+(?:\.\d{1,2})?)/
-  ]);
+  const priceText = extractCompetitorPriceText(text);
   const price = moneyNumber(priceText);
   if (!price) {
     return null;
@@ -1726,6 +1742,7 @@ function updatePurchaseRow(index, field, value) {
   }
   resetDownloadState();
   refreshReportDraft();
+  saveWorkbenchDraft();
 }
 
 function currentDimensions() {
@@ -1835,26 +1852,101 @@ function updateBundlePreview() {
   }
 }
 
-function defaultPurchaseRows() {
-  return [...document.querySelectorAll("#recognizedRows tr")].map((row, index) => {
-    const cells = row.querySelectorAll("td");
-    if (cells.length < 9 || row.querySelector(".empty")) {
-      return null;
+function resetTransientWorkbenchState() {
+  currentPurchaseRows = [];
+  currentCompetitors = [];
+  currentProductMode = "standard";
+  ["productName", "manualBulkRows", "manualSku", "manualItemCode", "manualTitle", "manualSpec", "manualQty", "manualCost"].forEach((id) => {
+    const input = $(id);
+    if (input) input.value = "";
+  });
+  ["lengthCm", "widthCm", "heightCm", "weightG"].forEach((id) => {
+    const input = $(id);
+    if (input) input.value = "0";
+  });
+  ["purchaseOrderFile", "competitorFiles"].forEach((id) => {
+    const input = $(id);
+    if (input) input.value = "";
+  });
+  document.querySelectorAll("input, textarea").forEach((input) => {
+    input.setAttribute("autocomplete", "off");
+  });
+}
+
+function currentFinalPriceDraft() {
+  return [...document.querySelectorAll("#finalPricingRows .price-input")].map((input) => ({
+    value: input.value,
+    autoPrice: input.dataset.autoPrice !== "false"
+  }));
+}
+
+function saveWorkbenchDraft() {
+  if (isRestoringWorkbenchDraft) {
+    return;
+  }
+  const draft = {
+    savedAt: Date.now(),
+    productMode: currentProductMode,
+    productName: $("productName")?.value || "",
+    dimensions: currentDimensions(),
+    salePackQty: $("salePackQty")?.value || "1",
+    comparisonUnitQty: $("comparisonUnitQty")?.value || "1",
+    targetMargin: $("targetMargin")?.value || "25%",
+    purchaseRows: currentPurchaseRows,
+    competitors: currentCompetitors,
+    finalPrices: currentFinalPriceDraft()
+  };
+  localStorage.setItem(workbenchDraftStorageKey, JSON.stringify(draft));
+}
+
+function applyFinalPriceDraft(finalPrices = []) {
+  if (!Array.isArray(finalPrices) || !finalPrices.length) {
+    return;
+  }
+  document.querySelectorAll("#finalPricingRows .price-input").forEach((input, index) => {
+    const saved = finalPrices[index];
+    if (!saved || saved.value === undefined || saved.value === "") {
+      return;
     }
-    const sku = cells[0].querySelector("input")?.value.trim();
-    const title = cells[1].querySelector("input")?.value.trim();
-    const spec = cells[2].querySelector("input")?.value.trim();
-    const quantity = cells[3].querySelector("input")?.value.trim();
-    const cost = cells[4].querySelector("input")?.value.trim();
-    return {
-      title,
-      spec,
-      quantity,
-      cost,
-      sku: sku || "",
-      itemCode: skuPrefixFromSpec(spec)
-    };
-  }).filter(Boolean);
+    input.value = saved.value;
+    input.dataset.autoPrice = saved.autoPrice === false ? "false" : "true";
+  });
+}
+
+function restoreWorkbenchDraft() {
+  let draft = null;
+  try {
+    draft = JSON.parse(localStorage.getItem(workbenchDraftStorageKey) || "null");
+  } catch (error) {
+    draft = null;
+  }
+  if (!draft || !Array.isArray(draft.purchaseRows) || !draft.purchaseRows.length) {
+    renderRecognizedRows([]);
+    updateSummaryFromRows([]);
+    return;
+  }
+
+  isRestoringWorkbenchDraft = true;
+  $("productName").value = draft.productName || "";
+  $("lengthCm").value = draft.dimensions?.lengthCm ?? 0;
+  $("widthCm").value = draft.dimensions?.widthCm ?? 0;
+  $("heightCm").value = draft.dimensions?.heightCm ?? 0;
+  $("weightG").value = draft.dimensions?.weightG ?? 0;
+  $("salePackQty").value = draft.salePackQty || "1";
+  $("comparisonUnitQty").value = draft.comparisonUnitQty || "1";
+  $("targetMargin").value = draft.targetMargin || "25%";
+  currentCompetitors = Array.isArray(draft.competitors) ? draft.competitors : [];
+  setProductMode(draft.productMode || "standard");
+  renderRecognizedRows(draft.purchaseRows);
+  applyFinalPriceDraft(draft.finalPrices);
+  updateSummaryFromRows(draft.purchaseRows);
+  updateCompetitorSummary(currentCompetitors.length);
+  renderReportContent();
+  renderPricingHistoryNav();
+  $("baseStatus").textContent = "待确认";
+  $("baseStatus").classList.remove("ready");
+  setSiteStatus("已恢复上次未完成的识别结果，可以继续编辑。");
+  isRestoringWorkbenchDraft = false;
 }
 
 function skuPrefixFromSpec(spec) {
@@ -2626,6 +2718,7 @@ function renderRecognizedRows(rows) {
     $("recognizedRows").innerHTML = '<tr><td colspan="9" class="empty">暂无采购行，请上传采购单或手动添加采购行。</td></tr>';
     $("recognizedSummaryText").textContent = "暂无采购行，请上传采购单或手动添加采购行。";
     renderFinalRows([]);
+    saveWorkbenchDraft();
     return;
   }
   syncProductNameFromRows(rows);
@@ -2654,6 +2747,7 @@ function renderRecognizedRows(rows) {
   renderFinalRows(rows);
   initEditableFields();
   refreshReportDraft();
+  saveWorkbenchDraft();
 }
 
 function renderFinalRows(rows) {
@@ -2798,6 +2892,7 @@ function setProductMode(mode) {
     ? "已切换到组合套装模式：填写父 SKU 和组件后生成一条套装行。"
     : "已切换到普通单品模式：采购行按普通款式录入。");
   updateBundlePreview();
+  saveWorkbenchDraft();
 }
 
 function buildBundleRow() {
@@ -2836,11 +2931,12 @@ function clearBundleInputs() {
 }
 
 function refreshDimensions() {
-  const rows = currentPurchaseRows.length ? currentPurchaseRows : defaultPurchaseRows();
+  const rows = currentPurchaseRows;
   renderRecognizedRows(rows);
   updateSummaryFromRows(rows);
   setSiteStatus("尺寸重量已更新，最终表已同步转换为 in/lb。");
   refreshReportDraft();
+  saveWorkbenchDraft();
 }
 
 function resetDownloadState() {
@@ -2896,6 +2992,7 @@ async function handleCompetitorFiles(event) {
     $("competitorStatus").classList.remove("ready");
     updateCompetitorSummary();
     refreshReportDraft();
+    saveWorkbenchDraft();
     return;
   }
 
@@ -2909,6 +3006,7 @@ async function handleCompetitorFiles(event) {
     $("competitorStatus").classList.remove("ready");
     updateCompetitorSummary(0);
     refreshReportDraft();
+    saveWorkbenchDraft();
     setSiteStatus("竞品文件已接收，但没有解析到可用售价。", "warn");
     smoothScrollTo("reportPanel");
     return;
@@ -2919,6 +3017,7 @@ async function handleCompetitorFiles(event) {
   $("competitorStatus").classList.add("ready");
   updateCompetitorSummary(parsed.length);
   refreshReportDraft();
+  saveWorkbenchDraft();
   setSiteStatus(`已补充并解析 ${parsed.length} 个竞品文件，下一步点击“生成报告”。`);
   smoothScrollTo("reportPanel");
 }
@@ -2965,18 +3064,32 @@ function initButtons() {
   document.querySelectorAll(".bundle-component-row input").forEach((input) => {
     input.addEventListener("input", updateBundlePreview);
   });
-  $("productName").addEventListener("input", refreshReportDraft);
-  $("salePackQty").addEventListener("input", refreshAutoPrices);
-  $("salePackQty").addEventListener("change", refreshAutoPrices);
+  $("productName").addEventListener("input", () => {
+    refreshReportDraft();
+    saveWorkbenchDraft();
+  });
+  $("salePackQty").addEventListener("input", () => {
+    refreshAutoPrices();
+    saveWorkbenchDraft();
+  });
+  $("salePackQty").addEventListener("change", () => {
+    refreshAutoPrices();
+    saveWorkbenchDraft();
+  });
   $("comparisonUnitQty").addEventListener("input", () => {
     updateCompetitorSummary();
     refreshReportDraft();
+    saveWorkbenchDraft();
   });
   $("comparisonUnitQty").addEventListener("change", () => {
     updateCompetitorSummary();
     refreshReportDraft();
+    saveWorkbenchDraft();
   });
-  $("targetMargin").addEventListener("input", refreshAutoPrices);
+  $("targetMargin").addEventListener("input", () => {
+    refreshAutoPrices();
+    saveWorkbenchDraft();
+  });
   ["lengthCm", "widthCm", "heightCm", "weightG"].forEach((id) => {
     $(id).addEventListener("input", refreshDimensions);
     $(id).addEventListener("change", refreshDimensions);
@@ -2999,19 +3112,20 @@ function initPriceInputs() {
       input.dataset.autoPrice = "false";
       resetDownloadState();
       refreshReportDraft();
+      saveWorkbenchDraft();
     });
   });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   loadPricingHistoryProducts();
-  currentPurchaseRows = defaultPurchaseRows();
+  resetTransientWorkbenchState();
   initFileInputs();
   initButtons();
   initEditableFields();
-  updateCompetitorSummary();
   updateBundlePreview();
-  renderReportContent();
+  restoreWorkbenchDraft();
+  updateCompetitorSummary();
   renderPricingHistoryNav();
 });
 

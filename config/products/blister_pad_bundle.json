@@ -61,7 +61,7 @@
   "order_shipping_rmb": 0,
   "order_discount_rmb": -1,
   "first_leg_shipping_usd_per_bundle": 0.3,
-  "target_margin_min": 0.25,
+  "target_margin_min": 0.15,
   "target_price_gap_usd_per_comparison_unit": 0.39,
   "comparison_unit_quantity": 30,
   "manual_price_usd": "",

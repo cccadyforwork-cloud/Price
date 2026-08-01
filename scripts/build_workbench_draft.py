@@ -210,7 +210,7 @@ def build_rows(product, workbench, competitors):
                 "包装高cm": item["包装高cm"],
                 "包装重量g": item["包装重量g"],
                 "头程运费USD/包": to_float(product.get("first_leg_shipping_usd_per_bundle"), 0.3),
-                "目标最低利润率": to_float(product.get("target_margin_min"), 0.25),
+                "目标最低利润率": to_float(product.get("target_margin_min"), 0.15),
                 "目标价格优势USD/每对比单位": to_float(product.get("target_price_gap_usd_per_comparison_unit"), 0.39),
                 "对比单位数量": to_float(product.get("comparison_unit_quantity"), pack_count),
                 "手动定价USD": product.get("manual_price_usd", ""),

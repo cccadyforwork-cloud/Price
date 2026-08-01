@@ -79,10 +79,8 @@ function percent(value, digits = 1) {
   return `${fmt(Number(value || 0) * 100, digits)}%`;
 }
 
-function roundUpToEnding99(value) {
-  const dollars = Math.floor(Number(value || 0));
-  const candidate = dollars + 0.99;
-  return candidate >= value ? candidate : dollars + 1.99;
+function roundUpToCents(value) {
+  return Math.ceil(Number(value || 0) * 100) / 100;
 }
 
 function cmToIn(value) {
@@ -218,7 +216,7 @@ function resetCompetitorData(message = "产品已更新，请重新上传当前�
 
 function targetMarginNumber() {
   const raw = String($("targetMargin").value || "").trim();
-  const parsed = raw ? num(raw, 25) : 25;
+  const parsed = raw ? num(raw, 15) : 15;
   return parsed > 1 ? parsed / 100 : parsed;
 }
 
@@ -542,7 +540,7 @@ function targetPriceDetails(saleUnitCostUsd, weightOz, margin) {
   const feeResult = fbaFeeForOz(weightOz, price);
   const fixedCostUsd = saleUnitCostUsd + firstLegShippingUsd + feeResult.fee + disposalFeeUsd * returnRate;
   const rawPrice = fixedCostUsd / Math.max(0.1, breakEvenFactor - margin);
-  const suggestedPrice = roundUpToEnding99(rawPrice);
+  const suggestedPrice = roundUpToCents(rawPrice);
   const suggestedFeeResult = fbaFeeForOz(weightOz, suggestedPrice);
   const suggestedFixedCostUsd = saleUnitCostUsd + firstLegShippingUsd + suggestedFeeResult.fee + disposalFeeUsd * returnRate;
   return {
@@ -633,7 +631,7 @@ function rowPricingDetails(rows, saleQty, weightOz, margin) {
       breakEvenPrice: breakEvenDetail.breakEven,
       breakEvenShippingFee: breakEvenDetail.shippingFee,
       breakEvenShippingTier: breakEvenDetail.shippingTier,
-      suggestedMinPrice: roundUpToEnding99(breakEvenDetail.breakEven),
+      suggestedMinPrice: roundUpToCents(breakEvenDetail.breakEven),
       targetRawPrice: targetDetail.rawPrice,
       targetPrice: targetDetail.suggestedPrice,
       targetShippingFee: targetDetail.shippingFee,
@@ -726,7 +724,7 @@ function reportData() {
   const targetPrice = targetDetail.suggestedPrice;
   const targetProfit = targetPrice * breakEvenFactor - targetDetail.fixedCostUsd;
   const targetProfitMargin = targetPrice > 0 ? targetProfit / targetPrice : 0;
-  const suggestedMinPrice = roundUpToEnding99(breakEven);
+  const suggestedMinPrice = roundUpToCents(breakEven);
   const competitors = activeCompetitors().map((competitor) => ({
     ...competitor,
     unitPrice: competitor.price / Math.max(1, competitor.packCount),
@@ -767,7 +765,7 @@ function reportData() {
   const lowCostProfit = profitRows.reduce((lowest, row) => !lowest || row.costUsd < lowest.costUsd ? row : lowest, null);
   const rowDetails = rowPricingDetails(rows, saleQty, weightOz, margin);
   const pricingGroups = groupedPricingDetails(rowDetails);
-  const postReviewPrice = price < 2.99 ? 2.99 : roundUpToEnding99(price + profile.reviewStep);
+  const postReviewPrice = price < 2.99 ? 2.99 : roundUpToCents(price + profile.reviewStep);
 
   return {
     profile,
@@ -852,8 +850,8 @@ function reportRows() {
     ["当前售价配送费", money(data.currentShippingFee, 2), `当前确认价 ${money(data.price, 2)} 对应 ${data.currentShippingTier}`],
     ["保本测算配送费", money(data.breakEvenShippingFee, 2), `保本价 ${money(data.breakEven, 2)} 对应 ${data.breakEvenShippingTier}`],
     ["保本定价", money(data.breakEven, 2), "按截图里的保本公式折算"],
-    ["建议不低于", money(data.suggestedMinPrice, 2), "向上取 .99 上架价"],
-    ["目标利润建议价", money(data.targetPrice, 2), `目标利润率 ${fmt(data.margin * 100, 0)}%，原始价 ${money(data.targetRawPrice, 2)} 后向上取 .99`],
+    ["建议不低于", money(data.suggestedMinPrice, 2), "向上取到两位小数"],
+    ["目标利润建议价", money(data.targetPrice, 2), `目标利润率 ${fmt(data.margin * 100, 0)}%，原始价 ${money(data.targetRawPrice, 2)} 后向上取到两位小数`],
     ["目标价配送费", money(data.targetShippingFee, 2), `建议售价 ${money(data.targetPrice, 2)} 对应 ${data.targetShippingTier}`],
     ["目标价利润率", percent(data.targetProfitMargin), `利润 ${money(data.targetProfit, 2)} / 售价 ${money(data.targetPrice, 2)}`],
     ["当前确认价", money(data.price, 2), data.priceSource],
@@ -902,7 +900,7 @@ function reportText() {
     "目标利润率下的建议售价",
     `目标利润率：${percent(data.margin)}。建议售价对应配送费：${data.targetShippingTier}，配送费 ${money(data.targetShippingFee, 2)}。`,
     `固定成本 = ${money(data.saleUnitCostUsd, 3)} + ${money(firstLegShippingUsd, 2)} + ${money(data.targetShippingFee, 2)} + ${money(data.returnDisposalReserve, 3)} = ${money(data.targetFixedCostUsd, 3)}。`,
-    `目标利润价 = ${money(data.targetFixedCostUsd, 3)} / (${fmt(breakEvenFactor, 5)} - ${fmt(data.margin, 2)}) = ${money(data.targetRawPrice, 2)}；向上取 .99 后，建议售价 ${money(data.targetPrice, 2)}。`,
+    `目标利润价 = ${money(data.targetFixedCostUsd, 3)} / (${fmt(breakEvenFactor, 5)} - ${fmt(data.margin, 2)}) = ${money(data.targetRawPrice, 2)}；向上取到两位小数后，建议售价 ${money(data.targetPrice, 2)}。`,
     `建议售价利润 = ${money(data.targetPrice, 2)} × ${fmt(breakEvenFactor, 5)} - ${money(data.targetFixedCostUsd, 3)} = ${money(data.targetProfit, 2)}，利润率 ${percent(data.targetProfitMargin)}。`,
     "",
     "建议售价与竞品对比",
@@ -1053,7 +1051,7 @@ function renderReportContent() {
   $("reportContent").innerHTML = `
     <article class="process-block">
       <h3>保本价计算</h3>
-      <p class="lead-text">${escapeXml(data.productName)} 的保本价是 <mark>${money(data.breakEven, 2)}</mark>，向上取 .99 后建议不低于 <mark>${money(data.suggestedMinPrice, 2)}</mark>。</p>
+      <p class="lead-text">${escapeXml(data.productName)} 的保本价是 <mark>${money(data.breakEven, 2)}</mark>，向上取到两位小数后建议不低于 <mark>${money(data.suggestedMinPrice, 2)}</mark>。</p>
       <ul>
         <li>尺寸：${fmt(data.dims.lengthCm, 2)} × ${fmt(data.dims.widthCm, 2)} × ${fmt(data.dims.heightCm, 2)} cm，实重 ${fmt(data.dims.weightG, 2)}g = ${fmt(data.actualWeightOz, 2)}oz；体积重 ${fmt(data.dimensionalWeightOz, 2)}oz；计费重 ${fmt(data.weightOz, 2)}oz，${escapeXml(weightTierText)}。</li>
         <li>保本价对应配送费：<mark>${escapeXml(data.breakEvenShippingTier)}</mark>，配送费 <mark>${money(data.breakEvenShippingFee, 2)}</mark>。</li>
@@ -1079,7 +1077,7 @@ function renderReportContent() {
       <div class="formula-box">
         <p>目标利润价 = 固定成本 / (净入账系数 - 目标利润率)</p>
         <p><mark>${money(data.targetFixedCostUsd, 3)} / (${fmt(breakEvenFactor, 5)} - ${fmt(data.margin, 2)}) = ${money(data.targetRawPrice, 2)}</mark></p>
-        <p>向上取 .99 后：<mark>${money(data.targetPrice, 2)}</mark>。</p>
+        <p>向上取到两位小数后：<mark>${money(data.targetPrice, 2)}</mark>。</p>
         <p>建议售价利润 = 售价 × 净入账系数 - 固定成本 = <mark>${money(data.targetPrice, 2)} × ${fmt(breakEvenFactor, 5)} - ${money(data.targetFixedCostUsd, 3)} = ${money(data.targetProfit, 2)}</mark>，利润率 <mark>${percent(data.targetProfitMargin)}</mark>。</p>
       </div>
     </article>
@@ -2091,7 +2089,7 @@ function saveWorkbenchDraft() {
     dimensions: currentDimensions(),
     salePackQty: $("salePackQty")?.value || "1",
     comparisonUnitQty: $("comparisonUnitQty")?.value || "1",
-    targetMargin: $("targetMargin")?.value || "25%",
+    targetMargin: $("targetMargin")?.value || "15%",
     purchaseRows: currentPurchaseRows,
     competitors: currentCompetitors,
     finalPrices: currentFinalPriceDraft()
@@ -2134,7 +2132,7 @@ function restoreWorkbenchDraft() {
   $("weightG").value = draft.dimensions?.weightG ?? 0;
   $("salePackQty").value = draft.salePackQty || "1";
   $("comparisonUnitQty").value = draft.comparisonUnitQty || "1";
-  $("targetMargin").value = draft.targetMargin || "25%";
+  $("targetMargin").value = draft.targetMargin || "15%";
   currentCompetitors = Array.isArray(draft.competitors) ? draft.competitors : [];
   setProductMode(draft.productMode || "standard");
   renderRecognizedRows(draft.purchaseRows);

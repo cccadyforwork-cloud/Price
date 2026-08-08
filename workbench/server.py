@@ -26,6 +26,7 @@ CONFIG_PATH = ROOT / "config" / "products" / "blister_pad_bundle.json"
 PRICING_CONFIG_PATH = ROOT / "config" / "pricing_config.json"
 WORKBENCH_STATE_PATH = ROOT / "config" / "workbench_state.json"
 HISTORY_ORDER_PATH = ROOT / "config" / "pricing_history_order.json"
+QUICK_HISTORY_PATH = ROOT / "config" / "quick_pricing_history.json"
 OUTPUT_DIR = ROOT / "output"
 INPUT_DIR = ROOT / "input"
 UPLOAD_TARGETS = {
@@ -200,6 +201,40 @@ def read_history_order():
 def write_history_order(data):
     HISTORY_ORDER_PATH.parent.mkdir(parents=True, exist_ok=True)
     write_json(HISTORY_ORDER_PATH, data)
+
+
+def read_quick_history():
+    if not QUICK_HISTORY_PATH.exists():
+        return []
+    try:
+        data = read_json(QUICK_HISTORY_PATH)
+    except (OSError, json.JSONDecodeError):
+        return []
+    records = data.get("records") if isinstance(data, dict) else data
+    return records if isinstance(records, list) else []
+
+
+def save_quick_history_record(record):
+    if not isinstance(record, dict):
+        raise ValueError("定价记录格式不正确")
+    name = clean(record.get("name"))
+    rows = record.get("rows")
+    if not name:
+        raise ValueError("请填写产品名称")
+    if not isinstance(rows, list) or not rows:
+        raise ValueError("请至少添加一个 SKU")
+    now = time.time()
+    saved = dict(record)
+    saved["id"] = clean(saved.get("id")) or f"quick-{uuid.uuid4().hex[:12]}"
+    saved["name"] = name
+    saved["source"] = clean(saved.get("source")) or "quick"
+    saved["createdAt"] = float(saved.get("createdAt") or now)
+    saved["updatedAt"] = now
+    records = read_quick_history()
+    records = [item for item in records if isinstance(item, dict) and item.get("id") != saved["id"]]
+    records.insert(0, saved)
+    write_json(QUICK_HISTORY_PATH, {"version": 1, "records": records[:500]})
+    return saved
 
 
 def history_batches():
@@ -583,6 +618,9 @@ class WorkbenchHandler(BaseHTTPRequestHandler):
         if route == "/api/history":
             self.send_json({"records": output_history()})
             return
+        if route == "/api/quick-history":
+            self.send_json({"records": read_quick_history()})
+            return
         if route.startswith("/files/output/"):
             name = unquote(route.removeprefix("/files/output/"))
             path = (OUTPUT_DIR / name).resolve()
@@ -594,7 +632,7 @@ class WorkbenchHandler(BaseHTTPRequestHandler):
         if route in {"/", "/index.html"}:
             self.send_file(WORKBENCH_DIR / "index.html")
             return
-        if route in {"/styles.css", "/app.js"}:
+        if route in {"/styles.css", "/app.js", "/quick-styles.css", "/quick-app.js"}:
             self.send_file(WORKBENCH_DIR / route.removeprefix("/"))
             return
         self.send_error(404)
@@ -634,6 +672,15 @@ class WorkbenchHandler(BaseHTTPRequestHandler):
                 payload = json.loads(body)
                 write_workbench_state(payload.get("workbench", {}))
                 self.send_json({"ok": True, "state": api_state()})
+            except Exception as exc:
+                self.send_json({"ok": False, "error": str(exc)}, status=400)
+            return
+        if parsed.path == "/api/quick-history":
+            try:
+                body = raw_body.decode("utf-8")
+                payload = json.loads(body) if body.strip() else {}
+                saved = save_quick_history_record(payload.get("record"))
+                self.send_json({"ok": True, "record": saved, "records": read_quick_history()})
             except Exception as exc:
                 self.send_json({"ok": False, "error": str(exc)}, status=400)
             return

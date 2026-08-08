@@ -3,398 +3,218 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>通用产品定价台</title>
-    <link rel="stylesheet" href="styles.css?v=20260715-history5">
+    <title>自动定价工作台</title>
+    <link rel="stylesheet" href="quick-styles.css?v=20260808-1">
   </head>
   <body>
-    <main class="workspace-shell">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">通用产品定价台</p>
-          <h1>从采购单到定价分析报告</h1>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <strong>自动定价工作台</strong>
+          <span>利润定价与折扣查询</span>
         </div>
-      </header>
-
-      <section id="siteStatus" class="site-status" aria-live="polite">网站已加载，可以开始确认资料。</section>
-
-      <aside class="pricing-nav" aria-label="已做定价分析的产品">
-        <div class="pricing-nav-heading">
-          <div>
-            <h2>产品导航</h2>
-            <span>已做定价分析</span>
-          </div>
-        </div>
-        <div id="pricingHistoryList" class="pricing-history-list" aria-live="polite">
-          <p class="empty-nav">等待加载定价产品。</p>
+        <nav class="main-nav" aria-label="工作台导航">
+          <button class="nav-button is-active" type="button" data-view="history" aria-pressed="true">
+            <span class="nav-icon">近</span>近30天定价
+          </button>
+          <button class="nav-button" type="button" data-view="quick" aria-pressed="false">
+            <span class="nav-icon">新</span>新品快速定价
+          </button>
+          <button class="nav-button is-disabled" type="button" disabled>
+            <span class="nav-icon">辅</span>辅助分析<span class="nav-later">后续</span>
+          </button>
+        </nav>
+        <div class="sidebar-note">
+          <strong>当前主流程</strong>
+          <span>成本 + 配送档位 → 四档利润价格</span>
+          <span>竞品资料和原有分析能力已保留，暂不占用主页面。</span>
         </div>
       </aside>
 
-      <section class="main-grid">
-        <aside class="input-panel" aria-label="输入区">
-          <div class="panel-heading">
-            <h2>输入</h2>
-            <span>采购单 + 手动尺寸重量</span>
+      <main class="main-area">
+        <header class="topbar">
+          <div>
+            <h1 id="pageTitle">近30天产品定价</h1>
+            <p id="pageSubtitle">先看产品汇总，再查看SKU和核心计算过程</p>
           </div>
+          <div id="appStatus" class="app-status" role="status" aria-live="polite">正在读取定价记录…</div>
+        </header>
 
-          <label class="field">
-            产品名称
-            <input id="productName" type="text" placeholder="上传采购单后自动带入，也可手动输入">
-          </label>
-
-          <div class="mode-card" aria-label="产品类型">
-            <span>产品类型</span>
-            <div class="mode-toggle">
-              <button id="standardModeBtn" type="button" class="mode-button active" aria-pressed="true">普通单品</button>
-              <button id="bundleModeBtn" type="button" class="mode-button" aria-pressed="false">组合套装</button>
-            </div>
-          </div>
-
-          <div class="manual-card">
-            <div class="manual-card-title">
-              <strong>批量添加采购行</strong>
-              <span>每行一款</span>
-            </div>
-            <div class="bulk-entry compact-entry">
-              <label>
-                批量粘贴采购行
-                <textarea id="manualBulkRows" rows="5" placeholder="每行一款，可直接粘贴：黄麻猫玩具 蝴蝶 10 9；也支持 SKU 黄麻猫玩具 老鼠 10 6.5，SKU 可添加后在表格里人工填写。"></textarea>
-              </label>
-              <button id="addBulkRowsBtn" type="button" class="ghost-button">批量添加到识别结果</button>
-            </div>
-          </div>
-
-          <div class="manual-card">
-            <div class="manual-card-title">
-              <strong>手动添加采购行</strong>
-              <span>单行补录</span>
-            </div>
-            <div class="manual-row-grid">
-              <label>
-                产品 SKU
-                <input id="manualSku" type="text" placeholder="例如：GlassMister-200ml-Green">
-              </label>
-              <label>
-                货号
-                <input id="manualItemCode" type="text" placeholder="例如：HJ-11">
-              </label>
-              <label>
-                款式标题
-                <input id="manualTitle" type="text" placeholder="例如：透明玻璃喷壶">
-              </label>
-              <label>
-                规格
-                <input id="manualSpec" type="text" placeholder="例如：200ml款式3; 彩色">
-              </label>
-              <label>
-                数量
-                <input id="manualQty" type="number" min="0" step="1" placeholder="例如：100">
-              </label>
-              <label>
-                成本价
-                <input id="manualCost" type="number" min="0" step="0.0001" placeholder="单件成本">
-              </label>
-            </div>
-            <button id="addManualRowBtn" type="button" class="ghost-button">添加到识别结果</button>
-          </div>
-
-          <div class="manual-card">
-            <div class="manual-card-title">
-              <strong>尺寸重量</strong>
-              <span>每款一致</span>
-            </div>
-            <div class="dimension-grid">
-              <label>
-                长 cm
-                <input id="lengthCm" type="number" value="0" step="0.1">
-              </label>
-              <label>
-                宽 cm
-                <input id="widthCm" type="number" value="0" step="0.1">
-              </label>
-              <label>
-                高 cm
-                <input id="heightCm" type="number" value="0" step="0.1">
-              </label>
-              <label>
-                重 g
-                <input id="weightG" type="number" value="0" step="1">
-              </label>
-            </div>
-          </div>
-
-          <div class="upload-box">
+        <section id="historyView" class="page-view">
+          <div class="section-heading history-heading">
             <div>
-              <strong>采购单</strong>
-              <span>支持 PDF / 图片 / HTML / 文本</span>
+              <h2>产品汇总</h2>
+              <p>同一产品存在多个SKU时，四档价格以范围展示。</p>
             </div>
-            <input id="purchaseOrderFile" type="file" aria-label="上传采购单" accept=".pdf,.png,.jpg,.jpeg,.webp,.html,.htm,.txt,.csv">
-            <p id="purchaseOrderFileName">等待上传采购单</p>
-            <div class="ocr-actions">
-              <button id="runOcrBtn" type="button" class="ghost-button" disabled>识别图片文字</button>
-              <span id="ocrStatus">未选择图片</span>
-            </div>
-            <div id="purchasePreview" class="upload-preview is-hidden" aria-live="polite"></div>
+            <label class="search-box">
+              <span class="sr-only">搜索产品名称或SKU</span>
+              <input id="historySearch" type="search" placeholder="搜索产品名称或 SKU">
+            </label>
           </div>
 
-          <div id="bundleCard" class="manual-card is-hidden">
-            <div class="manual-card-title">
-              <strong>组合套装</strong>
-              <span>父 SKU + 组件成本</span>
-            </div>
-            <div class="manual-row-grid">
-              <label>
-                套装 SKU
-                <input id="bundleSku" type="text" placeholder="例如：BlisterPad-3Style-24pcs">
-              </label>
-              <label>
-                套装标题
-                <input id="bundleTitle" type="text" placeholder="例如：三款组合防磨贴">
-              </label>
-              <label>
-                套装规格
-                <input id="bundleSpec" type="text" placeholder="例如：3款各8片，共24片/套">
-              </label>
-              <label>
-                单位
-                <input id="bundleUnitLabel" type="text" value="片">
-              </label>
-            </div>
-            <div class="bundle-components">
-              <div class="bundle-component-header">
-                <span>组件</span>
-                <span>每套用量</span>
-                <span>单件成本</span>
-                <span>采购数量</span>
-              </div>
-              <div class="bundle-component-row">
-                <input class="bundle-component-name" type="text" placeholder="款式A">
-                <input class="bundle-component-qty" type="number" min="0" step="1" value="8" aria-label="款式A每套用量">
-                <input class="bundle-component-cost" type="number" min="0" step="0.0001" placeholder="0.00" aria-label="款式A单件成本">
-                <input class="bundle-component-purchase" type="number" min="0" step="1" placeholder="采购片数" aria-label="款式A采购数量">
-              </div>
-              <div class="bundle-component-row">
-                <input class="bundle-component-name" type="text" placeholder="款式B">
-                <input class="bundle-component-qty" type="number" min="0" step="1" value="8" aria-label="款式B每套用量">
-                <input class="bundle-component-cost" type="number" min="0" step="0.0001" placeholder="0.00" aria-label="款式B单件成本">
-                <input class="bundle-component-purchase" type="number" min="0" step="1" placeholder="采购片数" aria-label="款式B采购数量">
-              </div>
-              <div class="bundle-component-row">
-                <input class="bundle-component-name" type="text" placeholder="款式C">
-                <input class="bundle-component-qty" type="number" min="0" step="1" value="8" aria-label="款式C每套用量">
-                <input class="bundle-component-cost" type="number" min="0" step="0.0001" placeholder="0.00" aria-label="款式C单件成本">
-                <input class="bundle-component-purchase" type="number" min="0" step="1" placeholder="采购片数" aria-label="款式C采购数量">
-              </div>
-            </div>
-            <div class="bundle-summary" id="bundlePreview">填写组件后生成一条父 SKU 套装行。</div>
-            <div class="inline-actions">
-              <button id="buildBundleBtn" type="button" class="ghost-button">生成套装行</button>
-              <button id="clearBundleBtn" type="button" class="ghost-button">清空套装</button>
-            </div>
+          <div class="filter-row" aria-label="记录日期范围">
+            <button type="button" class="filter-button" data-days="7" aria-pressed="false">最近7天</button>
+            <button type="button" class="filter-button is-active" data-days="30" aria-pressed="true">最近30天</button>
+            <button type="button" class="filter-button" data-days="all" aria-pressed="false">全部</button>
+            <span id="historyCount" class="record-count"></span>
           </div>
 
-        </aside>
-
-        <div class="workflow-column">
-        <section class="result-panel" aria-label="识别结果">
-          <div class="panel-heading result-heading">
-            <div>
-              <h2>识别结果</h2>
-              <span id="recognizedSummaryText">等待上传采购单或录入采购行。</span>
+          <div class="surface table-surface">
+            <div class="table-scroll">
+              <table class="summary-table">
+                <thead>
+                  <tr>
+                    <th>产品</th>
+                    <th>定价日期</th>
+                    <th>SKU</th>
+                    <th>配送档位</th>
+                    <th>15%利润价</th>
+                    <th>10%利润价</th>
+                    <th>5%利润价</th>
+                    <th>保本价</th>
+                  </tr>
+                </thead>
+                <tbody id="historyRows"></tbody>
+              </table>
             </div>
-            <span id="baseStatus" class="status-pill">待确认</span>
+            <div id="historyEmpty" class="empty-state is-hidden">当前范围内没有定价记录。</div>
           </div>
 
-          <div class="summary-grid">
-            <div>
-              <span>采购款数</span>
-              <strong>0 款</strong>
-            </div>
-            <div>
-              <span>采购总数</span>
-              <strong>-</strong>
-            </div>
-            <div>
-              <span>货品成本</span>
-              <strong>-</strong>
-            </div>
-            <div>
-              <span>运费</span>
-              <strong>0.00 RMB</strong>
-            </div>
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th class="sku-column">SKU</th>
-                  <th>款式标题</th>
-                  <th>规格</th>
-                  <th class="numeric">采购数量</th>
-                  <th class="numeric">成本价</th>
-                  <th class="numeric">长(cm)</th>
-                  <th class="numeric">宽(cm)</th>
-                  <th class="numeric">高(cm)</th>
-                  <th class="numeric">重(g)</th>
-                </tr>
-              </thead>
-              <tbody id="recognizedRows">
-                <tr>
-                  <td colspan="9" class="empty">暂无采购行，请上传采购单或手动添加采购行。</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="result-actions">
-            <button id="confirmBaseBtn" type="button" class="primary-button">确认基础表格</button>
-          </div>
-
-          <div class="check-panel">
-            <h3>这一步输出</h3>
-            <p>采集采购成本，并把手动输入的 SKU、尺寸重量合并到每个采购款式。确认后，这张表会作为下一步配送费和利润定价的基础数据。</p>
-          </div>
-        </section>
-
-      <section class="next-step-grid">
-        <section class="competitor-panel" aria-label="竞品输入">
-          <div class="panel-heading">
-            <div>
-              <h2>补充竞品文件</h2>
-              <span>基础表格确认后，再补充竞品资料用于价格对比。</span>
-            </div>
-            <span id="competitorStatus" class="status-pill">待上传</span>
-          </div>
-
-          <div class="competitor-input-grid">
-            <div class="upload-box">
+          <section id="historyReport" class="surface report-panel is-hidden" aria-live="polite">
+            <div class="report-heading">
               <div>
-                <strong>竞品 HTML / 截图 / 表格</strong>
-                <span>支持多个文件一起上传</span>
+                <div class="report-title-row">
+                  <h2 id="reportProductName">定价分析报告</h2>
+                  <span id="reportReviewTag" class="review-tag is-hidden">手写数据待确认</span>
+                </div>
+                <p id="reportMeta"></p>
               </div>
-              <input id="competitorFiles" type="file" aria-label="上传竞品文件" multiple accept=".html,.htm,.pdf,.png,.jpg,.jpeg,.webp,.xlsx,.xls,.csv">
-              <p id="competitorFileSummary">暂无竞品文件，上传后自动解析当前产品竞品。</p>
-              <p id="competitorParseStatus" class="mini-status">等待补充竞品资料。</p>
+              <button id="copyReportBtn" class="secondary-button" type="button">复制四档价格</button>
             </div>
 
-            <div class="manual-card">
-              <div class="manual-card-title">
-                <strong>竞品口径</strong>
-                <span>用于统一比较</span>
-              </div>
-              <div class="dimension-grid">
-                <label>
-                  本品售卖数量
-                  <input id="salePackQty" type="number" value="1" min="1" step="1">
-                </label>
-                <label>
-                  对比量
-                  <input id="comparisonUnitQty" type="number" value="1" min="1" step="1">
-                </label>
-                <label>
-                  目标利润率
-                  <input id="targetMargin" type="text" value="15%">
-                </label>
-              </div>
+            <div class="price-cards">
+              <article><span>15% 利润价</span><strong id="reportMargin15">—</strong><small>新品首选</small></article>
+              <article><span>10% 利润价</span><strong id="reportMargin10">—</strong><small>新品竞争价</small></article>
+              <article><span>5% 利润价</span><strong id="reportMargin5">—</strong><small>折扣参考</small></article>
+              <article class="floor-card"><span>保本价</span><strong id="reportBreakEven">—</strong><small>折扣底线</small></article>
             </div>
-          </div>
 
-          <div class="competitor-summary">
-            <div>
-              <span>竞品数量</span>
-              <strong>0 个</strong>
+            <div class="report-grid">
+              <article class="report-block">
+                <h3>计算参数</h3>
+                <dl id="reportParameters"></dl>
+              </article>
+              <article class="report-block">
+                <h3>核心计算过程</h3>
+                <div id="reportFormula" class="formula-copy"></div>
+              </article>
             </div>
-            <div>
-              <span>最低折算价</span>
-              <strong>待上传</strong>
-            </div>
-            <div>
-              <span>对比量</span>
-              <strong>1 片</strong>
-            </div>
-          </div>
-        </section>
 
-        <section id="reportPanel" class="report-panel" aria-label="定价分析报告">
-          <div class="panel-heading result-heading">
-            <div>
-              <h2>定价分析报告</h2>
-              <span>系统合并采购成本、尺寸重量、配送费规则和竞品价格后输出。</span>
-            </div>
-            <button id="generateReportBtn" type="button" class="primary-button">生成报告</button>
-          </div>
-
-          <div class="analysis-narrative" id="reportContent">
-            <article class="process-block">
-              <h3>配送费分析过程</h3>
-              <p class="lead-text">确认采购单和尺寸重量后，这里会生成当前产品的配送费和成本底线分析。</p>
+            <article id="reportNotesBlock" class="report-note is-hidden">
+              <strong>资料备注</strong>
+              <p id="reportNotes"></p>
             </article>
 
-            <article class="process-block">
-              <h3>竞品与利润分析过程</h3>
-              <p class="lead-text">补充竞品文件或使用内置示例后，这里会生成当前产品的竞品锚点和利润分析。</p>
-            </article>
-          </div>
-
-          <div class="report-actions">
-            <button id="reportExcelBtn" type="button" class="ghost-button">导出 Excel</button>
-            <button id="reportTextBtn" type="button" class="ghost-button">导出报告</button>
-            <a id="downloadReportExcelLink" class="download-link is-hidden" href="#" download="定价分析报告.xls">下载分析 Excel</a>
-            <a id="downloadReportTextLink" class="download-link is-hidden" href="#" download="定价分析报告.txt">下载报告文本</a>
-          </div>
+            <details class="sku-details" open>
+              <summary>查看SKU明细</summary>
+              <div class="table-scroll">
+                <table class="detail-table">
+                  <thead><tr><th>SKU</th><th>款式标题</th><th>成本价</th><th>配送费</th><th>15%</th><th>10%</th><th>5%</th><th>保本</th></tr></thead>
+                  <tbody id="reportSkuRows"></tbody>
+                </table>
+              </div>
+            </details>
+          </section>
         </section>
-      </section>
-        </div>
-      </section>
 
-      <section id="finalStage" class="final-stage" aria-label="价格确认">
-        <section class="final-panel">
-          <div class="panel-heading result-heading">
+        <section id="quickView" class="page-view is-hidden">
+          <div class="section-heading">
             <div>
-              <h2>价格确认</h2>
-              <span>默认带入建议定价，确认前可以手动调整，确认后生成 Excel 表格。</span>
-            </div>
-            <span class="status-pill ready">最终输出</span>
-          </div>
-
-          <div class="final-table-wrap">
-            <table class="final-table">
-              <thead>
-                <tr>
-                  <th class="sku-column">SKU</th>
-                  <th>款式标题</th>
-                  <th class="numeric">长(in)</th>
-                  <th class="numeric">宽(in)</th>
-                  <th class="numeric">高(in)</th>
-                  <th class="numeric">重(lb)</th>
-                  <th class="numeric">定价</th>
-                </tr>
-              </thead>
-              <tbody id="finalPricingRows">
-                <tr>
-                  <td colspan="7" class="empty">暂无最终价格行。</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div id="currentProfitPanel" class="analysis-narrative profit-after-final">
-            <article class="process-block">
-              <h3>当前确认价利润率</h3>
-              <p class="lead-text">等待最终价格行生成后，这里会显示当前确认价对应的利润率。</p>
-            </article>
-          </div>
-
-          <div class="final-actions">
-            <p id="exportStatus" class="export-status">等待确认价格。</p>
-            <div class="final-action-buttons">
-              <button id="generateExcelBtn" type="button" class="primary-button">确认并生成 Excel</button>
-              <a id="downloadExcelLink" class="download-link is-hidden" href="#" download="最终价格确认表.xls">下载 Excel</a>
+              <h2>新品快速定价</h2>
+              <p>只录入产品名称、SKU、款式标题和成本价。</p>
             </div>
           </div>
+
+          <section class="surface quick-form">
+            <div class="product-fields">
+              <label>
+                <span>产品名称</span>
+                <input id="quickProductName" type="text" placeholder="例如：黄麻猫玩具">
+              </label>
+              <label>
+                <span>定价日期</span>
+                <input id="quickPricingDate" type="date">
+              </label>
+            </div>
+
+            <fieldset class="shipping-fieldset">
+              <legend>配送档位</legend>
+              <div id="shippingTierButtons" class="tier-grid">
+                <button type="button" class="tier-button is-active" data-tier="under4" aria-pressed="true"><strong>≤4oz</strong><span>$0.50 / $0.88</span></button>
+                <button type="button" class="tier-button" data-tier="4to8" aria-pressed="false"><strong>4–8oz</strong><span>$1.77</span></button>
+                <button type="button" class="tier-button" data-tier="8to12" aria-pressed="false"><strong>8–12oz</strong><span>$2.60</span></button>
+                <button type="button" class="tier-button" data-tier="12to16" aria-pressed="false"><strong>12–16oz</strong><span>$3.22</span></button>
+                <button type="button" class="tier-button" data-tier="1to1_25" aria-pressed="false"><strong>1–1.25lb</strong><span>$3.72</span></button>
+              </div>
+              <p class="field-help">≤4oz 会根据各档计算售价自动采用 $0.50 或 $0.88；默认尺寸重量仅在后台匹配。</p>
+            </fieldset>
+
+            <div class="entry-heading">
+              <div class="entry-tabs" role="tablist" aria-label="录入方式">
+                <button type="button" class="entry-tab is-active" data-entry-mode="paste" aria-selected="true">批量粘贴</button>
+                <button type="button" class="entry-tab" data-entry-mode="rows" aria-selected="false">逐行录入</button>
+              </div>
+              <button id="clearRowsBtn" type="button" class="text-button">清空</button>
+            </div>
+
+            <div id="pastePanel" class="paste-panel">
+              <textarea id="bulkInput" rows="5" placeholder="从 Excel 复制三列：SKU    款式标题    成本价&#10;SKU-001    蝴蝶款    9.00&#10;SKU-002    老鼠款    6.50"></textarea>
+              <button id="parseBulkBtn" type="button" class="secondary-button">识别并填入表格</button>
+            </div>
+
+            <div class="entry-table-wrap">
+              <div class="table-scroll">
+                <table class="entry-table">
+                  <thead><tr><th>产品SKU</th><th>款式标题</th><th>成本价（RMB）</th><th></th></tr></thead>
+                  <tbody id="quickRows"></tbody>
+                </table>
+              </div>
+              <button id="addQuickRowBtn" type="button" class="add-row-button">＋ 添加一行</button>
+            </div>
+
+            <div class="quick-actions">
+              <div>
+                <strong id="quickRowSummary">0 个有效SKU</strong>
+                <span id="quickValidation" role="status"></span>
+              </div>
+              <button id="calculateQuickBtn" type="button" class="primary-button">批量计算并保存</button>
+            </div>
+          </section>
+
+          <section id="quickResult" class="surface report-panel is-hidden" aria-live="polite">
+            <div class="report-heading">
+              <div><h2 id="quickResultName">计算结果</h2><p>记录已保存到近30天产品汇总。</p></div>
+              <button id="viewSavedRecordBtn" class="secondary-button" type="button">查看汇总记录</button>
+            </div>
+            <div class="price-cards">
+              <article><span>15% 利润价</span><strong id="quickMargin15">—</strong><small>新品首选</small></article>
+              <article><span>10% 利润价</span><strong id="quickMargin10">—</strong><small>新品竞争价</small></article>
+              <article><span>5% 利润价</span><strong id="quickMargin5">—</strong><small>折扣参考</small></article>
+              <article class="floor-card"><span>保本价</span><strong id="quickBreakEven">—</strong><small>折扣底线</small></article>
+            </div>
+            <details class="sku-details" open>
+              <summary>SKU计算结果</summary>
+              <div class="table-scroll">
+                <table class="detail-table">
+                  <thead><tr><th>SKU</th><th>款式标题</th><th>成本价</th><th>配送费</th><th>15%</th><th>10%</th><th>5%</th><th>保本</th></tr></thead>
+                  <tbody id="quickResultRows"></tbody>
+                </table>
+              </div>
+            </details>
+          </section>
         </section>
-      </section>
-    </main>
-    <script src="app.js?v=20260715-merge-fix1"></script>
+      </main>
+    </div>
+    <script src="quick-app.js?v=20260808-1"></script>
   </body>
 </html>

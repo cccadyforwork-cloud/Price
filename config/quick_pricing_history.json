@@ -1,0 +1,166 @@
+{
+  "version": 1,
+  "records": [
+    {
+      "id": "handwritten-cat-cactus",
+      "name": "猫玩具仙人掌",
+      "source": "handwritten",
+      "status": "needs_review",
+      "createdAt": 1786179479,
+      "updatedAt": 1786179479,
+      "dateLabel": "近一个月手写记录",
+      "tierLabel": "4–8oz",
+      "shippingFee": 1.77,
+      "notes": "手写页1：产品名、成本、配送费、15%与10%价格较清晰；5%和保本价待确认。",
+      "rows": [
+        {
+          "sku": "HAND-001",
+          "title": "默认款",
+          "costRmb": 2.8,
+          "margin15": 3.74,
+          "margin10": 3.44,
+          "margin5": null,
+          "breakEven": null
+        }
+      ]
+    },
+    {
+      "id": "handwritten-cat-cotton-swab",
+      "name": "猫玩具棉签",
+      "source": "handwritten",
+      "status": "needs_review",
+      "createdAt": 1786179479,
+      "updatedAt": 1786179479,
+      "dateLabel": "近一个月手写记录",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "notes": "手写页1：成本字样按12元/支录入；产品名和成本建议再核对。",
+      "rows": [
+        {
+          "sku": "HAND-002",
+          "title": "默认款",
+          "costRmb": 12,
+          "margin15": 4.4,
+          "margin10": 4.03,
+          "margin5": null,
+          "breakEven": null
+        }
+      ]
+    },
+    {
+      "id": "handwritten-pet-scarf",
+      "name": "宠物围巾",
+      "source": "handwritten",
+      "status": "needs_review",
+      "createdAt": 1786179479,
+      "updatedAt": 1786179479,
+      "dateLabel": "近一个月手写记录",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "notes": "手写页2：10%、5%和圈出的保本价按可辨认数字录入。",
+      "rows": [
+        {
+          "sku": "HAND-003",
+          "title": "默认款",
+          "costRmb": 2.6,
+          "margin15": null,
+          "margin10": 2,
+          "margin5": 1.85,
+          "breakEven": 1.84
+        }
+      ]
+    },
+    {
+      "id": "handwritten-thong",
+      "name": "丁字裤",
+      "source": "handwritten",
+      "status": "needs_review",
+      "createdAt": 1786179479,
+      "updatedAt": 1786179479,
+      "dateLabel": "近一个月手写记录",
+      "tierLabel": "服饰 4–8oz",
+      "shippingFee": 2.05,
+      "notes": "手写页2：15%价格根据同一行的推导链暂录为5.56美元。",
+      "rows": [
+        {
+          "sku": "HAND-004",
+          "title": "默认款",
+          "costRmb": 6.7,
+          "margin15": 5.56,
+          "margin10": 4.77,
+          "margin5": 4.49,
+          "breakEven": 4.45
+        }
+      ]
+    },
+    {
+      "id": "handwritten-briefs",
+      "name": "三角裤",
+      "source": "handwritten",
+      "status": "needs_review",
+      "createdAt": 1786179479,
+      "updatedAt": 1786179479,
+      "dateLabel": "近一个月手写记录",
+      "tierLabel": "服饰 8–12oz",
+      "shippingFee": 2.84,
+      "notes": "手写页2：15%、10%与保本价较清晰，5%价格待确认。",
+      "rows": [
+        {
+          "sku": "HAND-005",
+          "title": "默认款",
+          "costRmb": 7.26,
+          "margin15": 6.56,
+          "margin10": 6.11,
+          "margin5": null,
+          "breakEven": 5.58
+        }
+      ]
+    },
+    {
+      "id": "handwritten-sports-bra",
+      "name": "美背运动内衣",
+      "source": "handwritten",
+      "status": "needs_review",
+      "createdAt": 1786179479,
+      "updatedAt": 1786179479,
+      "dateLabel": "近一个月手写记录",
+      "tierLabel": "服饰 8–12oz",
+      "shippingFee": 2.84,
+      "notes": "手写页3：成本19.9元、5%价格8.22美元、保本价7.66美元；其余利润档位待确认。",
+      "rows": [
+        {
+          "sku": "HAND-006",
+          "title": "默认款",
+          "costRmb": 19.9,
+          "margin15": null,
+          "margin10": null,
+          "margin5": 8.22,
+          "breakEven": 7.66
+        }
+      ]
+    },
+    {
+      "id": "handwritten-thermos-sleeve",
+      "name": "保温杯套",
+      "source": "handwritten",
+      "status": "needs_review",
+      "createdAt": 1786179479,
+      "updatedAt": 1786179479,
+      "dateLabel": "近一个月手写记录",
+      "tierLabel": "8–12oz",
+      "shippingFee": 2.6,
+      "notes": "手写页5：成本3.45元、配送费2.6美元、15%价格6.74美元较清晰。",
+      "rows": [
+        {
+          "sku": "HAND-007",
+          "title": "默认款",
+          "costRmb": 3.45,
+          "margin15": 6.74,
+          "margin10": null,
+          "margin5": null,
+          "breakEven": null
+        }
+      ]
+    }
+  ]
+}

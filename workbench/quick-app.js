@@ -20,6 +20,11 @@ const appState = {
   selectedRecordId: "",
   selectedTierId: "under4",
   historyDays: 30,
+  historyPage: 1,
+  pageSize: 15,
+  bulkEditOpen: false,
+  bulkSelectedIds: new Set(),
+  editingRecordId: "",
   latestSavedId: ""
 };
 
@@ -140,6 +145,50 @@ function tierFromFee(value) {
   return null;
 }
 
+function tierById(id) {
+  return SHIPPING_TIERS[id] || null;
+}
+
+function tierForRecord(record) {
+  return tierById(record.tierId) || tierFromFee(record.shippingFee) || Object.values(SHIPPING_TIERS).find((tier) => tier.label === record.tierLabel) || SHIPPING_TIERS.under4;
+}
+
+function tierOptionsHtml(selectedId = "under4") {
+  return Object.values(SHIPPING_TIERS).map((tier) => {
+    const fee = tier.id === "under4" ? tier.feeLabel : money(tier.fee);
+    return `<option value="${tier.id}" ${tier.id === selectedId ? "selected" : ""}>${escapeHtml(tier.label)} · ${escapeHtml(fee)}</option>`;
+  }).join("");
+}
+
+function recordShippingFee(tier, rows) {
+  if (tier.id !== "under4") return tier.fee;
+  const fees = rows.map((row) => Number(row.shippingFee)).filter((value) => Number.isFinite(value) && value > 0);
+  if (!fees.length) return null;
+  return Math.max(...fees);
+}
+
+function recalculatedRows(rows, tier) {
+  return rows.map((row) => calculateSku({
+    ...row,
+    sku: String(row.sku || "").trim(),
+    title: String(row.title || "").trim(),
+    costRmb: Number(row.costRmb)
+  }, tier));
+}
+
+function editableRecord(record) {
+  return {
+    ...record,
+    rows: (record.rows || []).map((row) => ({
+      sku: row.sku || "",
+      title: row.title || "",
+      costRmb: row.costRmb || "",
+      purchaseLink: row.purchaseLink || "",
+      linkedQty: row.linkedQty ?? null
+    }))
+  };
+}
+
 function normalizeQuickRecord(record) {
   const rows = Array.isArray(record.rows) ? record.rows.map((row, index) => ({
     sku: row.sku || `SKU-${index + 1}`,
@@ -150,7 +199,9 @@ function normalizeQuickRecord(record) {
     margin5: Number(row.margin5) || null,
     breakEven: Number(row.breakEven) || null,
     shippingFee: Number(row.shippingFee ?? record.shippingFee) || null,
-    fees: row.fees || null
+    fees: row.fees || null,
+    purchaseLink: row.purchaseLink || "",
+    linkedQty: row.linkedQty ?? null
   })) : [];
   return {
     ...record,
@@ -212,10 +263,26 @@ function visibleRecords() {
   });
 }
 
+function pagedHistoryRecords(records) {
+  const pageCount = Math.max(1, Math.ceil(records.length / appState.pageSize));
+  appState.historyPage = Math.min(Math.max(1, appState.historyPage), pageCount);
+  const start = (appState.historyPage - 1) * appState.pageSize;
+  return records.slice(start, start + appState.pageSize);
+}
+
+function renderPagination(totalRecords) {
+  const pageCount = Math.max(1, Math.ceil(totalRecords / appState.pageSize));
+  $("pageLabel").textContent = totalRecords ? `第 ${appState.historyPage} / ${pageCount} 页` : "第 0 / 0 页";
+  $("prevPageBtn").disabled = appState.historyPage <= 1;
+  $("nextPageBtn").disabled = appState.historyPage >= pageCount || totalRecords === 0;
+  $("pageSizeSelect").value = String(appState.pageSize);
+}
+
 function renderHistory() {
-  const records = visibleRecords();
-  $("historyCount").textContent = `${records.length} 个产品`;
-  $("historyEmpty").classList.toggle("is-hidden", records.length > 0);
+  const filteredRecords = visibleRecords();
+  const records = pagedHistoryRecords(filteredRecords);
+  $("historyCount").textContent = `${filteredRecords.length} 个产品`;
+  $("historyEmpty").classList.toggle("is-hidden", filteredRecords.length > 0);
   $("historyRows").innerHTML = records.map((record) => {
     const selected = appState.selectedRecordId === record.id;
     const review = record.status === "needs_review";
@@ -237,8 +304,10 @@ function renderHistory() {
     row.addEventListener("click", () => selectRecord(row.dataset.recordId));
   });
   if (appState.selectedRecordId && !records.some((record) => record.id === appState.selectedRecordId)) {
-    $("historyReport").classList.add("is-hidden");
+    if (!filteredRecords.some((record) => record.id === appState.selectedRecordId)) $("historyReport").classList.add("is-hidden");
   }
+  renderPagination(filteredRecords.length);
+  renderBulkEditRows();
 }
 
 function parameterRows(record) {
@@ -267,6 +336,169 @@ function renderSkuRows(targetId, record) {
   }).join("");
 }
 
+function renderBulkEditRows() {
+  if (!$("bulkEditRows")) return;
+  $("bulkEditPanel").classList.toggle("is-hidden", !appState.bulkEditOpen);
+  if (!appState.bulkEditOpen) return;
+  const records = pagedHistoryRecords(visibleRecords());
+  $("bulkTierSelect").innerHTML = tierOptionsHtml($("bulkTierSelect").value || "under4");
+  $("bulkEditRows").innerHTML = records.map((record) => {
+    const selected = appState.bulkSelectedIds.has(record.id);
+    return `<tr>
+      <td><input data-bulk-id="${escapeHtml(record.id)}" type="checkbox" ${selected ? "checked" : ""}></td>
+      <td><strong>${escapeHtml(record.name)}</strong></td>
+      <td>${record.rows.length}款</td>
+      <td>${escapeHtml(record.tierLabel || "待确认")} ${Number(record.shippingFee) > 0 ? escapeHtml(money(record.shippingFee)) : ""}</td>
+      <td>${costRange(record.rows)}</td>
+      <td class="floor-price">${rangeText(record.rows, "breakEven")}</td>
+    </tr>`;
+  }).join("");
+  $("bulkEditRows").querySelectorAll("input[data-bulk-id]").forEach((input) => {
+    input.addEventListener("change", () => {
+      if (input.checked) appState.bulkSelectedIds.add(input.dataset.bulkId);
+      else appState.bulkSelectedIds.delete(input.dataset.bulkId);
+      $("bulkEditStatus").textContent = `已选择 ${appState.bulkSelectedIds.size} 个产品。`;
+    });
+  });
+  $("bulkEditStatus").textContent = `已选择 ${appState.bulkSelectedIds.size} 个产品。`;
+}
+
+function renderEditSkuRows(rows) {
+  $("editSkuRows").innerHTML = rows.map((row, index) => `<tr data-index="${index}">
+    <td><input data-edit-field="sku" value="${escapeHtml(row.sku || "")}" placeholder="SKU-${String(index + 1).padStart(3, "0")}"></td>
+    <td><input data-edit-field="title" value="${escapeHtml(row.title || "")}" placeholder="款式标题"></td>
+    <td><input data-edit-field="costRmb" type="number" min="0" step="0.01" value="${escapeHtml(row.costRmb ?? "")}" placeholder="0.00"></td>
+    <td><button class="remove-row" type="button" aria-label="删除第${index + 1}个SKU">×</button></td>
+  </tr>`).join("");
+  $("editSkuRows").querySelectorAll(".remove-row").forEach((button) => {
+    button.addEventListener("click", () => {
+      const rowsFromDom = editRowsFromDom();
+      rowsFromDom.splice(Number(button.closest("tr").dataset.index), 1);
+      renderEditSkuRows(rowsFromDom.length ? rowsFromDom : [blankRow()]);
+    });
+  });
+}
+
+function editRowsFromDom() {
+  return [...$("editSkuRows").querySelectorAll("tr")].map((row) => ({
+    sku: row.querySelector('[data-edit-field="sku"]').value.trim(),
+    title: row.querySelector('[data-edit-field="title"]').value.trim(),
+    costRmb: row.querySelector('[data-edit-field="costRmb"]').value.trim()
+  }));
+}
+
+function editableRows() {
+  return editRowsFromDom().filter((row) => row.sku || row.title || Number(row.costRmb));
+}
+
+function recordById(recordId) {
+  return appState.normalizedRecords.find((record) => record.id === recordId);
+}
+
+function startRecordEdit() {
+  const record = recordById(appState.selectedRecordId);
+  if (!record) return;
+  const editable = editableRecord(record);
+  const tier = tierForRecord(record);
+  appState.editingRecordId = record.id;
+  $("editProductName").value = editable.name || "";
+  $("editDateLabel").value = editable.dateLabel || "";
+  $("editTierSelect").innerHTML = tierOptionsHtml(tier.id);
+  $("editNotes").value = editable.notes || "";
+  $("recordEditStatus").textContent = "";
+  renderEditSkuRows(editable.rows.length ? editable.rows : [blankRow()]);
+  $("recordEditPanel").classList.remove("is-hidden");
+  $("recordEditPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function stopRecordEdit() {
+  appState.editingRecordId = "";
+  $("recordEditPanel").classList.add("is-hidden");
+  $("recordEditStatus").textContent = "";
+}
+
+function buildEditedRecord(baseRecord, rows, tier) {
+  const calculatedRows = recalculatedRows(rows, tier);
+  return {
+    ...baseRecord,
+    name: $("editProductName").value.trim(),
+    dateLabel: $("editDateLabel").value.trim(),
+    tierId: tier.id,
+    tierLabel: tier.label,
+    shippingFee: recordShippingFee(tier, calculatedRows),
+    rows: calculatedRows,
+    notes: $("editNotes").value.trim()
+  };
+}
+
+async function saveRecordEdit() {
+  const baseRecord = recordById(appState.editingRecordId);
+  if (!baseRecord) return;
+  const rows = editableRows();
+  const error = validateRows(rows);
+  const tier = tierById($("editTierSelect").value);
+  if (!$("editProductName").value.trim()) {
+    $("recordEditStatus").textContent = "请填写产品名称。";
+    return;
+  }
+  if (error) {
+    $("recordEditStatus").textContent = error;
+    return;
+  }
+  $("saveRecordEditBtn").disabled = true;
+  $("recordEditStatus").textContent = "正在保存并重算…";
+  try {
+    const saved = await saveQuickRecord(buildEditedRecord(baseRecord, rows, tier));
+    appState.selectedRecordId = saved.id;
+    stopRecordEdit();
+    renderHistory();
+    selectRecord(saved.id, { scroll: false });
+    setStatus(`“${saved.name}”已更新。`, "ok");
+  } catch (errorObject) {
+    $("recordEditStatus").textContent = errorObject.message || "保存失败";
+  } finally {
+    $("saveRecordEditBtn").disabled = false;
+  }
+}
+
+function buildBulkEditedRecord(record, tier) {
+  const rows = recalculatedRows(record.rows, tier);
+  return {
+    ...record,
+    tierId: tier.id,
+    tierLabel: tier.label,
+    shippingFee: recordShippingFee(tier, rows),
+    rows,
+    notes: record.notes || ""
+  };
+}
+
+async function saveBulkEdit() {
+  const ids = [...appState.bulkSelectedIds];
+  const tier = tierById($("bulkTierSelect").value);
+  if (!ids.length) {
+    $("bulkEditStatus").textContent = "请先选择要修改的产品。";
+    return;
+  }
+  $("saveBulkEditBtn").disabled = true;
+  $("bulkEditStatus").textContent = `正在保存 ${ids.length} 个产品…`;
+  try {
+    for (const id of ids) {
+      const record = recordById(id);
+      if (record) await saveQuickRecord(buildBulkEditedRecord(record, tier));
+    }
+    appState.bulkSelectedIds.clear();
+    renderHistory();
+    if (appState.selectedRecordId) selectRecord(appState.selectedRecordId, { scroll: false });
+    $("bulkEditStatus").textContent = "批量保存完成。";
+    setStatus(`已批量更新 ${ids.length} 个产品。`, "ok");
+  } catch (errorObject) {
+    $("bulkEditStatus").textContent = errorObject.message || "批量保存失败";
+  } finally {
+    $("saveBulkEditBtn").disabled = false;
+  }
+}
+
 function renderRecordReport(record) {
   $("historyReport").classList.remove("is-hidden");
   $("reportProductName").textContent = `${record.name} · 定价分析报告`;
@@ -286,6 +518,7 @@ function renderRecordReport(record) {
   $("reportNotesBlock").classList.toggle("is-hidden", !record.notes);
   $("reportNotes").textContent = record.notes || "";
   renderSkuRows("reportSkuRows", record);
+  if (appState.editingRecordId !== record.id) stopRecordEdit();
 }
 
 function selectRecord(recordId, options = {}) {
@@ -483,15 +716,55 @@ async function loadData() {
 function initEvents() {
   document.querySelectorAll(".nav-button[data-view]").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.view)));
   document.querySelectorAll(".filter-button").forEach((button) => button.addEventListener("click", () => {
+    if (!button.dataset.days) return;
     appState.historyDays = button.dataset.days === "all" ? "all" : Number(button.dataset.days);
+    appState.historyPage = 1;
     document.querySelectorAll(".filter-button").forEach((item) => {
+      if (!item.dataset.days) return;
       const active = item === button;
       item.classList.toggle("is-active", active);
       item.setAttribute("aria-pressed", String(active));
     });
     renderHistory();
   }));
-  $("historySearch").addEventListener("input", renderHistory);
+  $("historySearch").addEventListener("input", () => {
+    appState.historyPage = 1;
+    renderHistory();
+  });
+  $("pageSizeSelect").addEventListener("change", () => {
+    appState.pageSize = Number($("pageSizeSelect").value) || 15;
+    appState.historyPage = 1;
+    renderHistory();
+  });
+  $("prevPageBtn").addEventListener("click", () => {
+    appState.historyPage -= 1;
+    renderHistory();
+  });
+  $("nextPageBtn").addEventListener("click", () => {
+    appState.historyPage += 1;
+    renderHistory();
+  });
+  $("toggleBulkEditBtn").addEventListener("click", () => {
+    appState.bulkEditOpen = !appState.bulkEditOpen;
+    renderHistory();
+  });
+  $("closeBulkEditBtn").addEventListener("click", () => {
+    appState.bulkEditOpen = false;
+    renderHistory();
+  });
+  $("selectPageRecordsBtn").addEventListener("click", () => {
+    pagedHistoryRecords(visibleRecords()).forEach((record) => appState.bulkSelectedIds.add(record.id));
+    renderBulkEditRows();
+  });
+  $("clearBulkSelectionBtn").addEventListener("click", () => {
+    appState.bulkSelectedIds.clear();
+    renderBulkEditRows();
+  });
+  $("saveBulkEditBtn").addEventListener("click", saveBulkEdit);
+  $("editRecordBtn").addEventListener("click", startRecordEdit);
+  $("cancelRecordEditBtn").addEventListener("click", stopRecordEdit);
+  $("addEditSkuBtn").addEventListener("click", () => renderEditSkuRows([...editRowsFromDom(), blankRow()]));
+  $("saveRecordEditBtn").addEventListener("click", saveRecordEdit);
   $("copyReportBtn").addEventListener("click", copySelectedReport);
   $("shippingTierButtons").querySelectorAll(".tier-button").forEach((button) => button.addEventListener("click", () => {
     appState.selectedTierId = button.dataset.tier;
@@ -537,6 +810,8 @@ function initEvents() {
 
 document.addEventListener("DOMContentLoaded", () => {
   $("quickPricingDate").value = new Date().toISOString().slice(0, 10);
+  $("editTierSelect").innerHTML = tierOptionsHtml();
+  $("bulkTierSelect").innerHTML = tierOptionsHtml();
   renderQuickRows();
   initEvents();
   loadData();

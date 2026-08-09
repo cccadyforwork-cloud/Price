@@ -2,117 +2,62 @@
   "version": 1,
   "records": [
     {
-      "id": "handwritten-cat-cactus",
-      "name": "猫玩具仙人掌",
-      "source": "handwritten",
-      "status": "needs_review",
-      "createdAt": 1786179479,
-      "updatedAt": 1786179479,
-      "dateLabel": "近一个月手写记录",
-      "tierLabel": "4–8oz",
-      "shippingFee": 1.77,
-      "notes": "手写页1：产品名、成本、配送费、15%与10%价格较清晰；5%和保本价待确认。",
-      "rows": [
-        {
-          "sku": "HAND-001",
-          "title": "默认款",
-          "costRmb": 2.8,
-          "margin15": 3.74,
-          "margin10": 3.44,
-          "margin5": null,
-          "breakEven": null
-        }
-      ]
-    },
-    {
       "id": "handwritten-cat-cotton-swab",
       "name": "猫玩具棉签",
       "source": "handwritten",
       "status": "needs_review",
       "createdAt": 1786179479,
-      "updatedAt": 1786179479,
+      "updatedAt": 1786285519,
       "dateLabel": "近一个月手写记录",
       "tierLabel": "≤4oz",
       "shippingFee": 0.88,
-      "notes": "手写页1：成本字样按12元/支录入；产品名和成本建议再核对。",
+      "notes": "手写页1：成本字样按12元/支录入；产品名和成本建议再核对。 已按当前工作台快速定价规则重算并补齐利润档位。",
       "rows": [
         {
           "sku": "HAND-002",
           "title": "默认款",
           "costRmb": 12,
-          "margin15": 4.4,
-          "margin10": 4.03,
-          "margin5": null,
-          "breakEven": null
+          "margin15": 4.92,
+          "margin10": 4.53,
+          "margin5": 4.2,
+          "breakEven": 3.91,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.88,
+            "margin5": 0.88,
+            "breakEven": 0.88
+          }
         }
       ]
     },
     {
       "id": "handwritten-pet-scarf",
-      "name": "宠物围巾",
+      "name": "宠物围兜",
       "source": "handwritten",
       "status": "needs_review",
       "createdAt": 1786179479,
-      "updatedAt": 1786179479,
+      "updatedAt": 1786285519,
       "dateLabel": "近一个月手写记录",
       "tierLabel": "≤4oz",
       "shippingFee": 0.88,
-      "notes": "手写页2：10%、5%和圈出的保本价按可辨认数字录入。",
+      "notes": "手写页2：10%、5%和圈出的保本价按可辨认数字录入。 已按当前工作台快速定价规则重算并补齐利润档位。",
       "rows": [
         {
           "sku": "HAND-003",
           "title": "默认款",
           "costRmb": 2.6,
-          "margin15": null,
-          "margin10": 2,
-          "margin5": 1.85,
-          "breakEven": 1.84
-        }
-      ]
-    },
-    {
-      "id": "handwritten-thong",
-      "name": "丁字裤",
-      "source": "handwritten",
-      "status": "needs_review",
-      "createdAt": 1786179479,
-      "updatedAt": 1786179479,
-      "dateLabel": "近一个月手写记录",
-      "tierLabel": "服饰 4–8oz",
-      "shippingFee": 2.05,
-      "notes": "手写页2：15%价格根据同一行的推导链暂录为5.56美元。",
-      "rows": [
-        {
-          "sku": "HAND-004",
-          "title": "默认款",
-          "costRmb": 6.7,
-          "margin15": 5.56,
-          "margin10": 4.77,
-          "margin5": 4.49,
-          "breakEven": 4.45
-        }
-      ]
-    },
-    {
-      "id": "handwritten-briefs",
-      "name": "三角裤",
-      "source": "handwritten",
-      "status": "needs_review",
-      "createdAt": 1786179479,
-      "updatedAt": 1786179479,
-      "dateLabel": "近一个月手写记录",
-      "tierLabel": "服饰 8–12oz",
-      "shippingFee": 2.84,
-      "notes": "手写页2：15%、10%与保本价较清晰，5%价格待确认。",
-      "rows": [
-        {
-          "sku": "HAND-005",
-          "title": "默认款",
-          "costRmb": 7.26,
-          "margin15": 6.56,
-          "margin10": 6.11,
-          "margin5": null,
-          "breakEven": 5.58
+          "margin15": 2.03,
+          "margin10": 1.87,
+          "margin5": 1.74,
+          "breakEven": 1.62,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
         }
       ]
     },
@@ -122,43 +67,2139 @@
       "source": "handwritten",
       "status": "needs_review",
       "createdAt": 1786179479,
-      "updatedAt": 1786179479,
+      "updatedAt": 1786285519,
       "dateLabel": "近一个月手写记录",
       "tierLabel": "服饰 8–12oz",
       "shippingFee": 2.84,
-      "notes": "手写页3：成本19.9元、5%价格8.22美元、保本价7.66美元；其余利润档位待确认。",
+      "notes": "手写页3：成本19.9元、5%价格8.22美元、保本价7.66美元；其余利润档位待确认。 已按当前工作台快速定价规则重算并补齐利润档位。",
       "rows": [
         {
           "sku": "HAND-006",
           "title": "默认款",
           "costRmb": 19.9,
-          "margin15": null,
-          "margin10": null,
-          "margin5": 8.22,
-          "breakEven": 7.66
+          "margin15": 9.73,
+          "margin10": 8.97,
+          "margin5": 8.31,
+          "breakEven": 7.75,
+          "shippingFee": 2.6,
+          "fees": {
+            "margin15": 2.6,
+            "margin10": 2.6,
+            "margin5": 2.6,
+            "breakEven": 2.6
+          }
         }
       ]
     },
     {
-      "id": "handwritten-thermos-sleeve",
-      "name": "保温杯套",
-      "source": "handwritten",
-      "status": "needs_review",
-      "createdAt": 1786179479,
-      "updatedAt": 1786179479,
-      "dateLabel": "近一个月手写记录",
-      "tierLabel": "8–12oz",
-      "shippingFee": 2.6,
-      "notes": "手写页5：成本3.45元、配送费2.6美元、15%价格6.74美元较清晰。",
+      "id": "hist-pending-001",
+      "name": "防滑五指瑜伽袜",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "7月W4采购品",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.99,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
       "rows": [
         {
-          "sku": "HAND-007",
-          "title": "默认款",
+          "sku": "TTCA-Sock-S5-White",
+          "title": "防滑五指瑜伽袜-白色",
+          "costRmb": 7.51,
+          "margin15": 3.85,
+          "margin10": 2.95,
+          "margin5": 2.73,
+          "breakEven": 2.55,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/893150405683.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Sock-S5-Purple",
+          "title": "防滑五指瑜伽袜-紫色",
+          "costRmb": 7.51,
+          "margin15": 3.85,
+          "margin10": 2.95,
+          "margin5": 2.73,
+          "breakEven": 2.55,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/893150405683.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Sock-S5-Green",
+          "title": "防滑五指瑜伽袜-草绿",
+          "costRmb": 7.51,
+          "margin15": 3.85,
+          "margin10": 2.95,
+          "margin5": 2.73,
+          "breakEven": 2.55,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/893150405683.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Sock-S5-Blue",
+          "title": "防滑五指瑜伽袜-蓝色",
+          "costRmb": 7.51,
+          "margin15": 3.85,
+          "margin10": 2.95,
+          "margin5": 2.73,
+          "breakEven": 2.55,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/893150405683.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-003",
+      "name": "木天蓼猫玩具",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "7月W4采购品",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.5,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "TTCA-Pet-Toy-Feather",
+          "title": "木天蓼猫玩具-羽毛大号",
+          "costRmb": 1.45,
+          "margin15": 1.76,
+          "margin10": 1.62,
+          "margin5": 1.5,
+          "breakEven": 1.4,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/1003183196007.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-004",
+      "name": "防水洗漱包",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "7月W4采购品",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "TTCA-Washbag-Grey",
+          "title": "防水洗漱包-灰色-大号",
+          "costRmb": 4.5,
+          "margin15": 2.48,
+          "margin10": 2.29,
+          "margin5": 2.12,
+          "breakEven": 1.98,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/894024948343.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Washbag-White",
+          "title": "防水洗漱包-白色-大号",
+          "costRmb": 4.5,
+          "margin15": 2.48,
+          "margin10": 2.29,
+          "margin5": 2.12,
+          "breakEven": 1.98,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/894024948343.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-005",
+      "name": "AirTag硅胶宠物项圈",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "7月W4采购品",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.5,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "TTCA-PetXQ-Airlight-White",
+          "title": "AirTag硅胶宠物项圈-白色",
+          "costRmb": 6.69,
+          "margin15": 3.0,
+          "margin10": 2.77,
+          "margin5": 2.57,
+          "breakEven": 2.39,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/973616360752.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-PetXQ-Airlight-Pink",
+          "title": "AirTag硅胶宠物项圈-粉色",
+          "costRmb": 6.69,
+          "margin15": 3.0,
+          "margin10": 2.77,
+          "margin5": 2.57,
+          "breakEven": 2.39,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/973616360752.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-006",
+      "name": "冷感运动毛巾",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "7月W4采购品",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.5,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "TTCA-Towel-grey",
+          "title": "冷感运动毛巾-灰色",
+          "costRmb": 7.9,
+          "margin15": 3.94,
+          "margin10": 3.63,
+          "margin5": 2.81,
+          "breakEven": 2.62,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.88,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/1058149842050.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Towel-pink",
+          "title": "冷感运动毛巾-粉色",
+          "costRmb": 7.9,
+          "margin15": 3.94,
+          "margin10": 3.63,
+          "margin5": 2.81,
+          "breakEven": 2.62,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.88,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/1058149842050.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Towel-green",
+          "title": "冷感运动毛巾-绿色",
+          "costRmb": 7.9,
+          "margin15": 3.94,
+          "margin10": 3.63,
+          "margin5": 2.81,
+          "breakEven": 2.62,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.88,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/1058149842050.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-007",
+      "name": "摇摇杯",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "7月W4采购品",
+      "tierId": "8to12",
+      "tierLabel": "8–12oz",
+      "shippingFee": 2.6,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "TTCA-Shakebottle-Pink",
+          "title": "摇摇杯-粉色",
+          "costRmb": 4.3,
+          "margin15": 6.03,
+          "margin10": 5.55,
+          "margin5": 5.15,
+          "breakEven": 4.8,
+          "shippingFee": 2.6,
+          "fees": {
+            "margin15": 2.6,
+            "margin10": 2.6,
+            "margin5": 2.6,
+            "breakEven": 2.6
+          },
+          "purchaseLink": "https://detail.1688.com/offer/893750470758.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Shakebottle-Green",
+          "title": "摇摇杯-绿色",
+          "costRmb": 4.3,
+          "margin15": 6.03,
+          "margin10": 5.55,
+          "margin5": 5.15,
+          "breakEven": 4.8,
+          "shippingFee": 2.6,
+          "fees": {
+            "margin15": 2.6,
+            "margin10": 2.6,
+            "margin5": 2.6,
+            "breakEven": 2.6
+          },
+          "purchaseLink": "https://detail.1688.com/offer/893750470758.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Shakebottle-Black",
+          "title": "摇摇杯-黑色",
+          "costRmb": 4.3,
+          "margin15": 6.03,
+          "margin10": 5.55,
+          "margin5": 5.15,
+          "breakEven": 4.8,
+          "shippingFee": 2.6,
+          "fees": {
+            "margin15": 2.6,
+            "margin10": 2.6,
+            "margin5": 2.6,
+            "breakEven": 2.6
+          },
+          "purchaseLink": "https://detail.1688.com/offer/893750470758.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-008",
+      "name": "植物固定夹",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "7月W4采购品",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.5,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "TTCA-Clips-White",
+          "title": "植物固定夹-白色-50个装",
+          "costRmb": 2.6,
+          "margin15": 2.03,
+          "margin10": 1.87,
+          "margin5": 1.74,
+          "breakEven": 1.62,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/990925890264.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Clips-Green",
+          "title": "植物固定夹-绿色-50个装",
+          "costRmb": 2.0,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.62,
+          "breakEven": 1.51,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/572316777278.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Clips-Brown",
+          "title": "植物固定夹-棕色-50个装",
+          "costRmb": 2.0,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.62,
+          "breakEven": 1.51,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/990925890264.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-009",
+      "name": "换土垫",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "7月W4采购品",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "TTCA-RepotMat-Green",
+          "title": "换土垫-绿色-50x50cm",
+          "costRmb": 1.3,
+          "margin15": 1.72,
+          "margin10": 1.59,
+          "margin5": 1.47,
+          "breakEven": 1.37,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/792178131171.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-011",
+      "name": "磁吸花瓶套装",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "7月W4采购品",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.5,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "TTCA-Vase-Brown",
+          "title": "磁吸花瓶套装-棕色",
+          "costRmb": 0.98,
+          "margin15": 1.65,
+          "margin10": 1.52,
+          "margin5": 1.41,
+          "breakEven": 1.31,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/1024836523655.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Vase-Yellow",
+          "title": "磁吸花瓶套装-黄色",
+          "costRmb": 0.98,
+          "margin15": 1.65,
+          "margin10": 1.52,
+          "margin5": 1.41,
+          "breakEven": 1.31,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/1024836523655.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-012",
+      "name": "鱼尾纱花束包装纸",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "7月W4采购品",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.5,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "TTCA-Fishtail-Ribbon-Pur",
+          "title": "鱼尾纱花束包装纸-紫色-无卷芯",
+          "costRmb": 2.2,
+          "margin15": 1.94,
+          "margin10": 1.79,
+          "margin5": 1.66,
+          "breakEven": 1.54,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/655495551780.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Fishtail-Ribbon-Wit",
+          "title": "鱼尾纱花束包装纸-白色-无卷芯",
+          "costRmb": 2.2,
+          "margin15": 1.94,
+          "margin10": 1.79,
+          "margin5": 1.66,
+          "breakEven": 1.54,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/655495551780.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Fishtail-Ribbon-Pik",
+          "title": "鱼尾纱花束包装纸-粉色-无卷芯",
+          "costRmb": 2.2,
+          "margin15": 1.94,
+          "margin10": 1.79,
+          "margin5": 1.66,
+          "breakEven": 1.54,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/655495551780.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-013",
+      "name": "美甲脚趾分离器",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "7月W4采购品",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.5,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "TTCA-Separators-Flower",
+          "title": "美甲脚趾分离器-粉色花朵款",
+          "costRmb": 3.42,
+          "margin15": 2.23,
+          "margin10": 2.05,
+          "margin5": 1.9,
+          "breakEven": 1.77,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/574512551519.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "TTCA-Separators-Pearl",
+          "title": "美甲脚趾分离器-珍珠款",
+          "costRmb": 3.42,
+          "margin15": 2.23,
+          "margin10": 2.05,
+          "margin5": 1.9,
+          "breakEven": 1.77,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/574512551519.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-014",
+      "name": "AirTag宠物项圈",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.5,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "CA-Pet-XQ-Airtag-Blue",
+          "title": "AirTag宠物项圈-天蓝色",
+          "costRmb": 13.9,
+          "margin15": 5.37,
+          "margin10": 4.94,
+          "margin5": 4.58,
+          "breakEven": 4.27,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.88,
+            "margin5": 0.88,
+            "breakEven": 0.88
+          },
+          "purchaseLink": "https://detail.1688.com/offer/707351271432.html",
+          "linkedQty": 4.0
+        },
+        {
+          "sku": "CA-Pet-XQ-Airtag-Pink",
+          "title": "AirTag宠物项圈-红色",
+          "costRmb": 13.9,
+          "margin15": 5.37,
+          "margin10": 4.94,
+          "margin5": 4.58,
+          "breakEven": 4.27,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.88,
+            "margin5": 0.88,
+            "breakEven": 0.88
+          },
+          "purchaseLink": "https://detail.1688.com/offer/707351271432.html",
+          "linkedQty": 2.0
+        },
+        {
+          "sku": "CA-Pet-XQ-Airtag-Black",
+          "title": "AirTag宠物项圈-黑色",
+          "costRmb": 13.9,
+          "margin15": 5.37,
+          "margin10": 4.94,
+          "margin5": 4.58,
+          "breakEven": 4.27,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.88,
+            "margin5": 0.88,
+            "breakEven": 0.88
+          },
+          "purchaseLink": "https://detail.1688.com/offer/707351271432.html",
+          "linkedQty": 2.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-015",
+      "name": "木天蓼猫玩具",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.5,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "CA-Petchewtoy-ball",
+          "title": "木天蓼猫玩具-串串球",
+          "costRmb": 6.5,
+          "margin15": 2.96,
+          "margin10": 2.73,
+          "margin5": 2.53,
+          "breakEven": 2.36,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/712347225806.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "CA-Petchewtoy-mouse",
+          "title": "木天蓼猫玩具-老鼠球套装",
+          "costRmb": 6.5,
+          "margin15": 2.96,
+          "margin10": 2.73,
+          "margin5": 2.53,
+          "breakEven": 2.36,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/712347225806.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "CA-Petchewtoy-fly",
+          "title": "木天蓼猫玩具-蝴蝶",
+          "costRmb": 8.9,
+          "margin15": 4.18,
+          "margin10": 3.85,
+          "margin5": 3.57,
+          "breakEven": 2.81,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.88,
+            "margin5": 0.88,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/712347225806.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "CA-Petchewtoy-bird",
+          "title": "木天蓼猫玩具-鹦鹉",
+          "costRmb": 6.5,
+          "margin15": 2.96,
+          "margin10": 2.73,
+          "margin5": 2.53,
+          "breakEven": 2.36,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/712347225806.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-016",
+      "name": "猫玩具不倒翁",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "CA-Pettoy-Sisal",
+          "title": "猫玩具不倒翁-剑麻款",
+          "costRmb": 2.8,
+          "margin15": 2.08,
+          "margin10": 1.92,
+          "margin5": 1.78,
+          "breakEven": 1.66,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/1039588398263.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "CA-Pettoy-Feather",
+          "title": "猫玩具不倒翁-羽毛款",
+          "costRmb": 2.8,
+          "margin15": 2.08,
+          "margin10": 1.92,
+          "margin5": 1.78,
+          "breakEven": 1.66,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/1039588398263.html",
+          "linkedQty": 5.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-024",
+      "name": "猫咪铃铛项圈",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "Pet-Ldq-Brown",
+          "title": "猫咪铃铛项圈-深棕色",
+          "costRmb": 6.8,
+          "margin15": 3.68,
+          "margin10": 2.79,
+          "margin5": 2.59,
+          "breakEven": 2.41,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/923701625609.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "Pet-Ldq-Blue",
+          "title": "猫咪铃铛项圈-湖蓝色",
+          "costRmb": 6.8,
+          "margin15": 3.68,
+          "margin10": 2.79,
+          "margin5": 2.59,
+          "breakEven": 2.41,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/923701625609.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "Pet-Ldq-White",
+          "title": "猫咪铃铛项圈-米白色",
+          "costRmb": 6.8,
+          "margin15": 3.68,
+          "margin10": 2.79,
+          "margin5": 2.59,
+          "breakEven": 2.41,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/923701625609.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "Pet-Ldq-Green",
+          "title": "猫咪铃铛项圈-苹果绿",
+          "costRmb": 6.8,
+          "margin15": 3.68,
+          "margin10": 2.79,
+          "margin5": 2.59,
+          "breakEven": 2.41,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/923701625609.html",
+          "linkedQty": 5.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-029",
+      "name": "咖啡接粉环",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.5,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "Coffee-FH-51",
+          "title": "咖啡接粉环-银色",
+          "costRmb": 5.0,
+          "margin15": 2.6,
+          "margin10": 2.4,
+          "margin5": 2.22,
+          "breakEven": 2.07,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/970287690963.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "Coffee-FH-53",
+          "title": "咖啡接粉环-银色",
+          "costRmb": 5.0,
+          "margin15": 2.6,
+          "margin10": 2.4,
+          "margin5": 2.22,
+          "breakEven": 2.07,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/970287690963.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "Coffee-FH-58",
+          "title": "咖啡接粉环-银色",
+          "costRmb": 5.0,
+          "margin15": 2.6,
+          "margin10": 2.4,
+          "margin5": 2.22,
+          "breakEven": 2.07,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/970287690963.html",
+          "linkedQty": 5.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-030",
+      "name": "咖啡滤纸",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "4to8",
+      "tierLabel": "4–8oz",
+      "shippingFee": 1.77,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "Coffee-LZ-SU02-200",
+          "title": "咖啡滤纸-U02-200片",
+          "costRmb": 11.5,
+          "margin15": 6.32,
+          "margin10": 5.82,
+          "margin5": 5.4,
+          "breakEven": 5.03,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          },
+          "purchaseLink": "https://detail.1688.com/offer/859609498029.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "Coffee-LZ-SV02-100",
+          "title": "咖啡滤纸-V02-100片",
+          "costRmb": 5.8,
+          "margin15": 4.97,
+          "margin10": 4.57,
+          "margin5": 4.24,
+          "breakEven": 3.95,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          },
+          "purchaseLink": "https://detail.1688.com/offer/859609498029.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "Coffee-LZ-SV02-200",
+          "title": "咖啡滤纸-V02-200片",
+          "costRmb": 11.5,
+          "margin15": 6.32,
+          "margin10": 5.82,
+          "margin5": 5.4,
+          "breakEven": 5.03,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          },
+          "purchaseLink": "https://detail.1688.com/offer/859609498029.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "Coffee-LZ-SU02-100",
+          "title": "咖啡滤纸-扇形02-100片",
+          "costRmb": 5.8,
+          "margin15": 4.97,
+          "margin10": 4.57,
+          "margin5": 4.24,
+          "breakEven": 3.95,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          },
+          "purchaseLink": "https://detail.1688.com/offer/859609498029.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "Coffee-LZ-SU04-100",
+          "title": "咖啡滤纸-扇形04-100片",
+          "costRmb": 7.9,
+          "margin15": 5.46,
+          "margin10": 5.03,
+          "margin5": 4.67,
+          "breakEven": 4.35,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          },
+          "purchaseLink": "https://detail.1688.com/offer/859609498029.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "Coffee-LZ-SU04-200",
+          "title": "咖啡滤纸-扇形04-200片",
+          "costRmb": 15.4,
+          "margin15": 7.25,
+          "margin10": 6.68,
+          "margin5": 6.19,
+          "breakEven": 5.77,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          },
+          "purchaseLink": "https://detail.1688.com/offer/859609498029.html",
+          "linkedQty": 5.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-031",
+      "name": "咖啡粉碗",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "Coffee-FW-51-DB",
+          "title": "咖啡粉碗-51MM单杯双层",
+          "costRmb": 5.0,
+          "margin15": 2.6,
+          "margin10": 2.4,
+          "margin5": 2.22,
+          "breakEven": 2.07,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/964310147729.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "Coffee-FW-54-SB",
+          "title": "咖啡粉碗-54MM双杯单层",
+          "costRmb": 5.0,
+          "margin15": 2.6,
+          "margin10": 2.4,
+          "margin5": 2.22,
+          "breakEven": 2.07,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/964310147729.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "Coffee-FW-58-DB",
+          "title": "咖啡粉碗-58MM单杯单层",
+          "costRmb": 6.0,
+          "margin15": 2.84,
+          "margin10": 2.62,
+          "margin5": 2.43,
+          "breakEven": 2.26,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/964310147729.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "Coffee-FW-58-SB",
+          "title": "咖啡粉碗-58MM双杯单层",
+          "costRmb": 7.0,
+          "margin15": 3.73,
+          "margin10": 2.84,
+          "margin5": 2.63,
+          "breakEven": 2.45,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/964310147729.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "Coffee-FW-58-MW",
+          "title": "咖啡粉碗-58MM盲碗",
+          "costRmb": 4.0,
+          "margin15": 2.37,
+          "margin10": 2.18,
+          "margin5": 2.02,
+          "breakEven": 1.88,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/964310147729.html",
+          "linkedQty": 15.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-032",
+      "name": "圆形咖啡滤纸",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.5,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "KFLZ-Y-Natural-51",
+          "title": "圆形咖啡滤纸-原色51mm",
+          "costRmb": 1.8,
+          "margin15": 1.84,
+          "margin10": 1.7,
+          "margin5": 1.57,
+          "breakEven": 1.47,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/673181400050.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "KFLZ-Y-Natural-53",
+          "title": "圆形咖啡滤纸-原色53mm",
+          "costRmb": 1.8,
+          "margin15": 1.84,
+          "margin10": 1.7,
+          "margin5": 1.57,
+          "breakEven": 1.47,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/673181400050.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "KFLZ-Y-Natural-56",
+          "title": "圆形咖啡滤纸-原色56mm",
+          "costRmb": 1.8,
+          "margin15": 1.84,
+          "margin10": 1.7,
+          "margin5": 1.57,
+          "breakEven": 1.47,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/673181400050.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "KFLZ-Y-Natural-60",
+          "title": "圆形咖啡滤纸-原色60mm",
+          "costRmb": 2.0,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.62,
+          "breakEven": 1.51,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/673181400050.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "KFLZ-Y-Natural-64",
+          "title": "圆形咖啡滤纸-原色64mm",
+          "costRmb": 2.0,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.62,
+          "breakEven": 1.51,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/673181400050.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "KFLZ-Y-Natural-68",
+          "title": "圆形咖啡滤纸-原色68mm",
+          "costRmb": 2.4,
+          "margin15": 1.99,
+          "margin10": 1.83,
+          "margin5": 1.7,
+          "breakEven": 1.58,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/673181400050.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "KFLZ-Y-White-53",
+          "title": "圆形咖啡滤纸-白色53mm",
+          "costRmb": 1.8,
+          "margin15": 1.84,
+          "margin10": 1.7,
+          "margin5": 1.57,
+          "breakEven": 1.47,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/673181400050.html",
+          "linkedQty": 20.0
+        },
+        {
+          "sku": "KFLZ-Y-White-56",
+          "title": "圆形咖啡滤纸-白色56mm",
+          "costRmb": 1.8,
+          "margin15": 1.84,
+          "margin10": 1.7,
+          "margin5": 1.57,
+          "breakEven": 1.47,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/673181400050.html",
+          "linkedQty": 30.0
+        },
+        {
+          "sku": "KFLZ-Y-White-60",
+          "title": "圆形咖啡滤纸-白色60mm",
+          "costRmb": 2.0,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.62,
+          "breakEven": 1.51,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/673181400050.html",
+          "linkedQty": 20.0
+        },
+        {
+          "sku": "KFLZ-Y-White-64",
+          "title": "圆形咖啡滤纸-白色64mm",
+          "costRmb": 2.0,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.62,
+          "breakEven": 1.51,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/673181400050.html",
+          "linkedQty": 20.0
+        },
+        {
+          "sku": "KFLZ-Y-White-68",
+          "title": "圆形咖啡滤纸-白色68mm",
+          "costRmb": 2.4,
+          "margin15": 1.99,
+          "margin10": 1.83,
+          "margin5": 1.7,
+          "breakEven": 1.58,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/673181400050.html",
+          "linkedQty": 20.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-033",
+      "name": "8字拉力器",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "8LLQ-80g-Pink",
+          "title": "8字拉力器-粉色",
+          "costRmb": 2.6,
+          "margin15": 2.03,
+          "margin10": 1.87,
+          "margin5": 1.74,
+          "breakEven": 1.62,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/832920018096.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "8LLQ-80g-Purple",
+          "title": "8字拉力器-紫色",
+          "costRmb": 2.6,
+          "margin15": 2.03,
+          "margin10": 1.87,
+          "margin5": 1.74,
+          "breakEven": 1.62,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/832920018096.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "8LLQ-80g-Green",
+          "title": "8字拉力器-绿色",
+          "costRmb": 2.6,
+          "margin15": 2.03,
+          "margin10": 1.87,
+          "margin5": 1.74,
+          "breakEven": 1.62,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/832920018096.html",
+          "linkedQty": 5.0
+        },
+        {
+          "sku": "8LLQ-80g-Blue",
+          "title": "8字拉力器-蓝色",
+          "costRmb": 2.6,
+          "margin15": 2.03,
+          "margin10": 1.87,
+          "margin5": 1.74,
+          "breakEven": 1.62,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/832920018096.html",
+          "linkedQty": 5.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-034",
+      "name": "TPE拉力带",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.5,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "LLD-TPE-PINK",
+          "title": "TPE拉力带-粉色",
+          "costRmb": 1.95,
+          "margin15": 1.88,
+          "margin10": 1.73,
+          "margin5": 1.61,
+          "breakEven": 1.5,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/892193768156.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "LLD-TPE-GREEN",
+          "title": "TPE拉力带-绿色",
+          "costRmb": 1.95,
+          "margin15": 1.88,
+          "margin10": 1.73,
+          "margin5": 1.61,
+          "breakEven": 1.5,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/892193768156.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "LLD-TPE-BLUE",
+          "title": "TPE拉力带-蓝色",
+          "costRmb": 1.95,
+          "margin15": 1.88,
+          "margin10": 1.73,
+          "margin5": 1.61,
+          "breakEven": 1.5,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/892193768156.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-035",
+      "name": "拉力片",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "LLD-FColor-5",
+          "title": "拉力片-五色套装",
+          "costRmb": 5.5,
+          "margin15": 2.72,
+          "margin10": 2.51,
+          "margin5": 2.33,
+          "breakEven": 2.17,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/918351312701.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-036",
+      "name": "普拉提小球",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "4to8",
+      "tierLabel": "4–8oz",
+      "shippingFee": 1.77,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "YJQ-Ball-CloudPink",
+          "title": "普拉提小球-云彩粉",
+          "costRmb": 4.5,
+          "margin15": 4.66,
+          "margin10": 4.29,
+          "margin5": 3.98,
+          "breakEven": 3.71,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          },
+          "purchaseLink": "https://detail.1688.com/offer/866416033910.html",
+          "linkedQty": 6.0
+        },
+        {
+          "sku": "YJQ-Ball-CloudPurple",
+          "title": "普拉提小球-云彩紫",
+          "costRmb": 4.5,
+          "margin15": 4.66,
+          "margin10": 4.29,
+          "margin5": 3.98,
+          "breakEven": 3.71,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          },
+          "purchaseLink": "https://detail.1688.com/offer/866416033910.html",
+          "linkedQty": 6.0
+        },
+        {
+          "sku": "YJQ-Ball-CloudBlue",
+          "title": "普拉提小球-云彩蓝",
+          "costRmb": 4.5,
+          "margin15": 4.66,
+          "margin10": 4.29,
+          "margin5": 3.98,
+          "breakEven": 3.71,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          },
+          "purchaseLink": "https://detail.1688.com/offer/866416033910.html",
+          "linkedQty": 3.0
+        },
+        {
+          "sku": "YJQ-Ball-Pink",
+          "title": "普拉提小球-粉色",
+          "costRmb": 2.15,
+          "margin15": 4.1,
+          "margin10": 3.78,
+          "margin5": 3.5,
+          "breakEven": 3.26,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          },
+          "purchaseLink": "https://detail.1688.com/offer/866416033910.html",
+          "linkedQty": 3.0
+        },
+        {
+          "sku": "YJQ-Ball-Purple",
+          "title": "普拉提小球-紫色",
+          "costRmb": 2.15,
+          "margin15": 4.1,
+          "margin10": 3.78,
+          "margin5": 3.5,
+          "breakEven": 3.26,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          },
+          "purchaseLink": "https://detail.1688.com/offer/866416033910.html",
+          "linkedQty": 3.0
+        },
+        {
+          "sku": "YJQ-Ball-Blue",
+          "title": "普拉提小球-蓝色",
+          "costRmb": 2.15,
+          "margin15": 4.1,
+          "margin10": 3.78,
+          "margin5": 3.5,
+          "breakEven": 3.26,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          },
+          "purchaseLink": "https://detail.1688.com/offer/866416033910.html",
+          "linkedQty": 3.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-038",
+      "name": "园艺手套",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "GardenGlove-Gray-BlackGrip",
+          "title": "园艺手套-灰黑胶",
+          "costRmb": 2.0,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.62,
+          "breakEven": 1.51,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/851425260057.html",
+          "linkedQty": 6.0
+        },
+        {
+          "sku": "GardenGlove-Purple-Violet",
+          "title": "园艺手套-紫色罗兰",
+          "costRmb": 2.0,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.62,
+          "breakEven": 1.51,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/851425260057.html",
+          "linkedQty": 6.0
+        },
+        {
+          "sku": "GardenGlove-Green-Hibiscus",
+          "title": "园艺手套-绿色木槿",
+          "costRmb": 2.0,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.62,
+          "breakEven": 1.51,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/851425260057.html",
+          "linkedQty": 6.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-039",
+      "name": "复古玻璃喷壶",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "12to16",
+      "tierLabel": "12–16oz",
+      "shippingFee": 3.22,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "Spraybottle-Grey-cc1",
+          "title": "复古玻璃喷壶-200ml款式1-彩色",
+          "costRmb": 4.0,
+          "margin15": 7.02,
+          "margin10": 6.47,
+          "margin5": 5.99,
+          "breakEven": 5.59,
+          "shippingFee": 3.22,
+          "fees": {
+            "margin15": 3.22,
+            "margin10": 3.22,
+            "margin5": 3.22,
+            "breakEven": 3.22
+          },
+          "purchaseLink": "https://detail.1688.com/offer/1031412790391.html",
+          "linkedQty": 2.0
+        },
+        {
+          "sku": "Spraybottle-Purple-cc1",
+          "title": "复古玻璃喷壶-200ml款式2-彩色",
+          "costRmb": 4.0,
+          "margin15": 7.02,
+          "margin10": 6.47,
+          "margin5": 5.99,
+          "breakEven": 5.59,
+          "shippingFee": 3.22,
+          "fees": {
+            "margin15": 3.22,
+            "margin10": 3.22,
+            "margin5": 3.22,
+            "breakEven": 3.22
+          },
+          "purchaseLink": "https://detail.1688.com/offer/1031412790391.html",
+          "linkedQty": 2.0
+        },
+        {
+          "sku": "Spraybottle-Brown-cc1",
+          "title": "复古玻璃喷壶-200ml款式3-彩色",
+          "costRmb": 4.0,
+          "margin15": 7.02,
+          "margin10": 6.47,
+          "margin5": 5.99,
+          "breakEven": 5.59,
+          "shippingFee": 3.22,
+          "fees": {
+            "margin15": 3.22,
+            "margin10": 3.22,
+            "margin5": 3.22,
+            "breakEven": 3.22
+          },
+          "purchaseLink": "https://detail.1688.com/offer/1031412790391.html",
+          "linkedQty": 2.0
+        },
+        {
+          "sku": "Spraybottle-Yellow-cc1",
+          "title": "复古玻璃喷壶-200ml款式4-彩色",
+          "costRmb": 4.0,
+          "margin15": 7.02,
+          "margin10": 6.47,
+          "margin5": 5.99,
+          "breakEven": 5.59,
+          "shippingFee": 3.22,
+          "fees": {
+            "margin15": 3.22,
+            "margin10": 3.22,
+            "margin5": 3.22,
+            "breakEven": 3.22
+          },
+          "purchaseLink": "https://detail.1688.com/offer/1031412790391.html",
+          "linkedQty": 2.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-040",
+      "name": "玫瑰去刺钳",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "Stripper-Pink",
+          "title": "玫瑰去刺钳-粉色",
+          "costRmb": 1.9,
+          "margin15": 1.87,
+          "margin10": 1.72,
+          "margin5": 1.6,
+          "breakEven": 1.49,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/720024493212.html",
+          "linkedQty": 3.0
+        },
+        {
+          "sku": "Stripper-Red",
+          "title": "玫瑰去刺钳-红色",
+          "costRmb": 1.9,
+          "margin15": 1.87,
+          "margin10": 1.72,
+          "margin5": 1.6,
+          "breakEven": 1.49,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/720024493212.html",
+          "linkedQty": 3.0
+        },
+        {
+          "sku": "Stripper-Green",
+          "title": "玫瑰去刺钳-绿色",
+          "costRmb": 1.9,
+          "margin15": 1.87,
+          "margin10": 1.72,
+          "margin5": 1.6,
+          "breakEven": 1.49,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/720024493212.html",
+          "linkedQty": 3.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-042",
+      "name": "香薰挥发棒",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "XXB-Reed-Sticks-Natural",
+          "title": "香薰挥发棒-原色藤条50支",
           "costRmb": 3.45,
-          "margin15": 6.74,
-          "margin10": null,
-          "margin5": null,
-          "breakEven": null
+          "margin15": 2.24,
+          "margin10": 2.06,
+          "margin5": 1.91,
+          "breakEven": 1.78,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/811247141047.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "XXB-Aroma-White",
+          "title": "香薰挥发棒-白色纤维50支",
+          "costRmb": 3.0,
+          "margin15": 2.13,
+          "margin10": 1.96,
+          "margin5": 1.82,
+          "breakEven": 1.69,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/811247141047.html",
+          "linkedQty": 10.0
+        },
+        {
+          "sku": "XXB-Aroma-Black",
+          "title": "香薰挥发棒-黑色纤维50支",
+          "costRmb": 3.0,
+          "margin15": 2.13,
+          "margin10": 1.96,
+          "margin5": 1.82,
+          "breakEven": 1.69,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          },
+          "purchaseLink": "https://detail.1688.com/offer/811247141047.html",
+          "linkedQty": 10.0
+        }
+      ]
+    },
+    {
+      "id": "hist-pending-043",
+      "name": "果冻鞋花配饰",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786285519,
+      "updatedAt": 1786285519,
+      "dateLabel": "领星同步旧货盘",
+      "tierId": "8to12",
+      "tierLabel": "8–12oz",
+      "shippingFee": 2.6,
+      "notes": "由《历史产品价格_待录入整理.xlsx》导入；按当前工作台快速定价规则生成四档利润价格。",
+      "rows": [
+        {
+          "sku": "Sandal-Transp-cc",
+          "title": "果冻鞋花配饰-透明",
+          "costRmb": 10.5,
+          "margin15": 7.5,
+          "margin10": 6.91,
+          "margin5": 6.41,
+          "breakEven": 5.97,
+          "shippingFee": 2.6,
+          "fees": {
+            "margin15": 2.6,
+            "margin10": 2.6,
+            "margin5": 2.6,
+            "breakEven": 2.6
+          },
+          "purchaseLink": "https://detail.1688.com/offer/948150392689.html",
+          "linkedQty": 3.0
+        },
+        {
+          "sku": "Sandal-Golden-cc",
+          "title": "果冻鞋花配饰-金色",
+          "costRmb": 10.5,
+          "margin15": 7.5,
+          "margin10": 6.91,
+          "margin5": 6.41,
+          "breakEven": 5.97,
+          "shippingFee": 2.6,
+          "fees": {
+            "margin15": 2.6,
+            "margin10": 2.6,
+            "margin5": 2.6,
+            "breakEven": 2.6
+          },
+          "purchaseLink": "https://detail.1688.com/offer/948150392689.html",
+          "linkedQty": 3.0
+        },
+        {
+          "sku": "Sandal-Black-cc",
+          "title": "果冻鞋花配饰-黑色",
+          "costRmb": 10.5,
+          "margin15": 7.5,
+          "margin10": 6.91,
+          "margin5": 6.41,
+          "breakEven": 5.97,
+          "shippingFee": 2.6,
+          "fees": {
+            "margin15": 2.6,
+            "margin10": 2.6,
+            "margin5": 2.6,
+            "breakEven": 2.6
+          },
+          "purchaseLink": "https://detail.1688.com/offer/948150392689.html",
+          "linkedQty": 3.0
         }
       ]
     }

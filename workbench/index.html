@@ -56,8 +56,32 @@
             <button type="button" class="filter-button" data-days="7" aria-pressed="false">最近7天</button>
             <button type="button" class="filter-button is-active" data-days="30" aria-pressed="true">最近30天</button>
             <button type="button" class="filter-button" data-days="all" aria-pressed="false">全部</button>
+            <button id="toggleBulkEditBtn" type="button" class="filter-button">批量编辑</button>
             <span id="historyCount" class="record-count"></span>
           </div>
+
+          <section id="bulkEditPanel" class="surface edit-panel is-hidden" aria-live="polite">
+            <div class="edit-panel-heading">
+              <div>
+                <h3>批量修改配送档位</h3>
+                <p>对勾选产品重算四档利润价格。</p>
+              </div>
+              <button id="closeBulkEditBtn" type="button" class="text-button">收起</button>
+            </div>
+            <div class="bulk-controls">
+              <label><span>配送档位</span><select id="bulkTierSelect"></select></label>
+              <button id="selectPageRecordsBtn" type="button" class="secondary-button">选择本页</button>
+              <button id="clearBulkSelectionBtn" type="button" class="secondary-button">清空选择</button>
+              <button id="saveBulkEditBtn" type="button" class="primary-button">保存选中产品</button>
+            </div>
+            <div class="table-scroll">
+              <table class="bulk-table">
+                <thead><tr><th></th><th>产品</th><th>SKU</th><th>当前配送</th><th>成本</th><th>保本价</th></tr></thead>
+                <tbody id="bulkEditRows"></tbody>
+              </table>
+            </div>
+            <div id="bulkEditStatus" class="edit-status"></div>
+          </section>
 
           <div class="surface table-surface">
             <div class="table-scroll">
@@ -80,6 +104,15 @@
             <div id="historyEmpty" class="empty-state is-hidden">当前范围内没有定价记录。</div>
           </div>
 
+          <div class="pagination-row">
+            <label>每页 <select id="pageSizeSelect"><option value="15">15</option><option value="30">30</option></select> 个产品</label>
+            <div class="pagination-controls">
+              <button id="prevPageBtn" type="button" class="secondary-button">上一页</button>
+              <span id="pageLabel"></span>
+              <button id="nextPageBtn" type="button" class="secondary-button">下一页</button>
+            </div>
+          </div>
+
           <section id="historyReport" class="surface report-panel is-hidden" aria-live="polite">
             <div class="report-heading">
               <div>
@@ -89,7 +122,10 @@
                 </div>
                 <p id="reportMeta"></p>
               </div>
-              <button id="copyReportBtn" class="secondary-button" type="button">复制四档价格</button>
+              <div class="report-actions">
+                <button id="editRecordBtn" class="secondary-button" type="button">编辑</button>
+                <button id="copyReportBtn" class="secondary-button" type="button">复制四档价格</button>
+              </div>
             </div>
 
             <div class="price-cards">
@@ -124,6 +160,33 @@
                 </table>
               </div>
             </details>
+
+            <section id="recordEditPanel" class="edit-panel is-hidden" aria-live="polite">
+              <div class="edit-panel-heading">
+                <div>
+                  <h3>编辑历史产品</h3>
+                  <p>保存时会按当前规则重新计算四档价格。</p>
+                </div>
+                <button id="cancelRecordEditBtn" type="button" class="text-button">取消</button>
+              </div>
+              <div class="edit-fields">
+                <label><span>产品名称</span><input id="editProductName" type="text"></label>
+                <label><span>日期标签</span><input id="editDateLabel" type="text"></label>
+                <label><span>配送档位</span><select id="editTierSelect"></select></label>
+              </div>
+              <label class="edit-notes"><span>备注</span><textarea id="editNotes" rows="3"></textarea></label>
+              <div class="table-scroll">
+                <table class="edit-sku-table">
+                  <thead><tr><th>SKU</th><th>款式标题</th><th>成本价（RMB）</th><th></th></tr></thead>
+                  <tbody id="editSkuRows"></tbody>
+                </table>
+              </div>
+              <div class="edit-actions">
+                <button id="addEditSkuBtn" type="button" class="secondary-button">添加SKU</button>
+                <button id="saveRecordEditBtn" type="button" class="primary-button">保存并重算</button>
+              </div>
+              <div id="recordEditStatus" class="edit-status"></div>
+            </section>
           </section>
         </section>
 

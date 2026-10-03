@@ -2,26 +2,22 @@
   "version": 1,
   "records": [
     {
-      "id": "w3-new-products-20260815-under4",
-      "name": "8月W3新品单（≤4oz）",
+      "name": "圆5cm耳环",
       "source": "quick",
-      "status": "priced",
-      "createdAt": 1786727093.660382,
-      "updatedAt": 1787421709.8400042,
-      "dateLabel": "8月W4覆盖W3新品",
+      "createdAt": 1789963200.0,
       "tierId": "under4",
       "tierLabel": "≤4oz",
       "shippingFee": null,
       "assumptions": {
-        "marketplace": "US",
         "currency_rate_rmb_to_usd": 7.2,
         "referral_fee_rate": 0.18,
         "return_rate": 0.1,
         "first_leg_shipping_usd": 0.3,
+        "disposal_fee_usd": 0.25,
+        "marketplace": "US",
         "target_margin_min": 0.15,
         "target_price_gap_usd": 0.39,
         "dimensional_weight_divisor": 139,
-        "disposal_fee_usd": 0.25,
         "dimensions": [
           10,
           10,
@@ -31,15 +27,13 @@
       },
       "rows": [
         {
-          "sku": "TTCA-Tape-Halloween",
-          "title": "万圣节装饰胶带",
-          "costRmb": 6.0,
-          "purchaseLink": "https://detail.1688.com/offer/1048315735281.html",
-          "linkedQty": 10.0,
-          "margin15": 2.84,
-          "margin10": 2.62,
-          "margin5": 2.43,
-          "breakEven": 2.26,
+          "sku": "TTCA-HoopEarring-Golden",
+          "title": "金色5CM",
+          "costRmb": 1.4,
+          "margin15": 1.75,
+          "margin10": 1.61,
+          "margin5": 1.49,
+          "breakEven": 1.39,
           "shippingFee": 0.5,
           "fees": {
             "margin15": 0.5,
@@ -49,33 +43,59 @@
           }
         },
         {
-          "sku": "TTCA-Tape-Warning",
-          "title": "酒吧装饰胶带",
-          "costRmb": 6.9,
-          "purchaseLink": "https://detail.1688.com/offer/1062097512645.html",
-          "linkedQty": 10.0,
-          "margin15": 3.7,
-          "margin10": 2.81,
-          "margin5": 2.61,
-          "breakEven": 2.43,
-          "shippingFee": 0.88,
+          "sku": "TTCA-HoopEarring-Sliver",
+          "title": "银色5CM",
+          "costRmb": 1.4,
+          "margin15": 1.75,
+          "margin10": 1.61,
+          "margin5": 1.49,
+          "breakEven": 1.39,
+          "shippingFee": 0.5,
           "fees": {
-            "margin15": 0.88,
+            "margin15": 0.5,
             "margin10": 0.5,
             "margin5": 0.5,
             "breakEven": 0.5
           }
-        },
+        }
+      ],
+      "notes": "由新品快速定价生成。默认尺寸重量仅在后台用于匹配配送档位，页面不展示。",
+      "id": "quick-484b963700a3",
+      "updatedAt": 1789988059.835006
+    },
+    {
+      "name": "9月W1新品单（≤4oz）",
+      "source": "quick",
+      "createdAt": 1789185600.0,
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "assumptions": {
+        "currency_rate_rmb_to_usd": 7.2,
+        "referral_fee_rate": 0.18,
+        "return_rate": 0.1,
+        "first_leg_shipping_usd": 0.3,
+        "disposal_fee_usd": 0.25,
+        "marketplace": "US",
+        "target_margin_min": 0.15,
+        "target_price_gap_usd": 0.39,
+        "dimensional_weight_divisor": 139,
+        "dimensions": [
+          10,
+          10,
+          2
+        ],
+        "weightG": 100
+      },
+      "rows": [
         {
-          "sku": "TTCA-BirdRing-Wood",
-          "title": "鹦鹉吊环",
-          "costRmb": 3.9,
-          "purchaseLink": "https://detail.1688.com/offer/1029033344444.html",
-          "linkedQty": 10.0,
-          "margin15": 2.34,
-          "margin10": 2.16,
-          "margin5": 2.0,
-          "breakEven": 1.87,
+          "sku": "CA-SpringBall-2pcs",
+          "title": "弹簧笼中鼠猫玩具",
+          "costRmb": 2.36,
+          "margin15": 1.98,
+          "margin10": 1.82,
+          "margin5": 1.69,
+          "breakEven": 1.57,
           "shippingFee": 0.5,
           "fees": {
             "margin15": 0.5,
@@ -85,15 +105,13 @@
           }
         },
         {
-          "sku": "TTCA-PillCutter-Transp",
-          "title": "切药盒透明款",
-          "costRmb": 0.92,
-          "purchaseLink": "https://detail.1688.com/offer/860645324672.html",
-          "linkedQty": 10.0,
-          "margin15": 1.63,
-          "margin10": 1.51,
-          "margin5": 1.4,
-          "breakEven": 1.3,
+          "sku": "CA-ScrewExtractor-Black",
+          "title": "双头螺丝取出器6件套",
+          "costRmb": 3.2,
+          "margin15": 2.18,
+          "margin10": 2,
+          "margin5": 1.86,
+          "breakEven": 1.73,
           "shippingFee": 0.5,
           "fees": {
             "margin15": 0.5,
@@ -103,47 +121,9 @@
           }
         },
         {
-          "sku": "TTCA-PillCutter-White",
-          "title": "切药盒白色款",
-          "costRmb": 2.57,
-          "purchaseLink": "https://detail.1688.com/offer/805950846483.html",
-          "linkedQty": 10.0,
-          "margin15": 2.03,
-          "margin10": 1.87,
-          "margin5": 1.73,
-          "breakEven": 1.61,
-          "shippingFee": 0.5,
-          "fees": {
-            "margin15": 0.5,
-            "margin10": 0.5,
-            "margin5": 0.5,
-            "breakEven": 0.5
-          }
-        },
-        {
-          "sku": "TTCA-PillCutter-Green",
-          "title": "切药盒绿色款",
-          "costRmb": 2.57,
-          "purchaseLink": "https://detail.1688.com/offer/805950846483.html",
-          "linkedQty": 10.0,
-          "margin15": 2.03,
-          "margin10": 1.87,
-          "margin5": 1.73,
-          "breakEven": 1.61,
-          "shippingFee": 0.5,
-          "fees": {
-            "margin15": 0.5,
-            "margin10": 0.5,
-            "margin5": 0.5,
-            "breakEven": 0.5
-          }
-        },
-        {
-          "sku": "TTCA-HolderBase-Yellow2",
-          "title": "牙刷底座",
+          "sku": "CA-CoinPurse-Black",
+          "title": "战术钥匙包黑色",
           "costRmb": 2.76,
-          "purchaseLink": "https://detail.1688.com/offer/1072706371147.html",
-          "linkedQty": 10.0,
           "margin15": 2.07,
           "margin10": 1.91,
           "margin5": 1.77,
@@ -157,11 +137,121 @@
           }
         },
         {
-          "sku": "TTCA-Hooks-Wood2",
-          "title": "木纹挂钩（2个套装）",
+          "sku": "CA-CoinPurse-White",
+          "title": "战术钥匙包白色",
+          "costRmb": 2.76,
+          "margin15": 2.07,
+          "margin10": 1.91,
+          "margin5": 1.77,
+          "breakEven": 1.65,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-YarnBall-1pcs",
+          "title": "铃铛毛线球猫玩具随机色",
+          "costRmb": 2.95,
+          "margin15": 2.12,
+          "margin10": 1.95,
+          "margin5": 1.81,
+          "breakEven": 1.69,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-SatinBonnet-3pcs",
+          "title": "宽边色丁睡帽黑色",
+          "costRmb": 4.71,
+          "margin15": 2.53,
+          "margin10": 2.34,
+          "margin5": 2.17,
+          "breakEven": 2.02,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-MAGNETHOOKS-2PCS",
+          "title": "强磁旋转登山扣L20",
+          "costRmb": 4.6,
+          "margin15": 2.51,
+          "margin10": 2.31,
+          "margin5": 2.14,
+          "breakEven": 2,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-StorageCrate-1pcs",
+          "title": "折叠塑料收纳盒奶油白",
+          "costRmb": 3.8,
+          "margin15": 2.32,
+          "margin10": 2.14,
+          "margin5": 1.98,
+          "breakEven": 1.85,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-FridgeMagnet-40pcs",
+          "title": "蓝色强力磁吸图钉40个装",
+          "costRmb": 7.6,
+          "margin15": 3.87,
+          "margin10": 2.97,
+          "margin5": 2.75,
+          "breakEven": 2.56,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-FunnyBookmark-1pcs",
+          "title": "德语感恩不锈钢书签",
+          "costRmb": 1.98,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.61,
+          "breakEven": 1.5,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-PlantClip-20pcs",
+          "title": "植物固定夹20个装",
           "costRmb": 1.7,
-          "purchaseLink": "https://detail.1688.com/offer/988630170573.html",
-          "linkedQty": 10.0,
           "margin15": 1.82,
           "margin10": 1.68,
           "margin5": 1.55,
@@ -175,11 +265,57 @@
           }
         },
         {
-          "sku": "TTCA-Grip-Black-1",
-          "title": "羽毛球胶带黑色",
+          "sku": "CA-EmergencyWhistle-1pcs",
+          "title": "绿色三频户外求生口哨",
+          "costRmb": 0.4,
+          "margin15": 1.51,
+          "margin10": 1.39,
+          "margin5": 1.29,
+          "breakEven": 1.2,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-PrecisionScrewdriver-11pcs",
+          "title": "盒装11PC精密螺丝刀套装",
+          "costRmb": 2.25,
+          "margin15": 1.95,
+          "margin10": 1.8,
+          "margin5": 1.67,
+          "breakEven": 1.55,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-MicrofiberCloth-5pcs",
+          "title": "随机色超细纤维清洁巾",
+          "costRmb": 1.475,
+          "margin15": 1.77,
+          "margin10": 1.63,
+          "margin5": 1.51,
+          "breakEven": 1.41,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-KeyTag-30pcs",
+          "title": "塑料钥匙标签混色装",
           "costRmb": 2.1,
-          "purchaseLink": "https://detail.1688.com/offer/620595737183.html",
-          "linkedQty": 10.0,
           "margin15": 1.91,
           "margin10": 1.76,
           "margin5": 1.64,
@@ -193,69 +329,13 @@
           }
         },
         {
-          "sku": "TTCA-Grip-White-1",
-          "title": "羽毛球胶带白色",
-          "costRmb": 2.1,
-          "purchaseLink": "https://detail.1688.com/offer/620595737183.html",
-          "linkedQty": 10.0,
-          "margin15": 1.91,
-          "margin10": 1.76,
-          "margin5": 1.64,
-          "breakEven": 1.52,
-          "shippingFee": 0.5,
-          "fees": {
-            "margin15": 0.5,
-            "margin10": 0.5,
-            "margin5": 0.5,
-            "breakEven": 0.5
-          }
-        },
-        {
-          "sku": "TTCA-Grip-B4",
-          "title": "羽毛球胶带黑色四条装",
-          "costRmb": 3.8,
-          "purchaseLink": "https://detail.1688.com/offer/620595737183.html",
-          "linkedQty": 10.0,
-          "margin15": 2.32,
-          "margin10": 2.14,
-          "margin5": 1.98,
-          "breakEven": 1.85,
-          "shippingFee": 0.5,
-          "fees": {
-            "margin15": 0.5,
-            "margin10": 0.5,
-            "margin5": 0.5,
-            "breakEven": 0.5
-          }
-        },
-        {
-          "sku": "TTCA-Grip-W4",
-          "title": "羽毛球胶带白色四条装",
-          "costRmb": 3.8,
-          "purchaseLink": "https://detail.1688.com/offer/620595737183.html",
-          "linkedQty": 10.0,
-          "margin15": 2.32,
-          "margin10": 2.14,
-          "margin5": 1.98,
-          "breakEven": 1.85,
-          "shippingFee": 0.5,
-          "fees": {
-            "margin15": 0.5,
-            "margin10": 0.5,
-            "margin5": 0.5,
-            "breakEven": 0.5
-          }
-        },
-        {
-          "sku": "TTCA-Poopbags-Pink4",
-          "title": "宠物用垃圾袋粉色（4卷）",
-          "costRmb": 7.32,
-          "purchaseLink": "https://detail.1688.com/offer/954588573563.html",
-          "linkedQty": 10.0,
-          "margin15": 3.8,
-          "margin10": 2.91,
-          "margin5": 2.69,
-          "breakEven": 2.51,
+          "sku": "CA-OrganzaBag-White",
+          "title": "白色欧根纱抽绳袋10×15cm",
+          "costRmb": 7.5,
+          "margin15": 3.85,
+          "margin10": 2.95,
+          "margin5": 2.73,
+          "breakEven": 2.55,
           "shippingFee": 0.88,
           "fees": {
             "margin15": 0.88,
@@ -265,11 +345,73 @@
           }
         },
         {
-          "sku": "TTCA-RepotMat-Yellow-66",
-          "title": "换土垫-黄色-66x66cm",
-          "costRmb": 2.0,
-          "purchaseLink": "https://detail.1688.com/offer/706551745083.html",
-          "linkedQty": 10.0,
+          "sku": "CA-MiniPadlock-2pcs",
+          "title": "黑色迷你三位密码挂锁",
+          "costRmb": 2.7,
+          "margin15": 2.06,
+          "margin10": 1.9,
+          "margin5": 1.76,
+          "breakEven": 1.64,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-WingNut-2pcs",
+          "title": "翼形螺母批头2件套",
+          "costRmb": 2.32,
+          "margin15": 1.97,
+          "margin10": 1.81,
+          "margin5": 1.68,
+          "breakEven": 1.57,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-PocketMultitool-3pcs",
+          "title": "钥匙扣多功能工具3件套",
+          "costRmb": 3.65,
+          "margin15": 2.28,
+          "margin10": 2.1,
+          "margin5": 1.95,
+          "breakEven": 1.82,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-SunCatcher-1pcs",
+          "title": "彩色水晶太阳捕手挂饰1件",
+          "costRmb": 3.75,
+          "margin15": 2.31,
+          "margin10": 2.13,
+          "margin5": 1.97,
+          "breakEven": 1.84,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-CardReader-1pcs",
+          "title": "白色Type-C三合一读卡器",
+          "costRmb": 2,
           "margin15": 1.89,
           "margin10": 1.74,
           "margin5": 1.62,
@@ -283,15 +425,13 @@
           }
         },
         {
-          "sku": "TTCA-RepotMat-Yellow",
-          "title": "换土垫-黄色-50x50cm",
-          "costRmb": 1.3,
-          "purchaseLink": "https://detail.1688.com/offer/706551745083.html",
-          "linkedQty": 10.0,
-          "margin15": 1.72,
-          "margin10": 1.59,
-          "margin5": 1.47,
-          "breakEven": 1.37,
+          "sku": "CA-FruitCorer-1pcs",
+          "title": "荧光绿色不锈钢水果去芯器",
+          "costRmb": 2.95,
+          "margin15": 2.12,
+          "margin10": 1.95,
+          "margin5": 1.81,
+          "breakEven": 1.69,
           "shippingFee": 0.5,
           "fees": {
             "margin15": 0.5,
@@ -301,15 +441,13 @@
           }
         },
         {
-          "sku": "TTCA-RepotMat-Green-66",
-          "title": "换土垫-绿色-66x66cm",
-          "costRmb": 1.8,
-          "purchaseLink": "https://detail.1688.com/offer/706551745083.html",
-          "linkedQty": 10.0,
-          "margin15": 1.84,
-          "margin10": 1.7,
-          "margin5": 1.57,
-          "breakEven": 1.47,
+          "sku": "CA-CatnipPillow-1pcs",
+          "title": "猫薄荷抱枕小号",
+          "costRmb": 3.3,
+          "margin15": 2.2,
+          "margin10": 2.03,
+          "margin5": 1.88,
+          "breakEven": 1.75,
           "shippingFee": 0.5,
           "fees": {
             "margin15": 0.5,
@@ -319,18 +457,21 @@
           }
         }
       ],
-      "notes": "已用《8月W4新品单.xlsx》覆盖上次W3新品记录：SKU、品名、采购成本、采购链接以W4新品单为准；运费档位以《8月W4深圳仓对货单和发货单.xlsx》为准。 换土垫尺寸暂按用户要求全部使用≤4oz默认数据。"
+      "notes": "由新品快速定价生成。默认尺寸重量仅在后台用于匹配配送档位，页面不展示。",
+      "id": "quick-8fe6e8d57107",
+      "updatedAt": 1789220680.104515,
+      "dateLabel": ""
     },
     {
       "id": "w3-new-products-20260815-4to8",
-      "name": "8月W3新品单（4-8oz）",
+      "name": "8月W4新品单（4-8oz）",
       "source": "quick",
       "status": "priced",
       "createdAt": 1786727093.660382,
-      "updatedAt": 1787421709.8400042,
-      "dateLabel": "8月W4覆盖W3新品",
+      "updatedAt": 1789219699.070475,
+      "dateLabel": "8月W4",
       "tierId": "4to8",
-      "tierLabel": "4-8oz",
+      "tierLabel": "4–8oz",
       "shippingFee": 1.77,
       "assumptions": {
         "marketplace": "US",
@@ -354,8 +495,6 @@
           "sku": "TTCA-PaperCutter-Black",
           "title": "卷纸切割器",
           "costRmb": 4.5,
-          "purchaseLink": "https://detail.1688.com/offer/853938985189.html",
-          "linkedQty": 10.0,
           "margin15": 4.66,
           "margin10": 4.29,
           "margin5": 3.98,
@@ -372,8 +511,6 @@
           "sku": "TTCA-Poop-BlueSet",
           "title": "宠物便携拾便袋蓝色套装",
           "costRmb": 13.68,
-          "purchaseLink": "https://detail.1688.com/offer/1019150642710.html",
-          "linkedQty": 10.0,
           "margin15": 6.84,
           "margin10": 6.3,
           "margin5": 5.84,
@@ -390,8 +527,6 @@
           "sku": "TTCA-Poop-PinkSet",
           "title": "宠物便携拾便袋粉色套装",
           "costRmb": 6.2,
-          "purchaseLink": "https://detail.1688.com/offer/954588573563.html",
-          "linkedQty": 10.0,
           "margin15": 5.06,
           "margin10": 4.66,
           "margin5": 4.32,
@@ -407,9 +542,7 @@
         {
           "sku": "TTCA-Poopbags-Blue4",
           "title": "宠物用垃圾袋蓝色（4卷）",
-          "costRmb": 2.0,
-          "purchaseLink": "https://detail.1688.com/offer/1019150642710.html",
-          "linkedQty": 10.0,
+          "costRmb": 2,
           "margin15": 4.06,
           "margin10": 3.74,
           "margin5": 3.47,
@@ -420,6 +553,294 @@
             "margin10": 1.77,
             "margin5": 1.77,
             "breakEven": 1.77
+          }
+        }
+      ],
+      "notes": "已用《8月W4新品单.xlsx》覆盖上次W3新品记录：SKU、品名、采购成本、采购链接以W4新品单为准；运费档位以《8月W4深圳仓对货单和发货单.xlsx》为准。 换土垫尺寸暂按用户要求全部使用≤4oz默认数据。"
+    },
+    {
+      "id": "w3-new-products-20260815-under4",
+      "name": "8月W4新品单（≤4oz）",
+      "source": "quick",
+      "status": "priced",
+      "createdAt": 1786727093.660382,
+      "updatedAt": 1789219685.6381419,
+      "dateLabel": "8月W4",
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "assumptions": {
+        "marketplace": "US",
+        "currency_rate_rmb_to_usd": 7.2,
+        "referral_fee_rate": 0.18,
+        "return_rate": 0.1,
+        "first_leg_shipping_usd": 0.3,
+        "target_margin_min": 0.15,
+        "target_price_gap_usd": 0.39,
+        "dimensional_weight_divisor": 139,
+        "disposal_fee_usd": 0.25,
+        "dimensions": [
+          10,
+          10,
+          2
+        ],
+        "weightG": 100
+      },
+      "rows": [
+        {
+          "sku": "TTCA-Tape-Halloween",
+          "title": "万圣节装饰胶带",
+          "costRmb": 6,
+          "margin15": 2.84,
+          "margin10": 2.62,
+          "margin5": 2.43,
+          "breakEven": 2.26,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-Tape-Warning",
+          "title": "酒吧装饰胶带",
+          "costRmb": 6.9,
+          "margin15": 3.7,
+          "margin10": 2.81,
+          "margin5": 2.61,
+          "breakEven": 2.43,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-BirdRing-Wood",
+          "title": "鹦鹉吊环",
+          "costRmb": 3.9,
+          "margin15": 2.34,
+          "margin10": 2.16,
+          "margin5": 2,
+          "breakEven": 1.87,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-PillCutter-Transp",
+          "title": "切药盒透明款",
+          "costRmb": 0.92,
+          "margin15": 1.63,
+          "margin10": 1.51,
+          "margin5": 1.4,
+          "breakEven": 1.3,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-PillCutter-White",
+          "title": "切药盒白色款",
+          "costRmb": 2.57,
+          "margin15": 2.03,
+          "margin10": 1.87,
+          "margin5": 1.73,
+          "breakEven": 1.61,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-PillCutter-Green",
+          "title": "切药盒绿色款",
+          "costRmb": 2.57,
+          "margin15": 2.03,
+          "margin10": 1.87,
+          "margin5": 1.73,
+          "breakEven": 1.61,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-HolderBase-Yellow2",
+          "title": "牙刷底座",
+          "costRmb": 2.76,
+          "margin15": 2.07,
+          "margin10": 1.91,
+          "margin5": 1.77,
+          "breakEven": 1.65,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-Hooks-Wood2",
+          "title": "木纹挂钩（2个套装）",
+          "costRmb": 1.7,
+          "margin15": 1.82,
+          "margin10": 1.68,
+          "margin5": 1.55,
+          "breakEven": 1.45,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-Grip-Black-1",
+          "title": "羽毛球胶带黑色",
+          "costRmb": 2.1,
+          "margin15": 1.91,
+          "margin10": 1.76,
+          "margin5": 1.64,
+          "breakEven": 1.52,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-Grip-White-1",
+          "title": "羽毛球胶带白色",
+          "costRmb": 2.1,
+          "margin15": 1.91,
+          "margin10": 1.76,
+          "margin5": 1.64,
+          "breakEven": 1.52,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-Grip-B4",
+          "title": "羽毛球胶带黑色四条装",
+          "costRmb": 3.8,
+          "margin15": 2.32,
+          "margin10": 2.14,
+          "margin5": 1.98,
+          "breakEven": 1.85,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-Grip-W4",
+          "title": "羽毛球胶带白色四条装",
+          "costRmb": 3.8,
+          "margin15": 2.32,
+          "margin10": 2.14,
+          "margin5": 1.98,
+          "breakEven": 1.85,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-Poopbags-Pink4",
+          "title": "宠物用垃圾袋粉色（4卷）",
+          "costRmb": 7.32,
+          "margin15": 3.8,
+          "margin10": 2.91,
+          "margin5": 2.69,
+          "breakEven": 2.51,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-RepotMat-Yellow-66",
+          "title": "换土垫-黄色-66x66cm",
+          "costRmb": 2,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.62,
+          "breakEven": 1.51,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-RepotMat-Yellow",
+          "title": "换土垫-黄色-50x50cm",
+          "costRmb": 1.3,
+          "margin15": 1.72,
+          "margin10": 1.59,
+          "margin5": 1.47,
+          "breakEven": 1.37,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-RepotMat-Green-66",
+          "title": "换土垫-绿色-66x66cm",
+          "costRmb": 1.8,
+          "margin15": 1.84,
+          "margin10": 1.7,
+          "margin5": 1.57,
+          "breakEven": 1.47,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
           }
         }
       ],

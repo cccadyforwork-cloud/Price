@@ -9,17 +9,18 @@ const SHIPPING_TIERS = {
 const appState = {
   pricing: {
     currency_rate_rmb_to_usd: 7.2,
-    referral_fee_rate: 0.18,
-    return_rate: 0.1,
-    first_leg_shipping_usd: 0.3,
-    disposal_fee_usd: 0.25
+    referral_fee_rate: 0.15,
+    return_rate: 0.05,
+    return_rate_price_threshold_usd: 3,
+    first_leg_shipping_usd: 0.4,
+    disposal_fee_usd: 0
   },
   quickRecords: [],
   outputRecords: [],
   normalizedRecords: [],
   selectedRecordId: "",
   selectedTierId: "under4",
-  historyDays: 30,
+  historyDays: "all",
   historyPage: 1,
   pageSize: 15,
   bulkEditOpen: false,
@@ -65,6 +66,14 @@ function rangeText(rows, key) {
   return Math.abs(maximum - minimum) < 0.005 ? money(minimum) : `${money(minimum)}–${money(maximum)}`;
 }
 
+function rmbRange(rows, key) {
+  const values = rows.map((row) => Number(row[key])).filter((value) => Number.isFinite(value) && value > 0);
+  if (!values.length) return "—";
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+  return Math.abs(maximum - minimum) < 0.005 ? rmb(minimum) : `${rmb(minimum)}–${rmb(maximum)}`;
+}
+
 function costRange(rows) {
   const values = rows.map((row) => Number(row.costRmb)).filter((value) => Number.isFinite(value) && value > 0);
   if (!values.length) return "—";
@@ -79,58 +88,94 @@ function feeForTier(tier, price) {
   return Number(tier.fee || 0);
 }
 
-function pricingFactors() {
+function pricingFactors(returnRate = null) {
   const pricing = appState.pricing;
-  const referral = Number(pricing.referral_fee_rate || 0.18);
-  const returns = Number(pricing.return_rate || 0.1);
+  const referral = Number(pricing.referral_fee_rate ?? 0.15);
+  const returns = returnRate === null ? Number(pricing.return_rate ?? 0.05) : Number(returnRate);
   const factor = (1 - returns) * (1 - referral) - returns * referral * referral;
   return {
     currencyRate: Number(pricing.currency_rate_rmb_to_usd || 7.2),
     referral,
     returns,
     firstLeg: Number(pricing.first_leg_shipping_usd || 0.3),
-    disposal: Number(pricing.disposal_fee_usd || 0.25),
+    disposal: Number(pricing.disposal_fee_usd ?? 0),
     factor
   };
+}
+
+function returnRateThreshold() {
+  return Number(appState.pricing.return_rate_price_threshold_usd ?? 3);
 }
 
 function roundUpCents(value) {
   return Math.ceil((Number(value || 0) - 1e-9) * 100) / 100;
 }
 
-function calculatePrice(costRmbValue, tier, margin) {
-  const factors = pricingFactors();
+function calculatePriceInRegime(costRmbValue, tier, margin, returnRate, referencePrice) {
+  const factors = pricingFactors(returnRate);
   const costUsd = Number(costRmbValue || 0) / factors.currencyRate;
-  let price = 2.99;
-  let shippingFee = feeForTier(tier, price);
-  for (let index = 0; index < 6; index += 1) {
-    const fixedCost = costUsd + factors.firstLeg + shippingFee + factors.disposal * factors.returns;
-    price = fixedCost / Math.max(0.1, factors.factor - margin);
-    shippingFee = feeForTier(tier, price);
-  }
+  const shippingFee = feeForTier(tier, referencePrice);
   const fixedCost = costUsd + factors.firstLeg + shippingFee + factors.disposal * factors.returns;
   const rawPrice = fixedCost / Math.max(0.1, factors.factor - margin);
   const suggestedPrice = roundUpCents(rawPrice);
-  return { price: suggestedPrice, rawPrice, shippingFee: feeForTier(tier, suggestedPrice), costUsd, fixedCost };
+  const profitUsd = suggestedPrice * factors.factor - fixedCost;
+  return { price: suggestedPrice, rawPrice, shippingFee, costUsd, fixedCost, profitUsd, profitRmb: profitUsd * factors.currencyRate, returnRate: factors.returns };
+}
+
+function calculatePrice(costRmbValue, tier, margin) {
+  const threshold = returnRateThreshold();
+  const configuredReturnRate = Number(appState.pricing.return_rate ?? 0.05);
+  const withoutReturns = calculatePriceInRegime(costRmbValue, tier, margin, 0, threshold);
+  if (withoutReturns.price <= threshold) return withoutReturns;
+
+  const withReturns = calculatePriceInRegime(costRmbValue, tier, margin, configuredReturnRate, threshold + 0.01);
+  const suggestedPrice = Math.max(roundUpCents(threshold + 0.01), withReturns.price);
+  const factors = pricingFactors(configuredReturnRate);
+  const shippingFee = feeForTier(tier, suggestedPrice);
+  const fixedCost = withReturns.costUsd + factors.firstLeg + shippingFee + factors.disposal * factors.returns;
+  const profitUsd = suggestedPrice * factors.factor - fixedCost;
+  return {
+    ...withReturns,
+    price: suggestedPrice,
+    shippingFee,
+    fixedCost,
+    profitUsd,
+    profitRmb: profitUsd * factors.currencyRate,
+    returnRate: configuredReturnRate
+  };
 }
 
 function calculateSku(row, tier) {
-  const margin15 = calculatePrice(row.costRmb, tier, 0.15);
+  const margin40 = calculatePrice(row.costRmb, tier, 0.4);
+  const margin30 = calculatePrice(row.costRmb, tier, 0.3);
+  const margin20 = calculatePrice(row.costRmb, tier, 0.2);
   const margin10 = calculatePrice(row.costRmb, tier, 0.1);
-  const margin5 = calculatePrice(row.costRmb, tier, 0.05);
   const breakEven = calculatePrice(row.costRmb, tier, 0);
   return {
     ...row,
-    margin15: margin15.price,
+    margin40: margin40.price,
+    margin30: margin30.price,
+    margin20: margin20.price,
     margin10: margin10.price,
-    margin5: margin5.price,
+    profit40Rmb: margin40.profitRmb,
+    profit30Rmb: margin30.profitRmb,
+    profit20Rmb: margin20.profitRmb,
+    profit10Rmb: margin10.profitRmb,
     breakEven: breakEven.price,
-    shippingFee: margin15.shippingFee,
+    shippingFee: margin30.shippingFee,
     fees: {
-      margin15: margin15.shippingFee,
+      margin40: margin40.shippingFee,
+      margin30: margin30.shippingFee,
+      margin20: margin20.shippingFee,
       margin10: margin10.shippingFee,
-      margin5: margin5.shippingFee,
       breakEven: breakEven.shippingFee
+    },
+    returnRates: {
+      margin40: margin40.returnRate,
+      margin30: margin30.returnRate,
+      margin20: margin20.returnRate,
+      margin10: margin10.returnRate,
+      breakEven: breakEven.returnRate
     }
   };
 }
@@ -190,19 +235,30 @@ function editableRecord(record) {
 }
 
 function normalizeQuickRecord(record) {
-  const rows = Array.isArray(record.rows) ? record.rows.map((row, index) => ({
-    sku: row.sku || `SKU-${index + 1}`,
-    title: row.title || "默认款",
-    costRmb: Number(row.costRmb ?? row.cost) || null,
-    margin15: Number(row.margin15) || null,
-    margin10: Number(row.margin10) || null,
-    margin5: Number(row.margin5) || null,
-    breakEven: Number(row.breakEven) || null,
-    shippingFee: Number(row.shippingFee ?? record.shippingFee) || null,
-    fees: row.fees || null,
-    purchaseLink: row.purchaseLink || "",
-    linkedQty: row.linkedQty ?? null
-  })) : [];
+  const tier = tierForRecord(record);
+  const rows = Array.isArray(record.rows) ? record.rows.map((row, index) => {
+    const costRmb = Number(row.costRmb ?? row.cost) || null;
+    const calculated40 = costRmb && tier ? calculatePrice(costRmb, tier, 0.4) : null;
+    return {
+      ...row,
+      sku: row.sku || `SKU-${index + 1}`,
+      title: row.title || "默认款",
+      costRmb,
+      margin40: Number(row.margin40) || calculated40?.price || null,
+      margin30: Number(row.margin30 ?? row.margin15) || null,
+      margin20: Number(row.margin20) || null,
+      margin10: Number(row.margin10) || null,
+      profit40Rmb: Number(row.profit40Rmb) || calculated40?.profitRmb || null,
+      profit30Rmb: Number(row.profit30Rmb) || null,
+      profit20Rmb: Number(row.profit20Rmb) || null,
+      profit10Rmb: Number(row.profit10Rmb) || null,
+      breakEven: Number(row.breakEven) || null,
+      shippingFee: Number(row.shippingFee ?? record.shippingFee) || null,
+      fees: { ...(row.fees || {}), ...(calculated40 ? { margin40: calculated40.shippingFee } : {}) },
+      purchaseLink: row.purchaseLink || "",
+      linkedQty: row.linkedQty ?? null
+    };
+  }) : [];
   return {
     ...record,
     id: record.id || `quick-${record.name}`,
@@ -221,7 +277,7 @@ function normalizeOutputRecord(record) {
   const rows = sourceRows.map((row, index) => {
     const base = { sku: row.sku || `SKU-${index + 1}`, title: row.spec || row.title || "默认款", costRmb: Number(row.cost) || null };
     if (!base.costRmb || !tier) {
-      return { ...base, shippingFee: fee || null, margin15: null, margin10: null, margin5: null, breakEven: null };
+      return { ...base, shippingFee: fee || null, margin40: null, margin30: null, margin20: null, margin10: null, profit40Rmb: null, profit30Rmb: null, profit20Rmb: null, profit10Rmb: null, breakEven: null };
     }
     return calculateSku(base, tier);
   });
@@ -234,7 +290,7 @@ function normalizeOutputRecord(record) {
     tierLabel: tier?.label || (fee ? `历史配送费 $${fee.toFixed(2)}` : "配送档位待确认"),
     shippingFee: fee || null,
     rows,
-    notes: rows.some((row) => !row.margin15) ? "历史文件缺少可用于四档重算的成本或配送档位，请人工补充。" : "根据历史结果中的成本和配送档位，按当前系统参数重算四档利润价格。"
+    notes: rows.some((row) => !row.margin30) ? "历史文件缺少可用于五档重算的成本或配送档位，请人工补充。" : "根据历史结果中的成本和配送档位，按当前系统参数重算 40% / 30% / 20% / 10% 利润价格。"
   };
 }
 
@@ -294,9 +350,10 @@ function renderHistory() {
         <td>${escapeHtml(formatDate(record))}</td>
         <td>${record.rows.length}款</td>
         <td><span class="tier-pill">${escapeHtml(record.tierLabel)}${escapeHtml(feeText)}</span></td>
-        <td class="primary-price">${rangeText(record.rows, "margin15")}</td>
-        <td>${rangeText(record.rows, "margin10")}</td>
-        <td>${rangeText(record.rows, "margin5")}</td>
+        <td class="tier-40">${rangeText(record.rows, "margin40")}<br><span class="muted">预计毛利 ${rmbRange(record.rows, "profit40Rmb")}</span></td>
+        <td class="tier-30">${rangeText(record.rows, "margin30")}<br><span class="muted">预计毛利 ${rmbRange(record.rows, "profit30Rmb")}</span></td>
+        <td class="tier-20">${rangeText(record.rows, "margin20")}<br><span class="muted">预计毛利 ${rmbRange(record.rows, "profit20Rmb")}</span></td>
+        <td class="tier-10">${rangeText(record.rows, "margin10")}<br><span class="muted">预计毛利 ${rmbRange(record.rows, "profit10Rmb")}</span></td>
         <td class="floor-price">${rangeText(record.rows, "breakEven")}</td>
       </tr>`;
   }).join("");
@@ -321,17 +378,17 @@ function parameterRows(record) {
     ["人民币兑美元", `1 USD = ¥${factors.currencyRate.toFixed(2)}`],
     ["中国头程", money(factors.firstLeg)],
     ["亚马逊抽佣", `${(factors.referral * 100).toFixed(0)}%`],
-    ["退货率", `${(factors.returns * 100).toFixed(0)}%`],
-    ["弃置费", money(factors.disposal)]
+    ["退货率", `0%（售价≤${money(returnRateThreshold())}） / ${(factors.returns * 100).toFixed(0)}%（售价>${money(returnRateThreshold())}）`],
+    ["弃置费", factors.disposal > 0 ? money(factors.disposal) : "$0.00（不计）"]
   ];
 }
 
 function renderSkuRows(targetId, record) {
   $(targetId).innerHTML = record.rows.map((row) => {
-    const fee = Number(row.shippingFee || row.fees?.margin15 || record.shippingFee);
+    const fee = Number(row.shippingFee || row.fees?.margin30 || row.fees?.margin15 || record.shippingFee);
     return `<tr>
       <td>${escapeHtml(row.sku || "—")}</td><td>${escapeHtml(row.title || "—")}</td><td>${rmb(row.costRmb)}</td>
-      <td>${money(fee)}</td><td class="primary-price">${money(row.margin15)}</td><td>${money(row.margin10)}</td><td>${money(row.margin5)}</td><td class="floor-price">${money(row.breakEven)}</td>
+      <td>${money(fee)}</td><td class="tier-40">${money(row.margin40)}<br><span class="muted">毛利 ${rmb(row.profit40Rmb)}</span></td><td class="tier-30">${money(row.margin30)}<br><span class="muted">毛利 ${rmb(row.profit30Rmb)}</span></td><td class="tier-20">${money(row.margin20)}<br><span class="muted">毛利 ${rmb(row.profit20Rmb)}</span></td><td class="tier-10">${money(row.margin10)}<br><span class="muted">毛利 ${rmb(row.profit10Rmb)}</span></td><td class="floor-price">${money(row.breakEven)}</td>
     </tr>`;
   }).join("");
 }
@@ -504,16 +561,22 @@ function renderRecordReport(record) {
   $("reportProductName").textContent = `${record.name} · 定价分析报告`;
   $("reportMeta").textContent = `${formatDate(record)} · ${record.rows.length}个SKU · ${record.tierLabel}`;
   $("reportReviewTag").classList.toggle("is-hidden", record.status !== "needs_review");
-  $("reportMargin15").textContent = rangeText(record.rows, "margin15");
+  $("reportMargin40").textContent = rangeText(record.rows, "margin40");
+  $("reportMargin30").textContent = rangeText(record.rows, "margin30");
+  $("reportMargin20").textContent = rangeText(record.rows, "margin20");
   $("reportMargin10").textContent = rangeText(record.rows, "margin10");
-  $("reportMargin5").textContent = rangeText(record.rows, "margin5");
+  $("reportProfit40").textContent = `预计毛利 ${rmbRange(record.rows, "profit40Rmb")}`;
+  $("reportProfit30").textContent = `预计毛利 ${rmbRange(record.rows, "profit30Rmb")}`;
+  $("reportProfit20").textContent = `预计毛利 ${rmbRange(record.rows, "profit20Rmb")}`;
+  $("reportProfit10").textContent = `预计毛利 ${rmbRange(record.rows, "profit10Rmb")}`;
   $("reportBreakEven").textContent = rangeText(record.rows, "breakEven");
   $("reportParameters").innerHTML = parameterRows(record).map(([label, value]) => `<dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd>`).join("");
   if (record.status === "needs_review") {
-    $("reportFormula").innerHTML = `<p><strong>当前展示：</strong>手写资料中能够明确辨认的原始利润价格。</p><p><strong>待确认项：</strong>显示为“—”，确认成本和配送档位后可在快速定价中重新计算。</p><p><strong>安全处理：</strong>手写页中被划掉、重复推导或字迹不清的数字没有直接当成最终价格。</p>`;
+    const factors = pricingFactors();
+    $("reportFormula").innerHTML = `<p><strong>当前展示：</strong>已用当前 40% / 30% / 20% / 10% 规则，根据录入的成本和配送档位重算。</p><p><strong>退货规则：</strong>售价不高于 ${money(returnRateThreshold())} 时退货率按 0% 计算；售价高于 ${money(returnRateThreshold())} 时按 ${(factors.returns * 100).toFixed(0)}% 计算。</p><p><strong>待确认项：</strong>“待确认”仅表示原始手写资料的产品名、成本或配送档位仍建议人工核对。</p><p><strong>预计毛利：</strong>40%、30%、20% 和 10% 价格下的利润已按当前汇率换算为人民币。</p>`;
   } else {
     const factors = pricingFactors();
-    $("reportFormula").innerHTML = `<p><strong>单件美元成本</strong> = 人民币成本 ÷ ${factors.currencyRate.toFixed(2)}</p><p><strong>固定成本</strong> = 商品成本 + 头程 ${money(factors.firstLeg)} + 配送费 + 退货弃置预留</p><p><strong>保本价</strong> = 固定成本 ÷ 净入账系数；<strong>利润价</strong> = 固定成本 ÷（净入账系数 − 目标利润率）</p><p>各档结果统一向上取整到美分；≤4oz根据计算售价自动切换 $0.50 / $0.88。</p>`;
+    $("reportFormula").innerHTML = `<p><strong>单件美元成本</strong> = 人民币成本 ÷ ${factors.currencyRate.toFixed(2)}</p><p><strong>固定成本</strong> = 商品成本 + 头程 ${money(factors.firstLeg)} + 配送费；所有产品弃置费按 $0.00 计算。</p><p><strong>退货规则</strong>：售价不高于 ${money(returnRateThreshold())} 时退货率按 0% 计算；售价高于 ${money(returnRateThreshold())} 时按 ${(factors.returns * 100).toFixed(0)}% 计算。</p><p><strong>保本价</strong> = 固定成本 ÷ 净入账系数；<strong>利润价</strong> = 固定成本 ÷（净入账系数 − 目标利润率）</p><p>各档结果统一向上取整到美分；≤4oz根据计算售价自动切换 $0.50 / $0.88。</p>`;
   }
   $("reportNotesBlock").classList.toggle("is-hidden", !record.notes);
   $("reportNotes").textContent = record.notes || "";
@@ -534,7 +597,7 @@ function switchView(view) {
   const history = view === "history";
   $("historyView").classList.toggle("is-hidden", !history);
   $("quickView").classList.toggle("is-hidden", history);
-  $("pageTitle").textContent = history ? "近30天产品定价" : "新品快速定价";
+  $("pageTitle").textContent = history ? "产品定价记录" : "新品快速定价";
   $("pageSubtitle").textContent = history ? "先看产品汇总，再查看SKU和核心计算过程" : "输入SKU、款式标题和成本价即可批量计算";
   document.querySelectorAll(".nav-button[data-view]").forEach((button) => {
     const active = button.dataset.view === view;
@@ -624,6 +687,29 @@ async function saveQuickRecord(record) {
   return normalizeQuickRecord(payload.record);
 }
 
+function notifyEmbeddedPricingRecord(record) {
+  const params = new URLSearchParams(location.search);
+  if (params.get("embed") !== "1" || !params.get("project_id") || !record?.id) return;
+  let parentOrigin;
+  try { parentOrigin = new URL(document.referrer).origin; } catch { return; }
+  if (!["http://127.0.0.1:8770", "http://localhost:8770"].includes(parentOrigin)) return;
+  window.parent.postMessage({
+    type: "store-ops-pricing-record",
+    projectId: params.get("project_id"),
+    recordId: record.id,
+    productName: record.name,
+    skus: (record.rows || []).map((row) => row.sku).filter(Boolean)
+  }, parentOrigin);
+}
+
+function notifyLatestEmbeddedPricingRecord() {
+  const name = new URLSearchParams(location.search).get("product_name");
+  if (!name) return;
+  const records = appState.quickRecords.filter((record) => record?.name === name && record.source === "quick");
+  records.sort((a, b) => Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0));
+  if (records[0]) notifyEmbeddedPricingRecord(records[0]);
+}
+
 async function calculateAndSave() {
   const name = $("quickProductName").value.trim();
   const rows = validQuickRows();
@@ -661,13 +747,19 @@ async function calculateAndSave() {
     appState.latestSavedId = saved.id;
     $("quickResult").classList.remove("is-hidden");
     $("quickResultName").textContent = `${saved.name} · 计算结果`;
-    $("quickMargin15").textContent = rangeText(saved.rows, "margin15");
+    $("quickMargin40").textContent = rangeText(saved.rows, "margin40");
+    $("quickMargin30").textContent = rangeText(saved.rows, "margin30");
+    $("quickMargin20").textContent = rangeText(saved.rows, "margin20");
     $("quickMargin10").textContent = rangeText(saved.rows, "margin10");
-    $("quickMargin5").textContent = rangeText(saved.rows, "margin5");
+    $("quickProfit40").textContent = `预计毛利 ${rmbRange(saved.rows, "profit40Rmb")}`;
+    $("quickProfit30").textContent = `预计毛利 ${rmbRange(saved.rows, "profit30Rmb")}`;
+    $("quickProfit20").textContent = `预计毛利 ${rmbRange(saved.rows, "profit20Rmb")}`;
+    $("quickProfit10").textContent = `预计毛利 ${rmbRange(saved.rows, "profit10Rmb")}`;
     $("quickBreakEven").textContent = rangeText(saved.rows, "breakEven");
     renderSkuRows("quickResultRows", saved);
     renderHistory();
     setStatus(`“${saved.name}”已保存，共${saved.rows.length}个SKU。`, "ok");
+    notifyEmbeddedPricingRecord(saved);
     $("quickResult").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (errorObject) {
     setStatus(errorObject.message || "保存失败", "error");
@@ -679,10 +771,10 @@ async function calculateAndSave() {
 async function copySelectedReport() {
   const record = appState.normalizedRecords.find((item) => item.id === appState.selectedRecordId);
   if (!record) return;
-  const text = `${record.name}\n15%利润价：${rangeText(record.rows, "margin15")}\n10%利润价：${rangeText(record.rows, "margin10")}\n5%利润价：${rangeText(record.rows, "margin5")}\n保本价：${rangeText(record.rows, "breakEven")}`;
+  const text = `${record.name}\n40%利润价：${rangeText(record.rows, "margin40")}（预计毛利 ${rmbRange(record.rows, "profit40Rmb")}）\n30%利润价：${rangeText(record.rows, "margin30")}（预计毛利 ${rmbRange(record.rows, "profit30Rmb")}）\n20%利润价：${rangeText(record.rows, "margin20")}（预计毛利 ${rmbRange(record.rows, "profit20Rmb")}）\n10%利润价：${rangeText(record.rows, "margin10")}（预计毛利 ${rmbRange(record.rows, "profit10Rmb")}）\n保底价：${rangeText(record.rows, "breakEven")}`;
   try {
     await navigator.clipboard.writeText(text);
-    setStatus("四档价格已复制。", "ok");
+    setStatus("五档价格已复制。", "ok");
   } catch (error) {
     setStatus("浏览器未允许复制，请手动选择价格。", "warn");
   }
@@ -704,6 +796,7 @@ async function loadData() {
     appState.outputRecords = historyResponse.ok ? (await historyResponse.json()).records?.filter((record) => !record.error) || [] : [];
     rebuildNormalizedRecords();
     renderHistory();
+    notifyLatestEmbeddedPricingRecord();
     const first = visibleRecords()[0];
     if (first) selectRecord(first.id, { scroll: false });
     setStatus(`已载入${appState.normalizedRecords.length}个产品记录。`, "ok");
@@ -808,11 +901,34 @@ function initEvents() {
   });
 }
 
+function applyLaunchContext() {
+  const params = new URLSearchParams(window.location.search);
+  const embedded = params.get("embed") === "1";
+  if (embedded) document.documentElement.dataset.embed = "1";
+  document.documentElement.dataset.theme = params.get("theme") === "dark" ? "dark" : "light";
+  if (params.get("view") !== "quick") return;
+  switchView("quick");
+  const productName = (params.get("product_name") || "").trim().slice(0, 160);
+  const skus = [...new Set(params.getAll("sku").map((value) => value.trim()).filter(Boolean))].slice(0, 50);
+  if (productName) $("quickProductName").value = productName;
+  if (skus.length) renderQuickRows(skus.map((sku) => ({ sku, title: productName, costRmb: "" })));
+  if (embedded) $("quickProductName").focus({ preventScroll: true });
+}
+
+window.addEventListener("message", (event) => {
+  if (document.documentElement.dataset.embed !== "1") return;
+  if (!["http://127.0.0.1:8770", "http://localhost:8770"].includes(event.origin)) return;
+  if (event.data?.type !== "store-ops-theme") return;
+  document.documentElement.dataset.theme = event.data.theme === "dark" ? "dark" : "light";
+});
+
 document.addEventListener("DOMContentLoaded", () => {
-  $("quickPricingDate").value = new Date().toISOString().slice(0, 10);
+  const today = new Date();
+  $("quickPricingDate").value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   $("editTierSelect").innerHTML = tierOptionsHtml();
   $("bulkTierSelect").innerHTML = tierOptionsHtml();
   renderQuickRows();
   initEvents();
+  applyLaunchContext();
   loadData();
 });

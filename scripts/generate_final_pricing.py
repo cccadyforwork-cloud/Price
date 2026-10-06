@@ -170,9 +170,11 @@ def metrics(row, price, total_qty, config):
         + fba_fee
         + config["disposal_fee_usd"]
     )
+    return_threshold = config.get("return_rate_price_threshold_usd", 3.0)
+    effective_return_rate = config["return_rate"] if price > return_threshold else 0.0
     expected_profit = (
-        (1 - config["return_rate"]) * sold_profit
-        - config["return_rate"] * return_loss
+        (1 - effective_return_rate) * sold_profit
+        - effective_return_rate * return_loss
     )
     margin = expected_profit / price if price else 0
     return {
@@ -185,6 +187,7 @@ def metrics(row, price, total_qty, config):
         "unit_cost_usd": unit_cost_usd,
         "sold_profit": sold_profit,
         "return_loss": return_loss,
+        "effective_return_rate": effective_return_rate,
         "expected_profit": expected_profit,
         "margin": margin,
     }
@@ -391,6 +394,8 @@ def write_markdown(path, product_name, results, competitors):
         f"- 对比口径：{profile['comparison_basis']}，当前对比数量为 {first['comparison_unit']:g}{unit_label}。",
         f"- 售卖单位：报告按每{sale_label}售价计算利润，竞品统一折算到同一数量后比较。",
         f"- 主要支撑点：{profile['strategy_noun']}。",
+        f"- 退货率口径：售价不高于 ${config.get('return_rate_price_threshold_usd', 3.0):.2f} 按 0% 计算，高于该价格按 {config['return_rate']:.0%} 计算。",
+        "- 弃置费口径：所有产品按 $0.00 计算。",
         f"- 竞品最低折算价：${first['competitor_min']:.2f}/{first['comparison_unit']:g}{unit_label}" if first["competitor_min"] else "- 竞品最低折算价：未识别",
         f"- 平均期望利润率：{avg_margin:.1%}",
         "",

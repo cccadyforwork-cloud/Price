@@ -2,8 +2,8 @@ const finalHeaders = ["SKU", "款式标题", "长(in)", "宽(in)", "高(in)", "�
 const reportHeaders = ["项目", "数值", "说明"];
 const currencyRateRmbToUsd = 7.2;
 const firstLegShippingUsd = 0.3;
-const referralFeeRate = 0.18;
-const returnRate = 0.1;
+const referralFeeRate = 0.15;
+const returnRate = 0.05;
 const disposalFeeUsd = 0.25;
 const dimensionalWeightDivisor = 139;
 const refundCommissionLossRate = referralFeeRate;
@@ -2089,7 +2089,7 @@ function saveWorkbenchDraft() {
     dimensions: currentDimensions(),
     salePackQty: $("salePackQty")?.value || "1",
     comparisonUnitQty: $("comparisonUnitQty")?.value || "1",
-    targetMargin: $("targetMargin")?.value || "15%",
+    targetMargin: $("targetMargin")?.value || "30%",
     purchaseRows: currentPurchaseRows,
     competitors: currentCompetitors,
     finalPrices: currentFinalPriceDraft()
@@ -2132,7 +2132,7 @@ function restoreWorkbenchDraft() {
   $("weightG").value = draft.dimensions?.weightG ?? 0;
   $("salePackQty").value = draft.salePackQty || "1";
   $("comparisonUnitQty").value = draft.comparisonUnitQty || "1";
-  $("targetMargin").value = draft.targetMargin || "15%";
+  $("targetMargin").value = draft.targetMargin || "30%";
   currentCompetitors = Array.isArray(draft.competitors) ? draft.competitors : [];
   setProductMode(draft.productMode || "standard");
   renderRecognizedRows(draft.purchaseRows);

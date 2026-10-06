@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>自动定价工作台</title>
-    <link rel="stylesheet" href="quick-styles.css?v=20260808-1">
+    <link rel="stylesheet" href="quick-styles.css?v=20261006-1">
   </head>
   <body>
     <div class="app-shell">
@@ -15,7 +15,7 @@
         </div>
         <nav class="main-nav" aria-label="工作台导航">
           <button class="nav-button is-active" type="button" data-view="history" aria-pressed="true">
-            <span class="nav-icon">近</span>近30天定价
+            <span class="nav-icon">记</span>定价记录
           </button>
           <button class="nav-button" type="button" data-view="quick" aria-pressed="false">
             <span class="nav-icon">新</span>新品快速定价
@@ -26,7 +26,7 @@
         </nav>
         <div class="sidebar-note">
           <strong>当前主流程</strong>
-          <span>成本 + 配送档位 → 四档利润价格</span>
+          <span>成本 + 配送档位 → 五档利润价格</span>
           <span>竞品资料和原有分析能力已保留，暂不占用主页面。</span>
         </div>
       </aside>
@@ -34,7 +34,7 @@
       <main class="main-area">
         <header class="topbar">
           <div>
-            <h1 id="pageTitle">近30天产品定价</h1>
+            <h1 id="pageTitle">产品定价记录</h1>
             <p id="pageSubtitle">先看产品汇总，再查看SKU和核心计算过程</p>
           </div>
           <div id="appStatus" class="app-status" role="status" aria-live="polite">正在读取定价记录…</div>
@@ -44,7 +44,7 @@
           <div class="section-heading history-heading">
             <div>
               <h2>产品汇总</h2>
-              <p>同一产品存在多个SKU时，四档价格以范围展示。</p>
+              <p>同一产品存在多个SKU时，五档价格以范围展示。</p>
             </div>
             <label class="search-box">
               <span class="sr-only">搜索产品名称或SKU</span>
@@ -52,10 +52,8 @@
             </label>
           </div>
 
-          <div class="filter-row" aria-label="记录日期范围">
-            <button type="button" class="filter-button" data-days="7" aria-pressed="false">最近7天</button>
-            <button type="button" class="filter-button is-active" data-days="30" aria-pressed="true">最近30天</button>
-            <button type="button" class="filter-button" data-days="all" aria-pressed="false">全部</button>
+          <div class="filter-row" aria-label="定价记录操作">
+            <button type="button" class="filter-button is-active" data-days="all" aria-pressed="true">全部</button>
             <button id="toggleBulkEditBtn" type="button" class="filter-button">批量编辑</button>
             <span id="historyCount" class="record-count"></span>
           </div>
@@ -64,7 +62,7 @@
             <div class="edit-panel-heading">
               <div>
                 <h3>批量修改配送档位</h3>
-                <p>对勾选产品重算四档利润价格。</p>
+                <p>对勾选产品重算五档利润价格。</p>
               </div>
               <button id="closeBulkEditBtn" type="button" class="text-button">收起</button>
             </div>
@@ -92,10 +90,11 @@
                     <th>定价日期</th>
                     <th>SKU</th>
                     <th>配送档位</th>
-                    <th>15%利润价</th>
-                    <th>10%利润价</th>
-                    <th>5%利润价</th>
-                    <th>保本价</th>
+                    <th class="tier-40">40% 价 / 毛利</th>
+                    <th class="tier-30">30% 价 / 毛利</th>
+                    <th class="tier-20">20% 价 / 毛利</th>
+                    <th class="tier-10">10% 价 / 毛利</th>
+                    <th>保底价</th>
                   </tr>
                 </thead>
                 <tbody id="historyRows"></tbody>
@@ -124,15 +123,16 @@
               </div>
               <div class="report-actions">
                 <button id="editRecordBtn" class="secondary-button" type="button">编辑</button>
-                <button id="copyReportBtn" class="secondary-button" type="button">复制四档价格</button>
+                <button id="copyReportBtn" class="secondary-button" type="button">复制五档价格</button>
               </div>
             </div>
 
             <div class="price-cards">
-              <article><span>15% 利润价</span><strong id="reportMargin15">—</strong><small>新品首选</small></article>
-              <article><span>10% 利润价</span><strong id="reportMargin10">—</strong><small>新品竞争价</small></article>
-              <article><span>5% 利润价</span><strong id="reportMargin5">—</strong><small>折扣参考</small></article>
-              <article class="floor-card"><span>保本价</span><strong id="reportBreakEven">—</strong><small>折扣底线</small></article>
+              <article class="tier-card-40"><span>40% 利润价</span><strong id="reportMargin40">—</strong><small id="reportProfit40">预计毛利 —</small></article>
+              <article class="tier-card-30"><span>30% 利润价</span><strong id="reportMargin30">—</strong><small id="reportProfit30">预计毛利 —</small></article>
+              <article class="tier-card-20"><span>20% 利润价</span><strong id="reportMargin20">—</strong><small id="reportProfit20">预计毛利 —</small></article>
+              <article class="tier-card-10"><span>10% 利润价</span><strong id="reportMargin10">—</strong><small id="reportProfit10">预计毛利 —</small></article>
+              <article class="floor-card"><span>保底价</span><strong id="reportBreakEven">—</strong><small>折扣底线</small></article>
             </div>
 
             <div class="report-grid">
@@ -155,7 +155,7 @@
               <summary>查看SKU明细</summary>
               <div class="table-scroll">
                 <table class="detail-table">
-                  <thead><tr><th>SKU</th><th>款式标题</th><th>成本价</th><th>配送费</th><th>15%</th><th>10%</th><th>5%</th><th>保本</th></tr></thead>
+                  <thead><tr><th>SKU</th><th>款式标题</th><th>成本价</th><th>配送费</th><th class="tier-40">40% 价 / 毛利</th><th class="tier-30">30% 价 / 毛利</th><th class="tier-20">20% 价 / 毛利</th><th class="tier-10">10% 价 / 毛利</th><th>保底</th></tr></thead>
                   <tbody id="reportSkuRows"></tbody>
                 </table>
               </div>
@@ -165,7 +165,7 @@
               <div class="edit-panel-heading">
                 <div>
                   <h3>编辑历史产品</h3>
-                  <p>保存时会按当前规则重新计算四档价格。</p>
+                  <p>保存时会按当前规则重新计算五档价格。</p>
                 </div>
                 <button id="cancelRecordEditBtn" type="button" class="text-button">取消</button>
               </div>
@@ -256,20 +256,21 @@
 
           <section id="quickResult" class="surface report-panel is-hidden" aria-live="polite">
             <div class="report-heading">
-              <div><h2 id="quickResultName">计算结果</h2><p>记录已保存到近30天产品汇总。</p></div>
+              <div><h2 id="quickResultName">计算结果</h2><p>记录已保存到产品汇总。</p></div>
               <button id="viewSavedRecordBtn" class="secondary-button" type="button">查看汇总记录</button>
             </div>
             <div class="price-cards">
-              <article><span>15% 利润价</span><strong id="quickMargin15">—</strong><small>新品首选</small></article>
-              <article><span>10% 利润价</span><strong id="quickMargin10">—</strong><small>新品竞争价</small></article>
-              <article><span>5% 利润价</span><strong id="quickMargin5">—</strong><small>折扣参考</small></article>
-              <article class="floor-card"><span>保本价</span><strong id="quickBreakEven">—</strong><small>折扣底线</small></article>
+              <article class="tier-card-40"><span>40% 利润价</span><strong id="quickMargin40">—</strong><small id="quickProfit40">预计毛利 —</small></article>
+              <article class="tier-card-30"><span>30% 利润价</span><strong id="quickMargin30">—</strong><small id="quickProfit30">预计毛利 —</small></article>
+              <article class="tier-card-20"><span>20% 利润价</span><strong id="quickMargin20">—</strong><small id="quickProfit20">预计毛利 —</small></article>
+              <article class="tier-card-10"><span>10% 利润价</span><strong id="quickMargin10">—</strong><small id="quickProfit10">预计毛利 —</small></article>
+              <article class="floor-card"><span>保底价</span><strong id="quickBreakEven">—</strong><small>折扣底线</small></article>
             </div>
             <details class="sku-details" open>
               <summary>SKU计算结果</summary>
               <div class="table-scroll">
                 <table class="detail-table">
-                  <thead><tr><th>SKU</th><th>款式标题</th><th>成本价</th><th>配送费</th><th>15%</th><th>10%</th><th>5%</th><th>保本</th></tr></thead>
+                  <thead><tr><th>SKU</th><th>款式标题</th><th>成本价</th><th>配送费</th><th class="tier-40">40% 价 / 毛利</th><th class="tier-30">30% 价 / 毛利</th><th class="tier-20">20% 价 / 毛利</th><th class="tier-10">10% 价 / 毛利</th><th>保底</th></tr></thead>
                   <tbody id="quickResultRows"></tbody>
                 </table>
               </div>
@@ -278,6 +279,6 @@
         </section>
       </main>
     </div>
-    <script src="quick-app.js?v=20260808-1"></script>
+    <script src="quick-app.js?v=20261006-2"></script>
   </body>
 </html>

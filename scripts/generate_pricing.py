@@ -278,9 +278,11 @@ def metrics(price, sku, config, domestic_freight_rmb):
         + fba_fee
         + config["disposal_fee_usd"]
     )
+    return_threshold = config.get("return_rate_price_threshold_usd", 3.0)
+    effective_return_rate = config["return_rate"] if price > return_threshold else 0.0
     expected_profit = (
-        (1 - config["return_rate"]) * sold_profit
-        - config["return_rate"] * return_loss
+        (1 - effective_return_rate) * sold_profit
+        - effective_return_rate * return_loss
     )
     margin = expected_profit / price if price else 0
     return {
@@ -299,6 +301,7 @@ def metrics(price, sku, config, domestic_freight_rmb):
         "referral_fee": referral_fee,
         "sold_profit": sold_profit,
         "return_loss": return_loss,
+        "effective_return_rate": effective_return_rate,
         "expected_profit": expected_profit,
         "margin": margin,
     }
@@ -513,6 +516,8 @@ def write_markdown(results, competitors, config, competitor_min_per_10, output_m
         f"- 竞品最低每10支价：${competitor_min_per_10:.2f}" if competitor_min_per_10 else "- 竞品最低每10支价：未识别",
         f"- 目标价格优势：每10支低于竞品 ${config['target_price_gap_usd']:.2f}",
         f"- 目标最低利润率：{config['target_margin_min']:.0%}",
+        f"- 退货率口径：售价不高于 ${config.get('return_rate_price_threshold_usd', 3.0):.2f} 按 0% 计算，高于该价格按 {config['return_rate']:.0%} 计算。",
+        "- 弃置费口径：所有产品按 $0.00 计算。",
         "",
         "## 建议售价",
         "",

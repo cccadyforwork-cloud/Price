@@ -264,7 +264,7 @@ def build_draft(product_name, dimension_rows, competitors, purchase_path):
                 "包装高cm": row.get("包装高cm"),
                 "包装重量g": row.get("包装重量g"),
                 "头程运费USD/包": 0.30,
-                "目标最低利润率": 0.15,
+                "目标最低利润率": 0.30,
                 "目标价格优势USD/每对比单位": 0.39,
                 "对比单位数量": to_float(row.get("销售包数"), 1),
                 "手动定价USD": "",

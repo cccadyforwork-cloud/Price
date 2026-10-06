@@ -2767,13 +2767,474 @@
       "pricingRuleVersion": "returns-above-usd-3-no-disposal-fee"
     },
     {
+      "name": "圆5cm耳环",
+      "source": "quick",
+      "createdAt": 1789963200.0,
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": null,
+      "assumptions": {
+        "currency_rate_rmb_to_usd": 7.2,
+        "referral_fee_rate": 0.18,
+        "return_rate": 0.1,
+        "first_leg_shipping_usd": 0.3,
+        "disposal_fee_usd": 0.25,
+        "marketplace": "US",
+        "target_margin_min": 0.15,
+        "target_price_gap_usd": 0.39,
+        "dimensional_weight_divisor": 139,
+        "dimensions": [
+          10,
+          10,
+          2
+        ],
+        "weightG": 100
+      },
+      "rows": [
+        {
+          "sku": "TTCA-HoopEarring-Golden",
+          "title": "金色5CM",
+          "costRmb": 1.4,
+          "margin15": 1.75,
+          "margin10": 1.61,
+          "margin5": 1.49,
+          "breakEven": 1.39,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "TTCA-HoopEarring-Sliver",
+          "title": "银色5CM",
+          "costRmb": 1.4,
+          "margin15": 1.75,
+          "margin10": 1.61,
+          "margin5": 1.49,
+          "breakEven": 1.39,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        }
+      ],
+      "notes": "由新品快速定价生成。默认尺寸重量仅在后台用于匹配配送档位，页面不展示。",
+      "id": "quick-484b963700a3",
+      "updatedAt": 1789988059.835006
+    },
+    {
+      "name": "9月W1新品单（≤4oz）",
+      "source": "quick",
+      "createdAt": 1789185600.0,
+      "tierId": "under4",
+      "tierLabel": "≤4oz",
+      "shippingFee": 0.88,
+      "assumptions": {
+        "currency_rate_rmb_to_usd": 7.2,
+        "referral_fee_rate": 0.18,
+        "return_rate": 0.1,
+        "first_leg_shipping_usd": 0.3,
+        "disposal_fee_usd": 0.25,
+        "marketplace": "US",
+        "target_margin_min": 0.15,
+        "target_price_gap_usd": 0.39,
+        "dimensional_weight_divisor": 139,
+        "dimensions": [
+          10,
+          10,
+          2
+        ],
+        "weightG": 100
+      },
+      "rows": [
+        {
+          "sku": "CA-SpringBall-2pcs",
+          "title": "弹簧笼中鼠猫玩具",
+          "costRmb": 2.36,
+          "margin15": 1.98,
+          "margin10": 1.82,
+          "margin5": 1.69,
+          "breakEven": 1.57,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-ScrewExtractor-Black",
+          "title": "双头螺丝取出器6件套",
+          "costRmb": 3.2,
+          "margin15": 2.18,
+          "margin10": 2,
+          "margin5": 1.86,
+          "breakEven": 1.73,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-CoinPurse-Black",
+          "title": "战术钥匙包黑色",
+          "costRmb": 2.76,
+          "margin15": 2.07,
+          "margin10": 1.91,
+          "margin5": 1.77,
+          "breakEven": 1.65,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-CoinPurse-White",
+          "title": "战术钥匙包白色",
+          "costRmb": 2.76,
+          "margin15": 2.07,
+          "margin10": 1.91,
+          "margin5": 1.77,
+          "breakEven": 1.65,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-YarnBall-1pcs",
+          "title": "铃铛毛线球猫玩具随机色",
+          "costRmb": 2.95,
+          "margin15": 2.12,
+          "margin10": 1.95,
+          "margin5": 1.81,
+          "breakEven": 1.69,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-SatinBonnet-3pcs",
+          "title": "宽边色丁睡帽黑色",
+          "costRmb": 4.71,
+          "margin15": 2.53,
+          "margin10": 2.34,
+          "margin5": 2.17,
+          "breakEven": 2.02,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-MAGNETHOOKS-2PCS",
+          "title": "强磁旋转登山扣L20",
+          "costRmb": 4.6,
+          "margin15": 2.51,
+          "margin10": 2.31,
+          "margin5": 2.14,
+          "breakEven": 2,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-StorageCrate-1pcs",
+          "title": "折叠塑料收纳盒奶油白",
+          "costRmb": 3.8,
+          "margin15": 2.32,
+          "margin10": 2.14,
+          "margin5": 1.98,
+          "breakEven": 1.85,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-FridgeMagnet-40pcs",
+          "title": "蓝色强力磁吸图钉40个装",
+          "costRmb": 7.6,
+          "margin15": 3.87,
+          "margin10": 2.97,
+          "margin5": 2.75,
+          "breakEven": 2.56,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-FunnyBookmark-1pcs",
+          "title": "德语感恩不锈钢书签",
+          "costRmb": 1.98,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.61,
+          "breakEven": 1.5,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-PlantClip-20pcs",
+          "title": "植物固定夹20个装",
+          "costRmb": 1.7,
+          "margin15": 1.82,
+          "margin10": 1.68,
+          "margin5": 1.55,
+          "breakEven": 1.45,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-EmergencyWhistle-1pcs",
+          "title": "绿色三频户外求生口哨",
+          "costRmb": 0.4,
+          "margin15": 1.51,
+          "margin10": 1.39,
+          "margin5": 1.29,
+          "breakEven": 1.2,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-PrecisionScrewdriver-11pcs",
+          "title": "盒装11PC精密螺丝刀套装",
+          "costRmb": 2.25,
+          "margin15": 1.95,
+          "margin10": 1.8,
+          "margin5": 1.67,
+          "breakEven": 1.55,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-MicrofiberCloth-5pcs",
+          "title": "随机色超细纤维清洁巾",
+          "costRmb": 1.475,
+          "margin15": 1.77,
+          "margin10": 1.63,
+          "margin5": 1.51,
+          "breakEven": 1.41,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-KeyTag-30pcs",
+          "title": "塑料钥匙标签混色装",
+          "costRmb": 2.1,
+          "margin15": 1.91,
+          "margin10": 1.76,
+          "margin5": 1.64,
+          "breakEven": 1.52,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-OrganzaBag-White",
+          "title": "白色欧根纱抽绳袋10×15cm",
+          "costRmb": 7.5,
+          "margin15": 3.85,
+          "margin10": 2.95,
+          "margin5": 2.73,
+          "breakEven": 2.55,
+          "shippingFee": 0.88,
+          "fees": {
+            "margin15": 0.88,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-MiniPadlock-2pcs",
+          "title": "黑色迷你三位密码挂锁",
+          "costRmb": 2.7,
+          "margin15": 2.06,
+          "margin10": 1.9,
+          "margin5": 1.76,
+          "breakEven": 1.64,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-WingNut-2pcs",
+          "title": "翼形螺母批头2件套",
+          "costRmb": 2.32,
+          "margin15": 1.97,
+          "margin10": 1.81,
+          "margin5": 1.68,
+          "breakEven": 1.57,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-PocketMultitool-3pcs",
+          "title": "钥匙扣多功能工具3件套",
+          "costRmb": 3.65,
+          "margin15": 2.28,
+          "margin10": 2.1,
+          "margin5": 1.95,
+          "breakEven": 1.82,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-SunCatcher-1pcs",
+          "title": "彩色水晶太阳捕手挂饰1件",
+          "costRmb": 3.75,
+          "margin15": 2.31,
+          "margin10": 2.13,
+          "margin5": 1.97,
+          "breakEven": 1.84,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-CardReader-1pcs",
+          "title": "白色Type-C三合一读卡器",
+          "costRmb": 2,
+          "margin15": 1.89,
+          "margin10": 1.74,
+          "margin5": 1.62,
+          "breakEven": 1.51,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-FruitCorer-1pcs",
+          "title": "荧光绿色不锈钢水果去芯器",
+          "costRmb": 2.95,
+          "margin15": 2.12,
+          "margin10": 1.95,
+          "margin5": 1.81,
+          "breakEven": 1.69,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        },
+        {
+          "sku": "CA-CatnipPillow-1pcs",
+          "title": "猫薄荷抱枕小号",
+          "costRmb": 3.3,
+          "margin15": 2.2,
+          "margin10": 2.03,
+          "margin5": 1.88,
+          "breakEven": 1.75,
+          "shippingFee": 0.5,
+          "fees": {
+            "margin15": 0.5,
+            "margin10": 0.5,
+            "margin5": 0.5,
+            "breakEven": 0.5
+          }
+        }
+      ],
+      "notes": "由新品快速定价生成。默认尺寸重量仅在后台用于匹配配送档位，页面不展示。",
+      "id": "quick-8fe6e8d57107",
+      "updatedAt": 1789220680.104515,
+      "dateLabel": ""
+    },
+    {
       "id": "w3-new-products-20260815-under4",
-      "name": "8月W3新品单（≤4oz）",
+      "name": "8月W4新品单（≤4oz）",
       "source": "quick",
       "status": "priced",
       "createdAt": 1786727093.660382,
-      "updatedAt": 1787421709.8400042,
-      "dateLabel": "8月W4覆盖W3新品",
+      "updatedAt": 1789219685.6381419,
+      "dateLabel": "8月W4",
       "tierId": "under4",
       "tierLabel": "≤4oz",
       "shippingFee": null,
@@ -3297,14 +3758,14 @@
     },
     {
       "id": "w3-new-products-20260815-4to8",
-      "name": "8月W3新品单（4-8oz）",
+      "name": "8月W4新品单（4-8oz）",
       "source": "quick",
       "status": "priced",
       "createdAt": 1786727093.660382,
-      "updatedAt": 1787421709.8400042,
-      "dateLabel": "8月W4覆盖W3新品",
+      "updatedAt": 1789219699.070475,
+      "dateLabel": "8月W4",
       "tierId": "4to8",
-      "tierLabel": "4-8oz",
+      "tierLabel": "4–8oz",
       "shippingFee": 1.77,
       "assumptions": {
         "marketplace": "US",
@@ -7185,6 +7646,100 @@
         "return_rate": 0.05
       },
       "pricingRuleVersion": "returns-above-usd-3-no-disposal-fee"
+    },
+    {
+      "name": "8字拉力器",
+      "source": "quick",
+      "createdAt": 1786161600.0,
+      "tierId": "4to8",
+      "tierLabel": "4–8oz",
+      "shippingFee": 1.77,
+      "assumptions": {
+        "currency_rate_rmb_to_usd": 7.2,
+        "referral_fee_rate": 0.18,
+        "return_rate": 0.1,
+        "first_leg_shipping_usd": 0.3,
+        "disposal_fee_usd": 0.25,
+        "marketplace": "US",
+        "target_margin_min": 0.15,
+        "target_price_gap_usd": 0.39,
+        "dimensional_weight_divisor": 139,
+        "dimensions": [
+          15,
+          10,
+          4
+        ],
+        "weightG": 200
+      },
+      "rows": [
+        {
+          "sku": "8LLQ-80g-Purple",
+          "title": "8字拉力器-紫色",
+          "costRmb": 2.6,
+          "margin15": 4.21,
+          "margin10": 3.87,
+          "margin5": 3.59,
+          "breakEven": 3.35,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          }
+        },
+        {
+          "sku": "8LLQ-80g-Pink",
+          "title": "8字拉力器-粉色",
+          "costRmb": 2.6,
+          "margin15": 4.21,
+          "margin10": 3.87,
+          "margin5": 3.59,
+          "breakEven": 3.35,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          }
+        },
+        {
+          "sku": "8LLQ-80g-Blue",
+          "title": "8字拉力器-绿色",
+          "costRmb": 2.6,
+          "margin15": 4.21,
+          "margin10": 3.87,
+          "margin5": 3.59,
+          "breakEven": 3.35,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          }
+        },
+        {
+          "sku": "8LLQ-80g-Green",
+          "title": "8字拉力器-蓝色",
+          "costRmb": 2.6,
+          "margin15": 4.21,
+          "margin10": 3.87,
+          "margin5": 3.59,
+          "breakEven": 3.35,
+          "shippingFee": 1.77,
+          "fees": {
+            "margin15": 1.77,
+            "margin10": 1.77,
+            "margin5": 1.77,
+            "breakEven": 1.77
+          }
+        }
+      ],
+      "notes": "由新品快速定价生成。默认尺寸重量仅在后台用于匹配配送档位，页面不展示。",
+      "id": "quick-1b113b05a018",
+      "updatedAt": 1786188490.937176
     },
     {
       "id": "output-防磨贴",

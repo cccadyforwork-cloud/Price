@@ -4,7 +4,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>自动定价工作台</title>
-    <link rel="stylesheet" href="quick-styles.css?v=20261012-3">
+    <script>
+      (() => {
+        const params = new URLSearchParams(location.search);
+        let theme = params.get("theme");
+        if (theme !== "dark" && theme !== "light" && params.get("embed") !== "1") {
+          try { theme = localStorage.getItem("pricing-workbench-theme"); } catch { /* Storage may be unavailable. */ }
+        }
+        document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light";
+      })();
+    </script>
+    <link rel="stylesheet" href="quick-styles.css?v=20261012-5">
   </head>
   <body>
     <div class="app-shell">
@@ -37,7 +47,13 @@
             <h1 id="pageTitle">产品定价记录</h1>
             <p id="pageSubtitle">先看产品汇总，再查看SKU和核心计算过程</p>
           </div>
-          <div id="appStatus" class="app-status" role="status" aria-live="polite">正在读取定价记录…</div>
+          <div class="topbar-actions">
+            <div class="theme-switch" role="group" aria-label="显示主题">
+              <button type="button" data-theme-choice="light" aria-pressed="true">浅色</button>
+              <button type="button" data-theme-choice="dark" aria-pressed="false">深色</button>
+            </div>
+            <div id="appStatus" class="app-status" role="status" aria-live="polite">正在读取定价记录…</div>
+          </div>
         </header>
 
         <section id="historyView" class="page-view">
@@ -288,6 +304,6 @@
         </section>
       </main>
     </div>
-    <script src="quick-app.js?v=20261012-3"></script>
+    <script src="quick-app.js?v=20261012-4"></script>
   </body>
 </html>

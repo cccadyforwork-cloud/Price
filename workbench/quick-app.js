@@ -32,6 +32,7 @@ const appState = {
 };
 
 const $ = (id) => document.getElementById(id);
+const THEME_STORAGE_KEY = "pricing-workbench-theme";
 const money = (value) => Number.isFinite(Number(value)) && Number(value) > 0 ? `$${Number(value).toFixed(2)}` : "—";
 const rmb = (value) => Number.isFinite(Number(value)) && Number(value) > 0 ? `¥${Number(value).toFixed(2).replace(/\.00$/, "")}` : "—";
 const escapeHtml = (value) => String(value ?? "")
@@ -56,6 +57,23 @@ function setStatus(message, tone = "") {
   const element = $("appStatus");
   element.textContent = message;
   element.className = `app-status ${tone ? `is-${tone}` : ""}`.trim();
+}
+
+function setTheme(theme, persist = false) {
+  const selected = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = selected;
+  document.querySelectorAll("[data-theme-choice]").forEach((button) => {
+    const active = button.dataset.themeChoice === selected;
+    button.setAttribute("aria-pressed", String(active));
+  });
+  if (persist && document.documentElement.dataset.embed !== "1") {
+    try { localStorage.setItem(THEME_STORAGE_KEY, selected); } catch { /* Storage may be unavailable. */ }
+    const url = new URL(location.href);
+    if (url.searchParams.has("theme")) {
+      url.searchParams.delete("theme");
+      history.replaceState(null, "", url);
+    }
+  }
 }
 
 function toTimestampMs(value) {
@@ -842,6 +860,9 @@ async function loadData() {
 }
 
 function initEvents() {
+  document.querySelectorAll("[data-theme-choice]").forEach((button) => button.addEventListener("click", () => {
+    setTheme(button.dataset.themeChoice, true);
+  }));
   document.querySelectorAll(".nav-button[data-view]").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.view)));
   document.querySelectorAll(".owner-filters .filter-button").forEach((button) => button.addEventListener("click", () => {
     setOwnerFilter(button.dataset.owner);
@@ -933,7 +954,7 @@ function applyLaunchContext() {
   const params = new URLSearchParams(window.location.search);
   const embedded = params.get("embed") === "1";
   if (embedded) document.documentElement.dataset.embed = "1";
-  document.documentElement.dataset.theme = params.get("theme") === "dark" ? "dark" : "light";
+  setTheme(document.documentElement.dataset.theme);
   if (params.get("view") !== "quick") return;
   switchView("quick");
   const productName = (params.get("product_name") || "").trim().slice(0, 160);
@@ -947,7 +968,7 @@ window.addEventListener("message", (event) => {
   if (document.documentElement.dataset.embed !== "1") return;
   if (!["http://127.0.0.1:8770", "http://localhost:8770"].includes(event.origin)) return;
   if (event.data?.type !== "store-ops-theme") return;
-  document.documentElement.dataset.theme = event.data.theme === "dark" ? "dark" : "light";
+  setTheme(event.data.theme);
 });
 
 document.addEventListener("DOMContentLoaded", () => {

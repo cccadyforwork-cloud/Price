@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>自动定价工作台</title>
-    <link rel="stylesheet" href="quick-styles.css?v=20261006-1">
+    <link rel="stylesheet" href="quick-styles.css?v=20261012-3">
   </head>
   <body>
     <div class="app-shell">
@@ -52,8 +52,13 @@
             </label>
           </div>
 
+          <div class="filter-row owner-filters" aria-label="按负责人查看定价记录">
+            <button type="button" class="filter-button is-active" data-owner="all" aria-pressed="true">全部 <span data-owner-count="all"></span></button>
+            <button type="button" class="filter-button" data-owner="cccady" aria-pressed="false">cccady <span data-owner-count="cccady"></span></button>
+            <button type="button" class="filter-button" data-owner="图图" aria-pressed="false">图图 <span data-owner-count="图图"></span></button>
+            <button type="button" class="filter-button" data-owner="凯旋" aria-pressed="false">凯旋 <span data-owner-count="凯旋"></span></button>
+          </div>
           <div class="filter-row" aria-label="定价记录操作">
-            <button type="button" class="filter-button is-active" data-days="all" aria-pressed="true">全部</button>
             <button id="toggleBulkEditBtn" type="button" class="filter-button">批量编辑</button>
             <span id="historyCount" class="record-count"></span>
           </div>
@@ -194,7 +199,7 @@
           <div class="section-heading">
             <div>
               <h2>新品快速定价</h2>
-              <p>只录入产品名称、SKU、款式标题和成本价。</p>
+              <p>选择负责人，再录入产品名称、SKU、款式标题和成本价。</p>
             </div>
           </div>
 
@@ -207,6 +212,10 @@
               <label>
                 <span>定价日期</span>
                 <input id="quickPricingDate" type="date">
+              </label>
+              <label>
+                <span>负责人</span>
+                <select id="quickOwner"></select>
               </label>
             </div>
 
@@ -279,6 +288,6 @@
         </section>
       </main>
     </div>
-    <script src="quick-app.js?v=20261006-2"></script>
+    <script src="quick-app.js?v=20261012-3"></script>
   </body>
 </html>

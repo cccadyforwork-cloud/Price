@@ -5,6 +5,7 @@ const SHIPPING_TIERS = {
   "12to16": { id: "12to16", label: "12–16oz", fee: 3.22, dimensions: [22, 15, 6], weightG: 430 },
   "1to1_25": { id: "1to1_25", label: "1–1.25lb", fee: 3.72, dimensions: [24, 15, 7], weightG: 510 }
 };
+const RECORD_OWNERS = ["cccady", "图图", "凯旋"];
 
 const appState = {
   pricing: {
@@ -17,10 +18,11 @@ const appState = {
   },
   quickRecords: [],
   outputRecords: [],
+  recordOwners: {},
   normalizedRecords: [],
   selectedRecordId: "",
   selectedTierId: "under4",
-  historyDays: "all",
+  ownerFilter: "all",
   historyPage: 1,
   pageSize: 15,
   bulkEditOpen: false,
@@ -38,6 +40,17 @@ const escapeHtml = (value) => String(value ?? "")
   .replaceAll(">", "&gt;")
   .replaceAll('"', "&quot;")
   .replaceAll("'", "&#039;");
+
+function ownerOptionsHtml() {
+  return '<option value="">请选择负责人</option>' + RECORD_OWNERS.map((owner) =>
+    `<option value="${escapeHtml(owner)}">${escapeHtml(owner)}</option>`
+  ).join("");
+}
+
+function recordOwner(record) {
+  const owner = Object.hasOwn(appState.recordOwners, record.id) ? appState.recordOwners[record.id] : record.owner;
+  return RECORD_OWNERS.includes(owner) ? owner : "";
+}
 
 function setStatus(message, tone = "") {
   const element = $("appStatus");
@@ -298,25 +311,30 @@ function rebuildNormalizedRecords() {
   const quick = appState.quickRecords.map(normalizeQuickRecord);
   const usedNames = new Set(quick.map((record) => record.name));
   const output = appState.outputRecords.filter((record) => !usedNames.has(record.name)).map(normalizeOutputRecord);
-  appState.normalizedRecords = [...quick, ...output].sort((a, b) => toTimestampMs(b.createdAt) - toTimestampMs(a.createdAt));
-}
-
-function recordMatchesDate(record) {
-  if (appState.historyDays === "all") return true;
-  const timestamp = toTimestampMs(record.createdAt || record.updatedAt);
-  if (!timestamp) return true;
-  const cutoff = Date.now() - Number(appState.historyDays) * 86400000;
-  return timestamp >= cutoff;
+  appState.normalizedRecords = [...quick, ...output]
+    .map((record) => ({ ...record, owner: recordOwner(record) }))
+    .sort((a, b) => toTimestampMs(b.createdAt) - toTimestampMs(a.createdAt));
 }
 
 function visibleRecords() {
   const query = $("historySearch").value.trim().toLowerCase();
   return appState.normalizedRecords.filter((record) => {
-    if (!recordMatchesDate(record)) return false;
+    if (appState.ownerFilter !== "all" && record.owner !== appState.ownerFilter) return false;
     if (!query) return true;
     const searchable = [record.name, ...record.rows.flatMap((row) => [row.sku, row.title])].join(" ").toLowerCase();
     return searchable.includes(query);
   });
+}
+
+function setOwnerFilter(owner) {
+  appState.ownerFilter = owner;
+  appState.historyPage = 1;
+  document.querySelectorAll(".owner-filters .filter-button").forEach((button) => {
+    const active = button.dataset.owner === owner;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  renderHistory();
 }
 
 function pagedHistoryRecords(records) {
@@ -335,6 +353,13 @@ function renderPagination(totalRecords) {
 }
 
 function renderHistory() {
+  const ownerCounts = { all: appState.normalizedRecords.length, cccady: 0, "图图": 0, "凯旋": 0, unassigned: 0 };
+  appState.normalizedRecords.forEach((record) => {
+    ownerCounts[record.owner || "unassigned"] += 1;
+  });
+  document.querySelectorAll("[data-owner-count]").forEach((element) => {
+    element.textContent = ownerCounts[element.dataset.ownerCount] ?? 0;
+  });
   const filteredRecords = visibleRecords();
   const records = pagedHistoryRecords(filteredRecords);
   $("historyCount").textContent = `${filteredRecords.length} 个产品`;
@@ -598,7 +623,7 @@ function switchView(view) {
   $("historyView").classList.toggle("is-hidden", !history);
   $("quickView").classList.toggle("is-hidden", history);
   $("pageTitle").textContent = history ? "产品定价记录" : "新品快速定价";
-  $("pageSubtitle").textContent = history ? "先看产品汇总，再查看SKU和核心计算过程" : "输入SKU、款式标题和成本价即可批量计算";
+  $("pageSubtitle").textContent = history ? "先看产品汇总，再查看SKU和核心计算过程" : "选择负责人并输入SKU、款式标题和成本价";
   document.querySelectorAll(".nav-button[data-view]").forEach((button) => {
     const active = button.dataset.view === view;
     button.classList.toggle("is-active", active);
@@ -712,12 +737,19 @@ function notifyLatestEmbeddedPricingRecord() {
 
 async function calculateAndSave() {
   const name = $("quickProductName").value.trim();
+  const owner = $("quickOwner").value;
   const rows = validQuickRows();
   const error = validateRows(rows);
   if (!name) {
     $("quickValidation").textContent = "请填写产品名称。";
     $("quickValidation").classList.add("is-error");
     $("quickProductName").focus();
+    return;
+  }
+  if (!RECORD_OWNERS.includes(owner)) {
+    $("quickValidation").textContent = "请选择负责人。";
+    $("quickValidation").classList.add("is-error");
+    $("quickOwner").focus();
     return;
   }
   if (error) {
@@ -731,6 +763,7 @@ async function calculateAndSave() {
   const date = dateValue ? new Date(`${dateValue}T12:00:00`) : new Date();
   const record = {
     name,
+    owner,
     source: "quick",
     createdAt: date.getTime() / 1000,
     tierId: tier.id,
@@ -783,10 +816,11 @@ async function copySelectedReport() {
 async function loadData() {
   setStatus("正在读取定价记录…");
   try {
-    const [stateResponse, quickResponse, historyResponse] = await Promise.all([
+    const [stateResponse, quickResponse, historyResponse, ownersResponse] = await Promise.all([
       fetch("/api/state"),
       fetch("/api/quick-history"),
-      fetch("/api/history")
+      fetch("/api/history"),
+      fetch("/api/record-owners")
     ]);
     if (stateResponse.ok) {
       const statePayload = await stateResponse.json();
@@ -794,6 +828,7 @@ async function loadData() {
     }
     appState.quickRecords = quickResponse.ok ? (await quickResponse.json()).records || [] : [];
     appState.outputRecords = historyResponse.ok ? (await historyResponse.json()).records?.filter((record) => !record.error) || [] : [];
+    appState.recordOwners = ownersResponse.ok ? (await ownersResponse.json()).owners || {} : {};
     rebuildNormalizedRecords();
     renderHistory();
     notifyLatestEmbeddedPricingRecord();
@@ -808,17 +843,8 @@ async function loadData() {
 
 function initEvents() {
   document.querySelectorAll(".nav-button[data-view]").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.view)));
-  document.querySelectorAll(".filter-button").forEach((button) => button.addEventListener("click", () => {
-    if (!button.dataset.days) return;
-    appState.historyDays = button.dataset.days === "all" ? "all" : Number(button.dataset.days);
-    appState.historyPage = 1;
-    document.querySelectorAll(".filter-button").forEach((item) => {
-      if (!item.dataset.days) return;
-      const active = item === button;
-      item.classList.toggle("is-active", active);
-      item.setAttribute("aria-pressed", String(active));
-    });
-    renderHistory();
+  document.querySelectorAll(".owner-filters .filter-button").forEach((button) => button.addEventListener("click", () => {
+    setOwnerFilter(button.dataset.owner);
   }));
   $("historySearch").addEventListener("input", () => {
     appState.historyPage = 1;
@@ -897,6 +923,8 @@ function initEvents() {
   $("viewSavedRecordBtn").addEventListener("click", () => {
     if (!appState.latestSavedId) return;
     switchView("history");
+    const record = recordById(appState.latestSavedId);
+    if (record && appState.ownerFilter !== "all" && appState.ownerFilter !== record.owner) setOwnerFilter(record.owner || "all");
     selectRecord(appState.latestSavedId);
   });
 }
@@ -927,6 +955,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("quickPricingDate").value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   $("editTierSelect").innerHTML = tierOptionsHtml();
   $("bulkTierSelect").innerHTML = tierOptionsHtml();
+  $("quickOwner").innerHTML = ownerOptionsHtml();
   renderQuickRows();
   initEvents();
   applyLaunchContext();

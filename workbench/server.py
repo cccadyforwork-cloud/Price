@@ -27,6 +27,8 @@ PRICING_CONFIG_PATH = ROOT / "config" / "pricing_config.json"
 WORKBENCH_STATE_PATH = ROOT / "config" / "workbench_state.json"
 HISTORY_ORDER_PATH = ROOT / "config" / "pricing_history_order.json"
 QUICK_HISTORY_PATH = ROOT / "config" / "quick_pricing_history.json"
+RECORD_OWNERS_PATH = ROOT / "config" / "pricing_record_owners.json"
+RECORD_OWNERS = {"cccady", "图图", "凯旋"}
 OUTPUT_DIR = ROOT / "output"
 INPUT_DIR = ROOT / "input"
 UPLOAD_TARGETS = {
@@ -214,6 +216,19 @@ def read_quick_history():
     return records if isinstance(records, list) else []
 
 
+def read_record_owners():
+    if not RECORD_OWNERS_PATH.exists():
+        return {}
+    try:
+        data = read_json(RECORD_OWNERS_PATH)
+    except (OSError, json.JSONDecodeError):
+        return {}
+    owners = data.get("owners") if isinstance(data, dict) else None
+    if not isinstance(owners, dict):
+        return {}
+    return {key: value for key, value in owners.items() if isinstance(key, str) and isinstance(value, str) and (value in RECORD_OWNERS or value == "")}
+
+
 def save_quick_history_record(record):
     if not isinstance(record, dict):
         raise ValueError("定价记录格式不正确")
@@ -228,6 +243,9 @@ def save_quick_history_record(record):
     saved["id"] = clean(saved.get("id")) or f"quick-{uuid.uuid4().hex[:12]}"
     saved["name"] = name
     saved["source"] = clean(saved.get("source")) or "quick"
+    saved["owner"] = clean(saved.get("owner"))
+    if saved["owner"] and saved["owner"] not in RECORD_OWNERS:
+        raise ValueError("负责人必须是 cccady、图图或凯旋")
     saved["createdAt"] = float(saved.get("createdAt") or now)
     saved["updatedAt"] = now
     records = read_quick_history()
@@ -620,6 +638,9 @@ class WorkbenchHandler(BaseHTTPRequestHandler):
             return
         if route == "/api/quick-history":
             self.send_json({"records": read_quick_history()})
+            return
+        if route == "/api/record-owners":
+            self.send_json({"owners": read_record_owners()})
             return
         if route.startswith("/files/output/"):
             name = unquote(route.removeprefix("/files/output/"))

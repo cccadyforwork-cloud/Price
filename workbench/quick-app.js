@@ -3,8 +3,21 @@ const SHIPPING_TIERS = {
   "4to8": { id: "4to8", label: "4–8oz", fee: 1.77, dimensions: [15, 10, 4], weightG: 200 },
   "8to12": { id: "8to12", label: "8–12oz", fee: 2.6, dimensions: [18, 12, 5], weightG: 300 },
   "12to16": { id: "12to16", label: "12–16oz", fee: 3.22, dimensions: [22, 15, 6], weightG: 430 },
-  "1to1_25": { id: "1to1_25", label: "1–1.25lb", fee: 3.72, dimensions: [24, 15, 7], weightG: 510 }
+  "1to1_25": { id: "1to1_25", label: "1–1.25lb", fee: 3.72, dimensions: [24, 15, 7], weightG: 510 },
+  "1_25to1_5": { id: "1_25to1_5", label: "1.25–1.5lb", fee: 4.42 },
+  "1_5to1_75": { id: "1_5to1_75", label: "1.5–1.75lb", fee: 5.11 },
+  "1_75to2": { id: "1_75to2", label: "1.75–2lb", fee: 5.81 },
+  "2to2_5": { id: "2to2_5", label: "2–2.5lb", fee: 6.83 },
+  "2_5to3": { id: "2_5to3", label: "2.5–3lb", fee: 8.19 },
+  "3to3_5": { id: "3to3_5", label: "3–3.5lb", fee: 9.59 },
+  "3_5to4": { id: "3_5to4", label: "3.5–4lb", fee: 11.05 },
+  over4: { id: "over4", label: "4lb以上", fee: 12.51 }
 };
+const BILLABLE_OZ_TIERS = [
+  [4, "under4"], [8, "4to8"], [12, "8to12"], [16, "12to16"], [20, "1to1_25"],
+  [24, "1_25to1_5"], [28, "1_5to1_75"], [32, "1_75to2"], [40, "2to2_5"],
+  [48, "2_5to3"], [56, "3to3_5"], [64, "3_5to4"], [Infinity, "over4"]
+];
 const RECORD_OWNERS = ["cccady", "图图", "凯旋"];
 
 const appState = {
@@ -22,6 +35,8 @@ const appState = {
   normalizedRecords: [],
   selectedRecordId: "",
   selectedTierId: "under4",
+  calculatedShipping: null,
+  shippingCalculatorDirty: false,
   ownerFilter: "all",
   historyPage: 1,
   pageSize: 15,
@@ -218,7 +233,7 @@ function tierFromFee(value) {
   if ([2.6, 2.84].some((item) => Math.abs(fee - item) < 0.01)) return SHIPPING_TIERS["8to12"];
   if ([3.22, 3.48].some((item) => Math.abs(fee - item) < 0.01)) return SHIPPING_TIERS["12to16"];
   if ([3.72, 4.14].some((item) => Math.abs(fee - item) < 0.01)) return SHIPPING_TIERS["1to1_25"];
-  return null;
+  return Object.values(SHIPPING_TIERS).find((tier) => tier.fee && Math.abs(fee - tier.fee) < 0.01) || null;
 }
 
 function tierById(id) {
@@ -234,6 +249,52 @@ function tierOptionsHtml(selectedId = "under4") {
     const fee = tier.id === "under4" ? tier.feeLabel : money(tier.fee);
     return `<option value="${tier.id}" ${tier.id === selectedId ? "selected" : ""}>${escapeHtml(tier.label)} · ${escapeHtml(fee)}</option>`;
   }).join("");
+}
+
+function selectQuickTier(tierId, calculatedShipping = null) {
+  const tier = SHIPPING_TIERS[tierId];
+  if (!tier) return;
+  const buttons = $("shippingTierButtons");
+  buttons.querySelectorAll('[data-calculated-tier="true"]').forEach((button) => button.remove());
+  if (!buttons.querySelector(`[data-tier="${tierId}"]`)) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "tier-button";
+    button.dataset.tier = tierId;
+    button.dataset.calculatedTier = "true";
+    button.innerHTML = `<strong>${escapeHtml(tier.label)}</strong><span>${escapeHtml(money(tier.fee))}</span>`;
+    buttons.append(button);
+  }
+  appState.selectedTierId = tierId;
+  appState.calculatedShipping = calculatedShipping;
+  appState.shippingCalculatorDirty = false;
+  buttons.querySelectorAll(".tier-button").forEach((button) => {
+    const active = button.dataset.tier === tierId;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
+function calculateShippingTier(event) {
+  event.preventDefault();
+  const dimensions = ["shippingLengthCm", "shippingWidthCm", "shippingHeightCm"].map((id) => Number($(id).value));
+  const weightG = Number($("shippingWeightG").value);
+  const result = $("shippingCalculatorResult");
+  result.classList.remove("is-hidden", "is-error");
+  if (![...dimensions, weightG].every((value) => Number.isFinite(value) && value > 0)) {
+    result.textContent = "请填写大于 0 的长、宽、高和实重。";
+    result.classList.add("is-error");
+    return;
+  }
+  const divisor = Number(appState.pricing.dimensional_weight_divisor) || 139;
+  const actualOz = weightG / 28.349523125;
+  const dimensionalOz = dimensions.reduce((product, cm) => product * (cm / 2.54), 1) / divisor * 16;
+  const billableOz = Math.max(actualOz, dimensionalOz);
+  const tierId = BILLABLE_OZ_TIERS.find(([maxOz]) => billableOz <= maxOz + 1e-9)[1];
+  const tier = SHIPPING_TIERS[tierId];
+  selectQuickTier(tierId, { tierId, dimensions, weightG });
+  const fee = tier.feeLabel || money(tier.fee);
+  result.innerHTML = `<strong>${escapeHtml(tier.label)} · ${escapeHtml(fee)}</strong><span>实重 ${actualOz.toFixed(2)}oz，体积重 ${dimensionalOz.toFixed(2)}oz，计费重 ${billableOz.toFixed(2)}oz（取较大值）。已选用下方档位。</span>`;
 }
 
 function recordShippingFee(tier, rows) {
@@ -775,7 +836,14 @@ async function calculateAndSave() {
     $("quickValidation").classList.add("is-error");
     return;
   }
+  if (appState.shippingCalculatorDirty) {
+    $("quickValidation").textContent = "尺寸或重量已修改，请重新计算配送档位，或手动选择档位。";
+    $("quickValidation").classList.add("is-error");
+    $("shippingCalculator").scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
   const tier = SHIPPING_TIERS[appState.selectedTierId];
+  const calculatedShipping = appState.calculatedShipping?.tierId === tier.id ? appState.calculatedShipping : null;
   const calculatedRows = rows.map((row) => calculateSku({ sku: row.sku, title: row.title, costRmb: Number(row.costRmb) }, tier));
   const dateValue = $("quickPricingDate").value;
   const date = dateValue ? new Date(`${dateValue}T12:00:00`) : new Date();
@@ -787,9 +855,11 @@ async function calculateAndSave() {
     tierId: tier.id,
     tierLabel: tier.label,
     shippingFee: tier.id === "under4" ? null : tier.fee,
-    assumptions: { ...appState.pricing, dimensions: tier.dimensions, weightG: tier.weightG },
+    assumptions: { ...appState.pricing, dimensions: calculatedShipping?.dimensions || tier.dimensions, weightG: calculatedShipping?.weightG || tier.weightG },
     rows: calculatedRows,
-    notes: "由新品快速定价生成。默认尺寸重量仅在后台用于匹配配送档位，页面不展示。"
+    notes: calculatedShipping
+      ? "由新品快速定价生成。根据录入的包装长宽高和实重，取实重与体积重较大者匹配配送档位。"
+      : "由新品快速定价生成。默认尺寸重量仅在后台用于匹配配送档位，页面不展示。"
   };
   $("calculateQuickBtn").disabled = true;
   setStatus("正在计算并保存…");
@@ -906,14 +976,24 @@ function initEvents() {
   $("addEditSkuBtn").addEventListener("click", () => renderEditSkuRows([...editRowsFromDom(), blankRow()]));
   $("saveRecordEditBtn").addEventListener("click", saveRecordEdit);
   $("copyReportBtn").addEventListener("click", copySelectedReport);
-  $("shippingTierButtons").querySelectorAll(".tier-button").forEach((button) => button.addEventListener("click", () => {
-    appState.selectedTierId = button.dataset.tier;
-    $("shippingTierButtons").querySelectorAll(".tier-button").forEach((item) => {
-      const active = item === button;
-      item.classList.toggle("is-active", active);
-      item.setAttribute("aria-pressed", String(active));
-    });
+  $("shippingCalculator").addEventListener("submit", calculateShippingTier);
+  $("shippingCalculator").querySelectorAll("input").forEach((input) => input.addEventListener("input", () => {
+    if (!appState.calculatedShipping) return;
+    selectQuickTier("under4");
+    appState.shippingCalculatorDirty = true;
+    $("shippingCalculatorResult").textContent = "尺寸或重量已修改，请重新计算后选用档位。";
+    $("shippingCalculatorResult").classList.remove("is-hidden");
   }));
+  $("shippingTierButtons").addEventListener("click", (event) => {
+    const button = event.target.closest(".tier-button");
+    if (!button || !$("shippingTierButtons").contains(button)) return;
+    const calculated = button.dataset.calculatedTier === "true" ? appState.calculatedShipping : null;
+    selectQuickTier(button.dataset.tier, calculated);
+    if (!$("shippingCalculatorResult").classList.contains("is-hidden") && !calculated) {
+      $("shippingCalculatorResult").textContent = `已手动选用 ${SHIPPING_TIERS[button.dataset.tier].label}；尺寸重量计算结果未用于本次定价。`;
+      $("shippingCalculatorResult").classList.remove("is-error");
+    }
+  });
   document.querySelectorAll(".entry-tab").forEach((button) => button.addEventListener("click", () => {
     const paste = button.dataset.entryMode === "paste";
     document.querySelectorAll(".entry-tab").forEach((item) => {

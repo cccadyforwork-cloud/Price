@@ -14,7 +14,7 @@
         document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light";
       })();
     </script>
-    <link rel="stylesheet" href="quick-styles.css?v=20261012-5">
+    <link rel="stylesheet" href="quick-styles.css?v=20261012-6">
   </head>
   <body>
     <div class="app-shell">
@@ -235,6 +235,23 @@
               </label>
             </div>
 
+            <form id="shippingCalculator" class="shipping-calculator">
+              <div class="shipping-calculator-heading">
+                <div>
+                  <h3>计算配送费档位</h3>
+                  <p>填写单件商品的包装尺寸和实重，按计费重匹配下方档位。</p>
+                </div>
+              </div>
+              <div class="shipping-calculator-fields">
+                <label><span>长 <small>cm</small></span><input id="shippingLengthCm" type="number" min="0.01" step="any" inputmode="decimal" placeholder="长" required></label>
+                <label><span>宽 <small>cm</small></span><input id="shippingWidthCm" type="number" min="0.01" step="any" inputmode="decimal" placeholder="宽" required></label>
+                <label><span>高 <small>cm</small></span><input id="shippingHeightCm" type="number" min="0.01" step="any" inputmode="decimal" placeholder="高" required></label>
+                <label><span>重量 <small>g</small></span><input id="shippingWeightG" type="number" min="0.01" step="any" inputmode="decimal" placeholder="实重" required></label>
+                <button class="secondary-button" type="submit">计算并选用档位</button>
+              </div>
+              <div id="shippingCalculatorResult" class="shipping-calculator-result is-hidden" role="status" aria-live="polite"></div>
+            </form>
+
             <fieldset class="shipping-fieldset">
               <legend>配送档位</legend>
               <div id="shippingTierButtons" class="tier-grid">
@@ -244,7 +261,7 @@
                 <button type="button" class="tier-button" data-tier="12to16" aria-pressed="false"><strong>12–16oz</strong><span>$3.22</span></button>
                 <button type="button" class="tier-button" data-tier="1to1_25" aria-pressed="false"><strong>1–1.25lb</strong><span>$3.72</span></button>
               </div>
-              <p class="field-help">≤4oz 会根据各档计算售价自动采用 $0.50 或 $0.88；默认尺寸重量仅在后台匹配。</p>
+              <p class="field-help">≤4oz 会根据各档计算售价自动采用 $0.50 或 $0.88；手动选档时仍使用默认尺寸重量。</p>
             </fieldset>
 
             <div class="entry-heading">
@@ -304,6 +321,6 @@
         </section>
       </main>
     </div>
-    <script src="quick-app.js?v=20261012-4"></script>
+    <script src="quick-app.js?v=20261012-5"></script>
   </body>
 </html>

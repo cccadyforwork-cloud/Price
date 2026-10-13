@@ -107,6 +107,19 @@ config/products/blister_pad_bundle.json
 output/
 ```
 
+## 9月退货翻新品价格折扣
+
+折扣表使用 `config/quick_pricing_history.json` 中已核对的后台配送费和 `config/pricing_config.json` 中的定价参数。保本价低于 $1.74 的 SKU 使用 $1.72 固定折扣价，其余按 25% 目标毛利价计算；每个 SKU 的上传数量为 10 件。
+
+在项目目录依次运行：
+
+```bash
+python3 scripts/export_sep_return_refurb_discount.py
+python3 scripts/export_sep_return_refurb_discount_upload.py
+```
+
+输出为 `output/9月退货翻新品_新价1.72及25%毛利折扣表.xlsx` 和 `output/1店价格折扣_9月退货翻新品_新价1.72及25%毛利_可上传.xlsx`。上传表包含全部 77 个 SKU；旧折扣表已移至 `output/历史折扣_已失效/`，不要用于本轮上传。
+
 ## 重要规则
 
 - 竞品和你的产品包数不同时，系统会按对比单位折算。
